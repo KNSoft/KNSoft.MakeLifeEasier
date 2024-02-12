@@ -16,13 +16,15 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [x64, x86]
+        platform: [x64, x86, ARM64]
         config: [Debug, Release]
       fail-fast: false
     runs-on: windows-latest
     steps:
     - name: Source checkout
       uses: actions/checkout@main
+      with:
+          submodules: recursive
     - name: Prepare MSBuild
       uses: microsoft/setup-msbuild@main
     - name: Build

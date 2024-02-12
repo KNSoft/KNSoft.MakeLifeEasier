@@ -1,0 +1,61 @@
+<LibCreate>
+  <Dll Name="ntdll.dll">
+    <Export Name="LdrRegisterDllNotification" CallConv="__stdcall" Arg="int ptr ptr ptr" />
+    <Export Name="LdrUnregisterDllNotification" CallConv="__stdcall" Arg="ptr" />
+  </Dll>
+  <Dll Name="KERNEL32.dll">
+    <Export Name="CreateProcessInternalW" CallConv="__stdcall" Arg="ptr ptr ptr ptr ptr int int ptr ptr ptr ptr ptr" />
+  </Dll>
+  <Dll Name="SECHOST.dll">
+    <Export Name="ChangeServiceConfig2A" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="ChangeServiceConfig2W" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="ChangeServiceConfigA" CallConv="__stdcall" Arg="ptr int int int ptr ptr ptr ptr ptr ptr ptr" />
+    <Export Name="ChangeServiceConfigW" CallConv="__stdcall" Arg="ptr int int int ptr ptr ptr ptr ptr ptr ptr" />
+    <Export Name="CloseServiceHandle" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="ControlService" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="ControlServiceExA" CallConv="__stdcall" Arg="ptr int int ptr" />
+    <Export Name="ControlServiceExW" CallConv="__stdcall" Arg="ptr int int ptr" />
+    <Export Name="ConvertSecurityDescriptorToStringSecurityDescriptorW" CallConv="__stdcall" Arg="ptr int int ptr ptr" />
+    <Export Name="ConvertSidToStringSidW" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="ConvertStringSecurityDescriptorToSecurityDescriptorW" CallConv="__stdcall" Arg="ptr int ptr ptr" />
+    <Export Name="ConvertStringSidToSidW" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="CreateServiceA" CallConv="__stdcall" Arg="ptr ptr ptr int int int int ptr ptr ptr ptr ptr ptr" />
+    <Export Name="CreateServiceW" CallConv="__stdcall" Arg="ptr ptr ptr int int int int ptr ptr ptr ptr ptr ptr" />
+    <Export Name="DeleteService" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="LookupAccountNameLocalA" CallConv="__stdcall" Arg="ptr ptr ptr ptr ptr ptr" />
+    <Export Name="LookupAccountNameLocalW" CallConv="__stdcall" Arg="ptr ptr ptr ptr ptr ptr" />
+    <Export Name="LookupAccountSidLocalA" CallConv="__stdcall" Arg="ptr ptr ptr ptr ptr ptr" />
+    <Export Name="LookupAccountSidLocalW" CallConv="__stdcall" Arg="ptr ptr ptr ptr ptr ptr" />
+    <Export Name="LsaLookupClose" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="LsaLookupFreeMemory" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="LsaLookupGetDomainInfo" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="LsaLookupManageSidNameMapping" CallConv="__stdcall" Arg="int int ptr" />
+    <Export Name="LsaLookupOpenLocalPolicy" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="LsaLookupTranslateNames" CallConv="__stdcall" Arg="ptr int int ptr ptr ptr" />
+    <Export Name="LsaLookupTranslateSids" CallConv="__stdcall" Arg="ptr int ptr ptr ptr" />
+    <Export Name="NotifyServiceStatusChange" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="NotifyServiceStatusChangeA" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="NotifyServiceStatusChangeW" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="OpenSCManagerA" CallConv="__stdcall" Arg="ptr ptr int" />
+    <Export Name="OpenSCManagerW" CallConv="__stdcall" Arg="ptr ptr int" />
+    <Export Name="OpenServiceA" CallConv="__stdcall" Arg="ptr ptr int" />
+    <Export Name="OpenServiceW" CallConv="__stdcall" Arg="ptr ptr int" />
+    <Export Name="QueryServiceConfig2A" CallConv="__stdcall" Arg="ptr int ptr int ptr" />
+    <Export Name="QueryServiceConfig2W" CallConv="__stdcall" Arg="ptr int ptr int ptr" />
+    <Export Name="QueryServiceConfigA" CallConv="__stdcall" Arg="ptr ptr int ptr" />
+    <Export Name="QueryServiceConfigW" CallConv="__stdcall" Arg="ptr ptr int ptr" />
+    <Export Name="QueryServiceObjectSecurity" CallConv="__stdcall" Arg="ptr int ptr int ptr" />
+    <Export Name="QueryServiceStatus" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="QueryServiceStatusEx" CallConv="__stdcall" Arg="ptr int ptr int ptr" />
+    <Export Name="RegisterServiceCtrlHandlerA" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="RegisterServiceCtrlHandlerExA" CallConv="__stdcall" Arg="ptr ptr ptr" />
+    <Export Name="RegisterServiceCtrlHandlerExW" CallConv="__stdcall" Arg="ptr ptr ptr" />
+    <Export Name="RegisterServiceCtrlHandlerW" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="SetServiceObjectSecurity" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="SetServiceStatus" CallConv="__stdcall" Arg="ptr ptr" />
+    <Export Name="StartServiceA" CallConv="__stdcall" Arg="ptr int ptr" />
+    <Export Name="StartServiceCtrlDispatcherA" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="StartServiceCtrlDispatcherW" CallConv="__stdcall" Arg="ptr" />
+    <Export Name="StartServiceW" CallConv="__stdcall" Arg="ptr int ptr" />
+  </Dll>
+</LibCreate>

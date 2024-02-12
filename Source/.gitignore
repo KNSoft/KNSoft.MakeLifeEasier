@@ -1,11 +1,26 @@
 .vs
 *.user
-*.aps
 
 /packages
 
 /x64
 /x86
+/ARM64
 
-/NTAssassin/x64
-/NTAssassin/x86
+/CRT/x64
+/CRT/x86
+/CRT/ARM64
+
+/NTDef/x64
+/NTDef/x86
+/NTDef/ARM64
+
+/Library/x64
+/Library/x86
+/Library/ARM64
+
+/Test/x64
+/Test/x86
+/Test/ARM64
+
+/*.nupkg

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="CRT.inl" />
+    <None Include="Memory\Memory.inl">
+      <Filter>Memory</Filter>
+    </None>
+    <None Include="Startup\Startup_Exe.inl">
+      <Filter>Startup</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Except.c" />
+    <ClCompile Include="GS.c" />
+    <ClCompile Include="RTC.cpp" />
+    <ClCompile Include="Memory\MemAllocate.c">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\MemOperator.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_Cmdline.cpp">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_DllMain.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_DllMain_Stub.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_ExeMain.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_Init.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_main.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_WinMain.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_wmain.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="Startup\Startup_wWinMain.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\gs_cookie.c">
+      <Filter>MSVCRT</Filter>
+    </ClCompile>
+    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\fltused.cpp">
+      <Filter>MSVCRT</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{dee59333-d238-4bbc-9888-2f1e0a60b34a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Startup">
+      <UniqueIdentifier>{11b6b8e7-7643-4489-94cb-fbbab70c4510}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MSVCRT">
+      <UniqueIdentifier>{182c9e5a-09dc-48d7-a7a8-fe722370f10d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\NTAssassin\CRT.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Precomp4C_LibCreate Include="Ntdll_CRT.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Precomp4C_LibExtract Include="MSVCRTExports.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <MARMASM Include="$(VCToolsInstallDir)crt\src\$(PlatformTarget)\secpushpop.asm">
+      <Filter>MSVCRT</Filter>
+    </MARMASM>
+  </ItemGroup>
+</Project>

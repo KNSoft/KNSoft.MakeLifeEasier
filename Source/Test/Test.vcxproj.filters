@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Samples">
+      <UniqueIdentifier>{e8759aeb-cf7d-4f7d-931d-30faef457da6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{404ab56a-0607-4319-bd49-f0b5afbc273b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Tests\MemAlloc.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\String.c">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Samples\ListFile.c">
+      <Filter>Samples</Filter>
+    </ClCompile>
+    <ClCompile Include="Samples\PrintFirmwareTable.c">
+      <Filter>Samples</Filter>
+    </ClCompile>
+    <ClCompile Include="Samples\QueryStorageProperty.c">
+      <Filter>Samples</Filter>
+    </ClCompile>
+    <ClCompile Include="Internal.c" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Test.h" />
+  </ItemGroup>
+</Project>
