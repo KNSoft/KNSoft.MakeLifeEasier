@@ -1,6 +1,8 @@
 ﻿#pragma once
 
-#ifdef _VC_NODEFAULTLIB
+#if defined(_VC_NODEFAULTLIB)
+
+#pragma comment(lib, "CRT.lib")
 
 #define _NO_CRT_STDIO_INLINE
 

@@ -14,7 +14,7 @@
 #include "Types/Rtl.h"
 #include "Types/Ldr.h"
 #include "Types/Reg.h"
-#include "Types/Atom.h"
+#include "Types/Ex.h"
 
 #include "Types/Sys.h"
 

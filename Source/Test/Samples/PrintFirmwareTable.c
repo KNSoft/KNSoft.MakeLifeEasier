@@ -398,7 +398,7 @@ BOOL Sample_PrintFirmwareTable()
         SMBIOSTable = EnumSMBIOSString(SMBIOSRawData, SMBIOSTable, SMBIOSTableStringCallback, SMBIOSTable);
     } while (SMBIOSTable != NULL && (PBYTE)SMBIOSTable < SMBIOSRawData->SMBIOSTableData + SMBIOSRawData->Length);
 
-    RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, FirmwareInfo);
+    RtlFreeHeap(NtGetProcessHeap(), 0, FirmwareInfo);
 
     /* Get ACPI Info */
 
@@ -409,7 +409,7 @@ BOOL Sample_PrintFirmwareTable()
         return FALSE;
     }
 
-    RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, FirmwareInfo);
+    RtlFreeHeap(NtGetProcessHeap(), 0, FirmwareInfo);
 
     return TRUE;
 }

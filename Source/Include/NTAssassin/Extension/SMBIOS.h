@@ -8,6 +8,7 @@
 
 #include "../NT/Extension.h"
 
+// nonstandard extension used: zero-sized array in struct/union
 #pragma warning(disable: 4200)
 
 #pragma pack(push, 1)

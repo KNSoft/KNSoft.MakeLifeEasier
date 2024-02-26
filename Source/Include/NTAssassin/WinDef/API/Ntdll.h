@@ -1315,11 +1315,11 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 NtCreateEvent(
-   _Out_ PHANDLE EventHandle,
-   _In_ ACCESS_MASK DesiredAccess,
-   _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
-   _In_ EVENT_TYPE EventType,
-   _In_ BOOLEAN InitialState);
+    _Out_ PHANDLE EventHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_ EVENT_TYPE EventType,
+    _In_ BOOLEAN InitialState);
 
 NTSYSAPI
 NTSTATUS
@@ -1327,6 +1327,30 @@ NTAPI
 NtSetEvent(
     _In_ HANDLE EventHandle,
     _Out_opt_ PLONG PreviousState);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+NtResetEvent(
+    _In_ HANDLE EventHandle,
+    _Out_opt_ PLONG NumberOfWaitingThreads);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+NtPulseEvent(
+    _In_ HANDLE EventHandle,
+    _In_opt_ PLONG PulseCount);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+NtQueryEvent(
+    _In_ HANDLE EventHandle,
+    _In_ EVENT_INFORMATION_CLASS EventInformationClass,
+    _Out_writes_bytes_to_(EventInformationLength, *ReturnLength) PVOID EventInformation,
+    _In_ ULONG EventInformationLength,
+    _Out_opt_ PULONG ReturnLength);
 
 #pragma endregion
 

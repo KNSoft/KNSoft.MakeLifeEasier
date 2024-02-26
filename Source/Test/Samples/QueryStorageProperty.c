@@ -33,7 +33,7 @@ static PVOID IO_QueryStorageProperty(
     }
 
     /* Allocate buffer to receive data */
-    Buffer = RtlAllocateHeap(CURRENT_PROCESS_HEAP, 0, sdh.Size);
+    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, sdh.Size);
     if (Buffer == NULL)
     {
         return NULL;
@@ -56,7 +56,7 @@ static PVOID IO_QueryStorageProperty(
     return Buffer;
 
 _fail_1:
-    RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, Buffer);
+    RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
 _fail_0:
     NtSetLastStatus(Status);
     return NULL;
@@ -64,7 +64,7 @@ _fail_0:
 
 static VOID IO_FreeStorageProperty(_Frees_ptr_ PVOID Buffer)
 {
-    RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, Buffer);
+    RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
 }
 
 static UNICODE_STRING g_usQueryVolumeDeviceName = RTL_CONSTANT_STRING(L"\\Device\\HarddiskVolume1");

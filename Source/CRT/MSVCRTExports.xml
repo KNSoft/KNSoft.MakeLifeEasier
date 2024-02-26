@@ -3,7 +3,10 @@
   <Lib Name="libcmt.lib" StripDebugInfo="">
     <Object Name="stack.obj" />
     <Object Name="gshandler.obj" Arch="x64 ARM64" />
-    <Object Name="rtcmemset.obj" Arch="ARM64"  />
+    <Object Name="amdsecgs.obj" Arch="x64" />
+    <Object Name="secchk.obj" Arch="x86" />
+    <Object Name="arm64secgs.obj" Arch="ARM64" />
+    <Object Name="rtcmemset.obj" Arch="ARM64" />
   </Lib>
 
   <Lib Name="msvcrt.lib" StripDebugInfo="">

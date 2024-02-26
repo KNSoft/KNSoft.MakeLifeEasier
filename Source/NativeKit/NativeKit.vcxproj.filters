@@ -54,7 +54,7 @@
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Advance.h">
       <Filter>NT\Types</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\NTAssassin\NT\Types\Atom.h">
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ex.h">
       <Filter>NT\Types</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Basic.h">

@@ -15,9 +15,9 @@
 /NativeKit/x86
 /NativeKit/ARM64
 
-/Library/x64
-/Library/x86
-/Library/ARM64
+/NTAssassin/x64
+/NTAssassin/x86
+/NTAssassin/ARM64
 
 /Test/x64
 /Test/x86

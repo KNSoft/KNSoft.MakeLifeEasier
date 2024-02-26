@@ -2,6 +2,13 @@
 
 #include "../NT/MinDef.h"
 
+#pragma region Disable Microsoft extension warnings
+
+// nonstandard extension used: zero-sized array in struct/union
+#pragma warning(disable: 4200)
+
+#pragma endregion
+
 #pragma region MSVC
 
 EXTERN_C_START

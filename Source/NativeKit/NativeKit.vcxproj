@@ -215,7 +215,7 @@
     <ClInclude Include="..\Include\NTAssassin\NT\Private\Winnt_Around.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Types.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Advance.h" />
-    <ClInclude Include="..\Include\NTAssassin\NT\Types\Atom.h" />
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ex.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Basic.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Fs.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Types\Io.h" />

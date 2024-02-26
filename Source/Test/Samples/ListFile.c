@@ -57,7 +57,7 @@ static BOOL File_FindInitialize(
         return FALSE;
     }
 
-    FindData->Buffer = RtlAllocateHeap(CURRENT_PROCESS_HEAP, 0, FILE_FIND_BUFFER_SIZE);
+    FindData->Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, FILE_FIND_BUFFER_SIZE);
     if (!FindData->Buffer)
     {
         NtClose(DirectoryHandle);
@@ -105,7 +105,7 @@ static BOOL File_Find(_Inout_ PFILE_FIND FindData)
 
 static VOID File_FindUninitialize(_In_ PFILE_FIND FindData)
 {
-    RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, FindData->Buffer);
+    RtlFreeHeap(NtGetProcessHeap(), 0, FindData->Buffer);
     NtClose(FindData->DirectoryHandle);
     RtlReleaseRelativeName(&FindData->RelativePath);
 }

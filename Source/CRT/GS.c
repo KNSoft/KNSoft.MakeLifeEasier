@@ -1,5 +1,7 @@
 ﻿#include "CRT.inl"
 
+#include <vcruntime_internal.h>
+
 #if defined(_M_X64)
 #define GET_TICK_COUNT_FAST() (__umulh((ULONGLONG)SharedUserData->TickCountMultiplier << 32, SharedUserData->TickCountQuad << 8))
 #else
@@ -15,20 +17,6 @@
 #endif
 
 extern uintptr_t __security_cookie_complement;
-
-void
-#if defined(_M_IX86)
- __fastcall 
-#else
-__cdecl
-#endif
-__security_check_cookie(_In_ uintptr_t _StackCookie)
-{
-    if (_StackCookie != __security_cookie)
-    {
-        __fastfail(FAST_FAIL_STACK_COOKIE_CHECK_FAILURE);
-    }
-}
 
 void __cdecl __security_init_cookie()
 {
@@ -55,7 +43,7 @@ void __cdecl __security_init_cookie()
 #endif
 
     /* Increase entropy using PID and TID */
-    Cookie ^= MAKEQWORD(CURRENT_THREAD_ID, CURRENT_PROCESS_ID);
+    Cookie ^= MAKEQWORD(NtGetCurrentThreadId(), NtGetCurrentProcessId());
 
     /* Increase entropy using tick count */
 #if defined (_WIN64)
@@ -95,6 +83,25 @@ void __cdecl __security_init_cookie()
     __security_cookie = Cookie;
     __security_cookie_complement = ~Cookie;
 }
+
+#pragma optimize("", off)
+
+#if defined _M_IX86
+#define GSFAILURE_PARAMETER
+#elif defined _M_X64
+#define GSFAILURE_PARAMETER _In_ ULONGLONG stack_cookie
+#elif defined _M_ARM || defined _M_ARM64
+#define GSFAILURE_PARAMETER _In_ uintptr_t stack_cookie
+#else
+#error Unsupported architecture
+#endif
+
+#pragma warning(disable: 4100) // unreferenced formal parameter
+__declspec(noreturn) void __cdecl __report_gsfailure(GSFAILURE_PARAMETER)
+{
+    __fastfail(FAST_FAIL_STACK_COOKIE_CHECK_FAILURE);
+}
+#pragma warning(default: 4100)
 
 DECLSPEC_NORETURN void __cdecl __report_securityfailure(unsigned long Code)
 {

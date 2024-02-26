@@ -85,12 +85,12 @@ typedef unsigned __int64 QWORD, near *PQWORD, far *LPQWORD;
 
 #pragma region Current runtime information
 
-#define CURRENT_PROCESS_ID ((HANDLE)ReadTeb(ClientId.UniqueProcess))
-#define CURRENT_THREAD_ID ((HANDLE)ReadTeb(ClientId.UniqueThread))
-#define CURRENT_DIRECTORY_HANDLE (NtCurrentPeb()->ProcessParameters->CurrentDirectory.Handle)
-#define CURRENT_IMAGE_BASE (NtCurrentPeb()->ImageBaseAddress)
-#define CURRENT_NTDLL_BASE (CONTAINING_RECORD(NtCurrentPeb()->Ldr->InInitializationOrderModuleList.Flink, LDR_DATA_TABLE_ENTRY, InInitializationOrderModuleList)->DllBase)
-#define CURRENT_PROCESS_HEAP (NtCurrentPeb()->ProcessHeap)
+#define NtGetCurrentProcessId() ((HANDLE)ReadTeb(ClientId.UniqueProcess))
+#define NtGetCurrentThreadId() ((HANDLE)ReadTeb(ClientId.UniqueThread))
+#define NtGetCurrentDirectory() ((PCURDIR)&NtCurrentPeb()->ProcessParameters->CurrentDirectory)
+#define NtGetCurrentImageBase() (NtCurrentPeb()->ImageBaseAddress)
+#define NtGetNtdllBase() (CONTAINING_RECORD(NtCurrentPeb()->Ldr->InInitializationOrderModuleList.Flink, LDR_DATA_TABLE_ENTRY, InInitializationOrderModuleList)->DllBase)
+#define NtGetProcessHeap() (NtCurrentPeb()->ProcessHeap)
 
 #pragma endregion
 

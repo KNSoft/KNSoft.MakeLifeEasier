@@ -285,7 +285,7 @@ PSYSTEM_FIRMWARE_TABLE_INFORMATION NT_GetFirmwareTable(
     }
 
     _Analysis_assume_(Length >= sizeof(FirmwareInfo));
-    Buffer = RtlAllocateHeap(CURRENT_PROCESS_HEAP, 0, Length);
+    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, Length);
     if (Buffer == NULL)
     {
         return NULL;
@@ -295,7 +295,7 @@ PSYSTEM_FIRMWARE_TABLE_INFORMATION NT_GetFirmwareTable(
     Status = NtQuerySystemInformation(SystemFirmwareTableInformation, Buffer, Length, &Length);
     if (!NT_SUCCESS(Status))
     {
-        RtlFreeHeap(CURRENT_PROCESS_HEAP, 0, Buffer);
+        RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
         return NULL;
     }
 

@@ -23,11 +23,6 @@
 #include <intrin.h>
 #include <suppress.h>
 
-/* Always ignore Microsoft extension warnings */
-
-// nonstandard extension used: zero-sized array in struct/union
-#pragma warning(disable: 4200)
-
 /* Enable extensions */
 
 #ifndef _NTASSASSIN_NO_EXTENSION_
