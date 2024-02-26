@@ -1,13 +1,18 @@
 ﻿#pragma once
 
-#define _NTASSASSIN_NTDEF_EXTENSION_
+#include "../NT/MinDef.h"
 
-#include "NT/MinDef.h"
+#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_CPU_
+#include "./CPU.h"
+#endif
 
-#include "Extension/MSToolChain.h"
-#include "Extension/CPU.h"
-#include "Extension/SMBIOS.h"
-#include "NT/Extension.h"
+#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_MSTOOLCHAIN_
+#include "./MSToolChain.h"
+#endif
+
+#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_SMBIOS_
+#include "./SMBIOS.h"
+#endif
 
 // Gets equality of two value after masked
 #define IS_EQUAL_MASKED(val1, val2, mask) (!(((val1) ^ (val2)) & (mask)))

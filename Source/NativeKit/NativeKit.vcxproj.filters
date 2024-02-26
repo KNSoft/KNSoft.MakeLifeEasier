@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Extension">
+      <UniqueIdentifier>{0824e6bd-fba8-4ba1-a245-1c0743fc1404}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NT">
+      <UniqueIdentifier>{3769bb18-ab05-4c44-8684-2ff9124963ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NT\Types">
+      <UniqueIdentifier>{41be1bc2-0092-4e39-af06-05d24bcb1fcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NT\Private">
+      <UniqueIdentifier>{2e85c850-9b91-4075-b52c-19c59f8872c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WinDef">
+      <UniqueIdentifier>{347e9f2f-faac-4fa8-b572-16ecdf28ed59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WinDef\Addendum">
+      <UniqueIdentifier>{b16b103b-f035-4094-a5ed-607db33d7845}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WinDef\API">
+      <UniqueIdentifier>{b8cf96b3-56aa-4366-920a-77b5f9d68ee9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\NTAssassin\Extension\CPU.h">
+      <Filter>Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Extension\MSToolChain.h">
+      <Filter>Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Extension\SMBIOS.h">
+      <Filter>Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Extension\Extension.h">
+      <Filter>Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Extension.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Macro.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\MinDef.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\NT.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Advance.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Atom.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Basic.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Fs.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Io.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ke.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ldr.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Mm.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ob.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Ps.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Reg.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Rtl.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Se.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Types\Sys.h">
+      <Filter>NT\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Private\Ntdef_Around.h">
+      <Filter>NT\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Private\TargetArch.h">
+      <Filter>NT\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\NT\Private\Winnt_Around.h">
+      <Filter>NT\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\API\Kernel32.h">
+      <Filter>WinDef\API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\API\Ntdll.h">
+      <Filter>WinDef\API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\API\Ntdll_Hash.h">
+      <Filter>WinDef\API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\API\User32.h">
+      <Filter>WinDef\API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\API\WinSta.h">
+      <Filter>WinDef\API</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\Addendum\CommCtrl.h">
+      <Filter>WinDef\Addendum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\Addendum\winsta.h">
+      <Filter>WinDef\Addendum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\WinDef\Addendum\WinUser.h">
+      <Filter>WinDef\Addendum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Windows.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Precomp4C_LibCreate Include="API\API.xml">
+      <Filter>WinDef\API</Filter>
+    </Precomp4C_LibCreate>
+    <Precomp4C_LibCreate Include="API\Ntdll_Hash.xml">
+      <Filter>WinDef\API</Filter>
+    </Precomp4C_LibCreate>
+  </ItemGroup>
+</Project>

@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include "../NT/MinDef.h"
-#include "../Extension/MSToolChain.h"
+#include "../NT/Extension.h"
 
 #pragma warning(disable: 4200)
 

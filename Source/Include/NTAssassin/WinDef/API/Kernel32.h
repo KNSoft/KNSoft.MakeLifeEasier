@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../NT/MinDef.h"
+#include "../../NT/MinDef.h"
 
 #include <WinBase.h>
 

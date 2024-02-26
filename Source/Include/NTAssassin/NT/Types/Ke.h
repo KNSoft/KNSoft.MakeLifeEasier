@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../MinDef.h"
-#include "../../Private/TargetArch.h"
+#include "../Private/TargetArch.h"
 
 #include "Basic.h"
 

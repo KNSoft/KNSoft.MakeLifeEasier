@@ -3,9 +3,9 @@
 #define _VCRT_BUILD
 #define _CORECRT_BUILD
 
-#include "../Include/NTAssassin/Extension.h"
-#include "../Include/NTAssassin/NT/MinDef.h"
-#include "../Include/NTAssassin/API/Ntdll.h"
+#include "../Include/NTAssassin/NT/NT.h"
+#include "../Include/NTAssassin/WinDef/API/Ntdll.h"
+#include "../Include/NTAssassin/Extension/MSToolChain.h"
 
 #include "../Include/NTAssassin/CRT.h"
 

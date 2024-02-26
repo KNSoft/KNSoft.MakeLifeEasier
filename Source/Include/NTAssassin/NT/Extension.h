@@ -4,6 +4,17 @@
 
 #include "Types.h"
 
+#pragma region WinSDK
+
+#define DECLSPEC_EXPORT __declspec(dllexport)
+typedef unsigned __int64 QWORD, near *PQWORD, far *LPQWORD;
+
+// Makes a DWORD value by LOWORD and HIWORD
+#define MAKEDWORD(l, h) ((DWORD)(((WORD)(((DWORD_PTR)(l)) & 0xffff)) | ((DWORD)((WORD)(((DWORD_PTR)(h)) & 0xffff))) << 16))
+#define MAKEQWORD(l, h) ((QWORD)(((DWORD)(((DWORD_PTR)(l)) & 0xffffffff)) | ((QWORD)((DWORD)(((DWORD_PTR)(h)) & 0xffffffff))) << 32))
+
+#pragma endregion
+
 #pragma region TEB/PEB fast access
 
 #if defined(_M_X64)

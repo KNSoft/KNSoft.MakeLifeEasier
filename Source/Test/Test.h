@@ -1,8 +1,7 @@
 ﻿#pragma once
 
 #include "../Include/NTAssassin/CRT.h"
-#include "../Include/NTAssassin/Extension.h"
-#include "../Include/NTAssassin/NTDef.h"
+#include "../Include/NTAssassin/Windows.h"
 
 EXTERN_C_START
 

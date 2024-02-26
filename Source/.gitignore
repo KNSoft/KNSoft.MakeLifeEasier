@@ -11,9 +11,9 @@
 /CRT/x86
 /CRT/ARM64
 
-/NTDef/x64
-/NTDef/x86
-/NTDef/ARM64
+/NativeKit/x64
+/NativeKit/x86
+/NativeKit/ARM64
 
 /Library/x64
 /Library/x86

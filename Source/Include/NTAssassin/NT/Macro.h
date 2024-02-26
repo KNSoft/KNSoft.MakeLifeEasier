@@ -37,11 +37,11 @@
 
 #pragma region Pseudo Handles
 
-#define NtCurrentProcess() ((HANDLE)(LONG_PTR)-1)  
+#define NtCurrentProcess() ((HANDLE)(LONG_PTR)-1)
 #define ZwCurrentProcess() NtCurrentProcess()
-#define NtCurrentThread() ((HANDLE)(LONG_PTR)-2)   
+#define NtCurrentThread() ((HANDLE)(LONG_PTR)-2)
 #define ZwCurrentThread() NtCurrentThread()
-#define NtCurrentSession() ((HANDLE)(LONG_PTR)-3)  
+#define NtCurrentSession() ((HANDLE)(LONG_PTR)-3)
 #define ZwCurrentSession() NtCurrentSession()
 
 #if defined(_NTASSASSIN_NTDEF_EXTENSION_)

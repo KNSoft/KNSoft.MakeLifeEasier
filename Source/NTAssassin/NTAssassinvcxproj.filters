@@ -3,4 +3,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
+  </ItemGroup>
 </Project>

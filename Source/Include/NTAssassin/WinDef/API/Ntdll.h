@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "../NT/MinDef.h"
-#include "../NT/Types.h"
+#include "../../NT/MinDef.h"
+#include "../../NT/Types.h"
 
 #include <minwinbase.h>
 
