@@ -3,6 +3,9 @@
 int wmain(int argc, wchar_t** argv)
 {
     BOOL bRet = TRUE;
+    int i;
+
+    int k = i;
 
     /* Run tests */
     bRet &= Test_new_delete();

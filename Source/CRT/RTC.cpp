@@ -22,3 +22,8 @@ void _RTC_Failure(void* p, int i)
 {
     __fastfail(FAST_FAIL_FATAL_APP_EXIT);
 }
+
+extern "C" void _RTC_UninitUse(const char* VarName)
+{
+    __fastfail(FAST_FAIL_FATAL_APP_EXIT);
+}

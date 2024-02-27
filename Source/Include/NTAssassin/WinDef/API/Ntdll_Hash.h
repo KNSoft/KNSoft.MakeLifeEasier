@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../../NTDef/MinDef.h"
+#include "../../NT/MinDef.h"
 
 EXTERN_C_START
 

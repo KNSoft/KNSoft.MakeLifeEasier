@@ -2,12 +2,18 @@
 
 #define _VCRT_BUILD
 #define _CORECRT_BUILD
+#define _CRT_DECLARE_GLOBAL_VARIABLES_DIRECTLY
 
 #include "../Include/NTAssassin/NT/NT.h"
 #include "../Include/NTAssassin/WinDef/API/Ntdll.h"
-#include "../Include/NTAssassin/Extension/MSToolChain.h"
+#include "../Include/NTAssassin/Extension/Extension.h"
 
 #include "../Include/NTAssassin/CRT.h"
+
+#include <internal_shared.h>
+
+NTSTATUS NTAssassin_CRT_Startup_Init();
+VOID NTAssassin_CRT_Startup_Uninit();
 
 #pragma region Entry points defined in vcstartup_internal.h
 

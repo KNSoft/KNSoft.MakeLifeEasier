@@ -96,6 +96,9 @@ _exit:
 
 #endif /*  defined(_M_IX86) */
 
+void __cdecl _initterm(_PVFV* const first, _PVFV* const last);
+int __cdecl _initterm_e(_PIFV* const first, _PIFV* const last);
+
 NTSTATUS NTAssassin_CRT_Startup_Init()
 {
     __security_init_cookie();
@@ -104,5 +107,18 @@ NTSTATUS NTAssassin_CRT_Startup_Init()
     _asm { fnclex }
     __isa_available_init();
 #endif
+
+    if (_initterm_e(__xi_a, __xi_z) != 0)
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+    _initterm(__xc_a, __xc_z);
+
     return STATUS_SUCCESS;
+}
+
+VOID NTAssassin_CRT_Startup_Uninit()
+{
+    _initterm(__xp_a, __xp_z);
+    _initterm(__xt_a, __xt_z);
 }

@@ -7,5 +7,9 @@ DllMain(
     _In_ DWORD      fdwReason,
     _In_opt_ LPVOID lpvReserved)
 {
+    if (fdwReason == DLL_PROCESS_ATTACH)
+    {
+        LdrDisableThreadCalloutsForDll(hInstance);
+    }
     return TRUE;
 }

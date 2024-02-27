@@ -53,6 +53,9 @@
     <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\fltused.cpp">
       <Filter>MSVCRT</Filter>
     </ClCompile>
+    <ClCompile Include="Startup\Startup_Init_Dynamic.c">
+      <Filter>Startup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Memory">
@@ -73,10 +76,5 @@
   </ItemGroup>
   <ItemGroup>
     <Precomp4C_LibExtract Include="MSVCRTExports.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <MARMASM Include="$(VCToolsInstallDir)crt\src\$(PlatformTarget)\secpushpop.asm">
-      <Filter>MSVCRT</Filter>
-    </MARMASM>
   </ItemGroup>
 </Project>

@@ -274,6 +274,7 @@
     <ClCompile Include="Startup\Startup_DllMain_Stub.c" />
     <ClCompile Include="Startup\Startup_ExeMain.c" />
     <ClCompile Include="Startup\Startup_Init.c" />
+    <ClCompile Include="Startup\Startup_Init_Dynamic.c" />
     <ClCompile Include="Startup\Startup_main.c" />
     <ClCompile Include="Startup\Startup_WinMain.c" />
     <ClCompile Include="Startup\Startup_wmain.c" />
