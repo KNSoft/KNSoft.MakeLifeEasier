@@ -259,6 +259,7 @@
     <None Include="CRT.inl" />
     <None Include="Memory\Memory.inl" />
     <None Include="packages.config" />
+    <None Include="Startup\Startup.inl" />
     <None Include="Startup\Startup_Exe.inl" />
   </ItemGroup>
   <ItemGroup>

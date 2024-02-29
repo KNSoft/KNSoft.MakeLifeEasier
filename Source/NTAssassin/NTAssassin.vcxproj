@@ -206,6 +206,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
+    <ClInclude Include="..\Include\NTAssassin\NTAssassin\UnitTest.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="UnitTest.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

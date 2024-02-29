@@ -3,5 +3,5 @@
 
 VOID NTAssassinExeMainCRTStartup()
 {
-    NTAssassin_Common_Main();
+    CRT_Common_EXE_Main();
 }

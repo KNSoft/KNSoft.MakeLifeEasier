@@ -1,12 +1,12 @@
-﻿#include "../CRT.inl"
+﻿#include "Startup.inl"
 
 #include <WinBase.h>
 
-static void NTAssassin_Common_Main()
+static void CRT_Common_EXE_Main()
 {
     NTSTATUS Status;
 
-    Status = NTAssassin_CRT_Startup_Init();
+    Status = CRT_Startup_Init();
     if (!NT_SUCCESS(Status))
     {
         goto _exit;
@@ -48,6 +48,7 @@ static void NTAssassin_Common_Main()
 #endif
 
 _exit:
+    CRT_Startup_Uninit();
     RtlExitUserProcess(Status);
     __assume(0);
     __fastfail(FAST_FAIL_FATAL_APP_EXIT);

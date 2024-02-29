@@ -1,6 +1,6 @@
-﻿#include "../CRT.inl"
+﻿#include "Startup.inl"
 
-#include <vcruntime_internal.h>
+#include <isa_availability.h>
 
 #if defined(_M_IX86)
 
@@ -96,10 +96,7 @@ _exit:
 
 #endif /*  defined(_M_IX86) */
 
-void __cdecl _initterm(_PVFV* const first, _PVFV* const last);
-int __cdecl _initterm_e(_PIFV* const first, _PIFV* const last);
-
-NTSTATUS NTAssassin_CRT_Startup_Init()
+NTSTATUS CRT_Startup_Init()
 {
     __security_init_cookie();
 
@@ -117,7 +114,7 @@ NTSTATUS NTAssassin_CRT_Startup_Init()
     return STATUS_SUCCESS;
 }
 
-VOID NTAssassin_CRT_Startup_Uninit()
+VOID CRT_Startup_Uninit()
 {
     _initterm(__xp_a, __xp_z);
     _initterm(__xt_a, __xt_z);

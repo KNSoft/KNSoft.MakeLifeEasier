@@ -9,6 +9,9 @@
       <Filter>Startup</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Startup\Startup.inl">
+      <Filter>Startup</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Except.c" />

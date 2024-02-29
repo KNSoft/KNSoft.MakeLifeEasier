@@ -2,15 +2,11 @@
 #include "../Memory/Memory.inl"
 #include "../../Include/NTAssassin/NT/Macro.h"
 
-EXTERN_C_START
-
 INT __argc = 0;
 CHAR** __argv = NULL;
 WCHAR** __wargv = NULL;
 CHAR* _acmdln = NULL;
 WCHAR* _wcmdln = NULL;
-
-EXTERN_C_END
 
 template <typename TChar>
 static VOID IntParseCmdline(

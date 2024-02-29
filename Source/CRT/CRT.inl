@@ -12,9 +12,6 @@
 
 #include <internal_shared.h>
 
-NTSTATUS NTAssassin_CRT_Startup_Init();
-VOID NTAssassin_CRT_Startup_Uninit();
-
 #pragma region Entry points defined in vcstartup_internal.h
 
 EXTERN_C BOOL WINAPI DllMain(

@@ -206,6 +206,7 @@
     <ClInclude Include="..\Include\NTAssassin\Extension\Extension.h" />
     <ClInclude Include="..\Include\NTAssassin\Extension\MSToolChain.h" />
     <ClInclude Include="..\Include\NTAssassin\Extension\SMBIOS.h" />
+    <ClInclude Include="..\Include\NTAssassin\Extension\UnitTest.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Extension.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Macro.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\MinDef.h" />
