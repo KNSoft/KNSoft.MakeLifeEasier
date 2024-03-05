@@ -2,25 +2,7 @@
 *.user
 
 /packages
-
-/x64
-/x86
-/ARM64
-
-/CRT/x64
-/CRT/x86
-/CRT/ARM64
-
-/NativeKit/x64
-/NativeKit/x86
-/NativeKit/ARM64
-
-/NTAssassin/x64
-/NTAssassin/x86
-/NTAssassin/ARM64
-
-/Test/x64
-/Test/x86
-/Test/ARM64
+/OutDir
+IntDir
 
 /*.nupkg

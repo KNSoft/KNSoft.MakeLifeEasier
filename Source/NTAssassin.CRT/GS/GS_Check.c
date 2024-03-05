@@ -1,4 +1,5 @@
-﻿#include "CRT.inl"
+﻿#include "GS.inl"
+#include "../CRT.inl"
 
 #include <vcruntime_internal.h>
 
@@ -8,12 +9,6 @@
 #define GET_TICK_COUNT_FAST()\
     (((SharedUserData->TickCountMultiplier * (ULONGLONG)SharedUserData->TickCount.High1Time) << 8) +\
     ((SharedUserData->TickCountMultiplier * (ULONGLONG)SharedUserData->TickCount.LowPart) >> 24))
-#endif
-
-#ifdef _WIN64
-#define DEFAULT_SECURITY_COOKIE ((uintptr_t)0x00002B992DDFA232)
-#else
-#define DEFAULT_SECURITY_COOKIE ((uintptr_t)0xBB40E64E)
 #endif
 
 extern uintptr_t __security_cookie_complement;
@@ -88,20 +83,14 @@ void __cdecl __security_init_cookie()
 
 #if defined _M_IX86
 #define GSFAILURE_PARAMETER
-#elif defined _M_X64
-#define GSFAILURE_PARAMETER _In_ ULONGLONG stack_cookie
-#elif defined _M_ARM || defined _M_ARM64
-#define GSFAILURE_PARAMETER _In_ uintptr_t stack_cookie
 #else
-#error Unsupported architecture
+#define GSFAILURE_PARAMETER _In_ uintptr_t stack_cookie
 #endif
 
-#pragma warning(disable: 4100) // unreferenced formal parameter
 __declspec(noreturn) void __cdecl __report_gsfailure(GSFAILURE_PARAMETER)
 {
     __fastfail(FAST_FAIL_STACK_COOKIE_CHECK_FAILURE);
 }
-#pragma warning(default: 4100)
 
 DECLSPEC_NORETURN void __cdecl __report_securityfailure(unsigned long Code)
 {

@@ -19,7 +19,7 @@ typedef struct _PEB_LDR_DATA
     PVOID ShutdownThreadId;
 } PEB_LDR_DATA, *PPEB_LDR_DATA;
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 typedef struct _PEB_LDR_DATA64
 {
@@ -47,7 +47,7 @@ typedef struct _PEB_LDR_DATA32
     VOID* POINTER_32 ShutdownThreadId;
 } PEB_LDR_DATA32, *PPEB_LDR_DATA32;
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 #pragma endregion
 
@@ -229,7 +229,7 @@ typedef struct _PEB
     ULONGLONG ExtendedFeatureDisableMask;
 } PEB, *PPEB;
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 typedef struct _PEB64
 {
@@ -534,7 +534,7 @@ typedef struct _PEB32
     ULONGLONG ExtendedFeatureDisableMask;
 } PEB32, *PPEB32;
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 #pragma endregion
 
@@ -559,7 +559,7 @@ struct _TEB_ACTIVE_FRAME
     PTEB_ACTIVE_FRAME_CONTEXT Context;
 };
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 typedef struct _TEB_ACTIVE_FRAME_CONTEXT64
 {
@@ -593,7 +593,7 @@ struct _TEB_ACTIVE_FRAME32
     TEB_ACTIVE_FRAME_CONTEXT32* POINTER_32 Context;
 };
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 #pragma endregion
 
@@ -785,7 +785,7 @@ typedef struct _TEB
     ULONGLONG ExtendedFeatureDisableMask;
 } TEB, *PTEB;
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 typedef struct _TEB64
 {
@@ -1088,6 +1088,6 @@ typedef struct _TEB32
     ULONGLONG ExtendedFeatureDisableMask;
 } TEB32, *PTEB32;
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 #pragma endregion

@@ -31,8 +31,9 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{0405085a-ff8e-4671-98e0-22fbe9279744}</ProjectGuid>
-    <RootNamespace>CRT</RootNamespace>
+    <RootNamespace>NTAssassin.CRT</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>NTAssassin.CRT</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -89,33 +90,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(ProjectDir)Include;$(VCToolsInstallDir)crt\src\vcruntime;$(UCRTContentRoot)Source\$(TargetUniversalCRTVersion)\ucrt\inc;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,11 +121,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -156,11 +146,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -178,11 +169,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -200,11 +192,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -224,11 +217,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -248,27 +242,29 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)$(PlatformTarget)\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)..\Ntdll_CRT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
+    <Precomp4C_LibCreate />
     <Precomp4C_LibCreate>
-      <OutputFile>$(SolutionDir)$(PlatformTarget)\%(Filename).lib</OutputFile>
+      <OutputFile>$(OutDir)..\%(Filename).lib</OutputFile>
     </Precomp4C_LibCreate>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="CRT.inl" />
+    <None Include="GS\GS.inl" />
     <None Include="Memory\Memory.inl" />
     <None Include="packages.config" />
     <None Include="Startup\Startup.inl" />
     <None Include="Startup\Startup_Exe.inl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\fltused.cpp" />
-    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\gs_cookie.c" />
     <ClCompile Include="Except.c" />
-    <ClCompile Include="GS.c" />
-    <ClCompile Include="Memory\MemAllocate.c" />
-    <ClCompile Include="Memory\MemOperator.cpp" />
+    <ClCompile Include="Float\Float_Used.c" />
+    <ClCompile Include="GS\GS_Check.c" />
+    <ClCompile Include="GS\GS_Cookie.c" />
+    <ClCompile Include="Memory\Mem_Allocate.c" />
+    <ClCompile Include="Memory\Mem_Operator.cpp" />
     <ClCompile Include="RTC.cpp" />
     <ClCompile Include="Startup\Startup_Cmdline.cpp" />
     <ClCompile Include="Startup\Startup_DllMain.c" />

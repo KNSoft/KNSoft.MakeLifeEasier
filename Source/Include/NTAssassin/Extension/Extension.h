@@ -2,15 +2,15 @@
 
 #include "../NT/MinDef.h"
 
-#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_CPU_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_CPU_
 #include "./CPU.h"
 #endif
 
-#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_MSTOOLCHAIN_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_MSTOOLCHAIN_
 #include "./MSToolChain.h"
 #endif
 
-#ifndef _NTASSASSIN_NTDEF_NO_EXTENSION_SMBIOS_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_SMBIOS_
 #include "./SMBIOS.h"
 #endif
 
@@ -23,6 +23,8 @@
 
 // Gets is the value is within the valid range of an atom
 #define IS_ATOM(val) (((ULONG_PTR)(val) & 0xFFFF) > 0 && ((ULONG_PTR)(val) & 0xFFFF) < MAXINTATOM)
+
+#define CPU_CACHE_LINE_SIZE 64
 
 #pragma region Size in bytes
 

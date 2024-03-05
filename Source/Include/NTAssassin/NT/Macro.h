@@ -44,7 +44,7 @@
 #define NtCurrentSession() ((HANDLE)(LONG_PTR)-3)
 #define ZwCurrentSession() NtCurrentSession()
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 #define NtCurrentProcessToken()  ((HANDLE)(LONG_PTR)-4)
 #define ZwCurrentProcessToken() NtCurrentProcessToken()
@@ -53,7 +53,7 @@
 #define NtCurrentThreadEffectiveToken() ((HANDLE)(LONG_PTR)-6)
 #define ZwCurrentThreadEffectiveToken() NtCurrentThreadEffectiveToken()
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 #define SERVERNAME_CURRENT ((HANDLE)NULL)
 

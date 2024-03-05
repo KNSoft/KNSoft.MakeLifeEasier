@@ -5,5 +5,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
+    <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="UnitTestFramework.c" />
   </ItemGroup>
 </Project>

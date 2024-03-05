@@ -12,15 +12,17 @@
     <None Include="Startup\Startup.inl">
       <Filter>Startup</Filter>
     </None>
+    <None Include="GS\GS.inl">
+      <Filter>GS</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Except.c" />
-    <ClCompile Include="GS.c" />
     <ClCompile Include="RTC.cpp" />
-    <ClCompile Include="Memory\MemAllocate.c">
+    <ClCompile Include="Memory\Mem_Allocate.c">
       <Filter>Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Memory\MemOperator.cpp">
+    <ClCompile Include="Memory\Mem_Operator.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="Startup\Startup_Cmdline.cpp">
@@ -50,14 +52,17 @@
     <ClCompile Include="Startup\Startup_wWinMain.c">
       <Filter>Startup</Filter>
     </ClCompile>
-    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\gs_cookie.c">
-      <Filter>MSVCRT</Filter>
-    </ClCompile>
-    <ClCompile Include="$(VCToolsInstallDir)crt\src\vcruntime\fltused.cpp">
-      <Filter>MSVCRT</Filter>
-    </ClCompile>
     <ClCompile Include="Startup\Startup_Init_Dynamic.c">
       <Filter>Startup</Filter>
+    </ClCompile>
+    <ClCompile Include="GS\GS_Check.c">
+      <Filter>GS</Filter>
+    </ClCompile>
+    <ClCompile Include="GS\GS_Cookie.c">
+      <Filter>GS</Filter>
+    </ClCompile>
+    <ClCompile Include="Float\Float_Used.c">
+      <Filter>Float</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -67,8 +72,11 @@
     <Filter Include="Startup">
       <UniqueIdentifier>{11b6b8e7-7643-4489-94cb-fbbab70c4510}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MSVCRT">
-      <UniqueIdentifier>{182c9e5a-09dc-48d7-a7a8-fe722370f10d}</UniqueIdentifier>
+    <Filter Include="GS">
+      <UniqueIdentifier>{a2d19656-39bb-4e26-8f9f-363dd1c69ff8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Float">
+      <UniqueIdentifier>{a8549d45-430e-40ec-b9c2-5548627c7177}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -42,3 +42,15 @@ typedef struct _EVENT_BASIC_INFORMATION
 } EVENT_BASIC_INFORMATION, *PEVENT_BASIC_INFORMATION;
 
 #pragma endregion
+
+#pragma region Firmware variable attributes
+
+#define VARIABLE_ATTRIBUTE_NON_VOLATILE                             0x00000001
+#define VARIABLE_ATTRIBUTE_BOOTSERVICE_ACCESS                       0x00000002
+#define VARIABLE_ATTRIBUTE_RUNTIME_ACCESS                           0x00000004
+#define VARIABLE_ATTRIBUTE_HARDWARE_ERROR_RECORD                    0x00000008
+#define VARIABLE_ATTRIBUTE_AUTHENTICATED_WRITE_ACCESS               0x00000010
+#define VARIABLE_ATTRIBUTE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS    0x00000020
+#define VARIABLE_ATTRIBUTE_APPEND_WRITE                             0x00000040
+
+#pragma endregion

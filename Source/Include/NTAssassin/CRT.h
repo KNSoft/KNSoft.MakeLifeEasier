@@ -2,7 +2,7 @@
 
 #if defined(_VC_NODEFAULTLIB)
 
-#pragma comment(lib, "CRT.lib")
+#pragma comment(lib, "NTAssassin.CRT.lib")
 
 #define _NO_CRT_STDIO_INLINE
 

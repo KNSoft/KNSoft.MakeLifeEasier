@@ -127,9 +127,6 @@
       <Filter>WinDef\Addendum</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\NTAssassin\Windows.h" />
-    <ClInclude Include="..\Include\NTAssassin\Extension\UnitTest.h">
-      <Filter>Extension</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

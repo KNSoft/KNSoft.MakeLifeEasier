@@ -31,9 +31,9 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{1a6001a4-2e81-4cfb-86f3-e1fe1b4a5991}</ProjectGuid>
-    <RootNamespace>NTDef</RootNamespace>
+    <RootNamespace>NTAssassin.NDK</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>NativeKit</ProjectName>
+    <ProjectName>NTAssassin.NDK</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,28 +94,28 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(PlatformTarget)\</OutDir>
-    <IntDir>$(PlatformTarget)\</IntDir>
+    <OutDir>$(SolutionDir)OutDir\$(PlatformTarget)\</OutDir>
+    <IntDir>IntDir\$(PlatformTarget)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -206,7 +206,6 @@
     <ClInclude Include="..\Include\NTAssassin\Extension\Extension.h" />
     <ClInclude Include="..\Include\NTAssassin\Extension\MSToolChain.h" />
     <ClInclude Include="..\Include\NTAssassin\Extension\SMBIOS.h" />
-    <ClInclude Include="..\Include\NTAssassin\Extension\UnitTest.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Extension.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\Macro.h" />
     <ClInclude Include="..\Include\NTAssassin\NT\MinDef.h" />

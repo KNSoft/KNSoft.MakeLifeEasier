@@ -13,7 +13,7 @@
 #endif
 #define MM_LOWEST_USER_ADDRESS ((PVOID)0x10000)
 
-#if defined(_NTASSASSIN_NTDEF_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION_)
 
 /* 
  * ASLR initialization constants, see:
@@ -37,7 +37,7 @@
 
 #endif
 
-#endif /* defined(_NTASSASSIN_NTDEF_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
 
 typedef enum _SECTION_INHERIT
 {
