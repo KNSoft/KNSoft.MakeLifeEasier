@@ -94,7 +94,7 @@ _exit:
     return 0;
 }
 
-#endif /*  defined(_M_IX86) */
+#endif /* defined(_M_IX86) */
 
 NTSTATUS CRT_Startup_Init()
 {

@@ -680,6 +680,76 @@ RtlConvertUlongToLuid(_In_ ULONG Ulong)
 
 #pragma endregion
 
+#pragma region Security
+
+_Post_satisfies_(return >= 8 && return <= SECURITY_MAX_SID_SIZE)
+ULONG
+#if !defined(_NTASSASSIN_NDK_EXTENSION_)
+NTSYSAPI
+NTAPI
+RtlLengthSid(
+    _In_ PSID Sid);
+#else
+FORCEINLINE
+NTAPI_INLINE
+RtlLengthSid(
+    _In_ PSID Sid)
+{
+    return UFIELD_OFFSET(SID, SubAuthority[Sid->SubAuthorityCount]);
+}
+#endif
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlCreateSecurityDescriptor(
+    _Out_ PSECURITY_DESCRIPTOR SecurityDescriptor,
+    _In_ ULONG Revision);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlSetOwnerSecurityDescriptor(
+    _Inout_ PSECURITY_DESCRIPTOR SecurityDescriptor,
+    _In_opt_ PSID Owner,
+    _In_ BOOLEAN OwnerDefaulted);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlSetGroupSecurityDescriptor(
+    _Inout_ PSECURITY_DESCRIPTOR SecurityDescriptor,
+    _In_opt_ PSID Group,
+    _In_ BOOLEAN GroupDefaulted);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlCreateAcl(
+    _Out_writes_bytes_(AclLength) PACL Acl,
+    _In_ ULONG AclLength,
+    _In_ ULONG AclRevision);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlAddAccessAllowedAce(
+    _Inout_ PACL Acl,
+    _In_ ULONG AceRevision,
+    _In_ ACCESS_MASK AccessMask,
+    _In_ PSID Sid);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
+RtlSetDaclSecurityDescriptor(
+    _Inout_ PSECURITY_DESCRIPTOR SecurityDescriptor,
+    _In_ BOOLEAN DaclPresent,
+    _In_opt_ PACL Dacl,
+    _In_ BOOLEAN DaclDefaulted);
+
+#pragma endregion
+
 #pragma region Random
 
 _IRQL_requires_max_(APC_LEVEL)
@@ -1181,6 +1251,16 @@ NtOpenProcessToken(
     _In_ ACCESS_MASK DesiredAccess,
     _Out_ PHANDLE TokenHandle);
 
+_Must_inspect_result_
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtOpenThreadToken(
+    _In_ HANDLE ThreadHandle,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_ BOOLEAN OpenAsSelf,
+    _Out_ PHANDLE TokenHandle);
+
 _When_(TokenInformationClass == TokenAccessInformation,
        _At_(TokenInformationLength, _In_range_(>= , sizeof(TOKEN_ACCESS_INFORMATION)))
 )
@@ -1228,6 +1308,19 @@ NtDuplicateToken(
     _In_ BOOLEAN EffectiveOnly,
     _In_ TOKEN_TYPE TokenType,
     _Out_ PHANDLE NewTokenHandle);
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtAccessCheck(
+    _In_ PSECURITY_DESCRIPTOR SecurityDescriptor,
+    _In_ HANDLE ClientToken,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_ PGENERIC_MAPPING GenericMapping,
+    _Out_writes_bytes_(*PrivilegeSetLength) PPRIVILEGE_SET PrivilegeSet,
+    _Inout_ PULONG PrivilegeSetLength,
+    _Out_ PACCESS_MASK GrantedAccess,
+    _Out_ PNTSTATUS AccessStatus);
 
 #pragma endregion
 
