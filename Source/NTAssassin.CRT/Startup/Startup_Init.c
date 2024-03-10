@@ -1,5 +1,8 @@
 ﻿#include "Startup.inl"
 
+#include "../../Include/NTAssassin/Extension/Extension.h"
+#include "../../Include/NTAssassin/Extension/CPU.h"
+
 #include <isa_availability.h>
 
 #if defined(_M_IX86)

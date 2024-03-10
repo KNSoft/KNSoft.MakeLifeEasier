@@ -26,9 +26,19 @@
 /* Enable extensions */
 
 #ifndef _NTASSASSIN_NO_EXTENSION_
-
 #include "Extension/Extension.h"
+#endif
 
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_CPU_
+#include "Extension/CPU.h"
+#endif
+
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_MSTOOLCHAIN_
+#include "Extension/MSToolChain.h"
+#endif
+
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_SMBIOS_
+#include "Extension/SMBIOS.h"
 #endif
 
 #endif /* _NTASSASSIN_WINDOWS_ */

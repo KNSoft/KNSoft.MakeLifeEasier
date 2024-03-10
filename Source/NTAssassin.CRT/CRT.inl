@@ -6,7 +6,6 @@
 
 #include "../Include/NTAssassin/NT/NT.h"
 #include "../Include/NTAssassin/WinDef/API/Ntdll.h"
-#include "../Include/NTAssassin/Extension/Extension.h"
 
 #include "../Include/NTAssassin/CRT.h"
 

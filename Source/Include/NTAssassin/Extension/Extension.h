@@ -2,18 +2,6 @@
 
 #include "../NT/MinDef.h"
 
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_CPU_
-#include "./CPU.h"
-#endif
-
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_MSTOOLCHAIN_
-#include "./MSToolChain.h"
-#endif
-
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_SMBIOS_
-#include "./SMBIOS.h"
-#endif
-
 // Gets equality of two value after masked
 #define IS_EQUAL_MASKED(val1, val2, mask) (!(((val1) ^ (val2)) & (mask)))
 // Sets or removes a flag from a combination value
@@ -36,6 +24,12 @@
 #define GB_TO_BYTES(x) (MB_TO_BYTES(GB_TO_MB(x)))
 #define TB_TO_GB(x) ((x) * 1024UL)
 #define TB_TO_BYTES(x) (GB_TO_BYTES(TB_TO_GB(x)))
+
+#if defined(_WIN64)
+#define SIZE_OF_POINTER 8
+#else
+#define SIZE_OF_POINTER 4
+#endif
 
 #pragma endregion
 
@@ -72,9 +66,9 @@
 
 #define ANYSIZE_STRUCT_SIZE(structure, field, size) UFIELD_OFFSET(structure, field[size])
 
-#define DEFINE_ANYSIZE_STRUCT(varname, structure, type, size) struct {\
-    structure Base;\
-    type Extra[(size) - 1];\
-} varname
+#define DEFINE_ANYSIZE_STRUCT(varName, baseType, arrayType, arraySize) struct {\
+    baseType BaseType;\
+    arrayType Array[(arraySize) - 1];\
+} varName
 
 #pragma endregion

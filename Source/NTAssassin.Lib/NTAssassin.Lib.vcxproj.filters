@@ -2,12 +2,30 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="NTAssassin.Lib.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h" />
+    <ClInclude Include="..\Include\NTAssassin\Lib\NT.Security.h">
+      <Filter>NT\Security</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UnitTestFramework.c" />
+    <ClCompile Include="NT\Security\NT.Security.Token.c">
+      <Filter>NT\Security</Filter>
+    </ClCompile>
+    <ClCompile Include="NT\Security\NT.Security.SeExports.c">
+      <Filter>NT\Security</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="NT">
+      <UniqueIdentifier>{b31be592-10c1-475e-9deb-e0614ffe2bcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NT\Security">
+      <UniqueIdentifier>{47c43fbf-a0d3-41d6-843d-df998b69d8e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

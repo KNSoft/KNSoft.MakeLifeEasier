@@ -8,3 +8,5 @@
 #define OEMRESOURCE
 
 #include "./Windows.h"
+
+#include "Lib/NT.Security.h"
