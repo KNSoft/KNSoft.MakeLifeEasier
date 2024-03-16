@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../Include/NTAssassin/CRT.h"
-#include "../Include/NTAssassin/Windows.h"
+#include "../Include/NTAssassin/NTAssassin.h"
 
 EXTERN_C_START
 
@@ -47,33 +47,5 @@ ULONG Str_CchPrintfW(
 
 VOID PrintF(_In_z_ _Printf_format_string_ PCSTR Format, ...);
 VOID PrintTitle(_In_z_ PCSTR Name, _In_z_ PCSTR Description);
-
-/* NT function wrapper */
-
-_Success_(return != FALSE)
-BOOL NTAPI NT_InitializePathObjectEx(
-    _In_z_ PCWSTR Path,
-    _In_opt_ HANDLE RootDirectory,
-    _In_ ULONG Attributes,
-    _In_opt_ PSECURITY_DESCRIPTOR SecurityDescriptor,
-    _Out_ POBJECT_ATTRIBUTES Object,
-    _Out_ PUNICODE_STRING ObjectName,
-    _Out_opt_ PRTL_RELATIVE_NAME_U RelativeName);
-
-_Success_(return != FALSE)
-BOOL NTAPI NT_InitializePathObject(
-    _In_z_ PCWSTR Path,
-    _In_ BOOL InheritHandle,
-    _Out_ POBJECT_ATTRIBUTES Object,
-    _Out_ PUNICODE_STRING ObjectName,
-    _Out_opt_ PRTL_RELATIVE_NAME_U RelativeName);
-
-HANDLE IO_OpenDevice(_In_ PUNICODE_STRING DeviceName, _In_ ACCESS_MASK DesiredAccess);
-
-_Ret_maybenull_
-PSYSTEM_FIRMWARE_TABLE_INFORMATION NT_GetFirmwareTable(
-    ULONG ProviderSignature,
-    ULONG TableID,
-    SYSTEM_FIRMWARE_TABLE_ACTION Action);
 
 EXTERN_C_END

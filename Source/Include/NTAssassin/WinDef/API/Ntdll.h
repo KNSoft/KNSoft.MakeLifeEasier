@@ -1518,6 +1518,12 @@ NtQueryPerformanceCounter(
 NTSYSAPI
 NTSTATUS
 NTAPI
+NtQuerySystemTime(
+    _Out_ PLARGE_INTEGER SystemTime);
+
+NTSYSAPI
+NTSTATUS
+NTAPI
 NtQueryInformationAtom(
     _In_ RTL_ATOM Atom,
     _In_ ATOM_INFORMATION_CLASS AtomInformationClass,

@@ -225,31 +225,31 @@ BOOL Test_String()
     /*
      * String Format
      *
-     * Test and make sure our own wrapper Str_CchPrintf(A/W) are good and safe, instead of testing the mess in CRT
+     * Test and make sure our own wrapper String_CchPrintf(A/W) are good and safe, instead of testing the mess in CRT
      */
 
-    if (Str_CchPrintfA(NULL, 0, "%hs", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) ||
-        Str_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs", TEST_STRING1_PART1) != _STR_CCH_LEN(TEST_STRING1_PART1) ||
+    if (String_CchPrintfA(NULL, 0, "%hs", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) ||
+        String_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs", TEST_STRING1_PART1) != _STR_CCH_LEN(TEST_STRING1_PART1) ||
         strcmp(szTempA, TEST_STRING1_PART1) != 0 ||
-        Str_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) ||
+        String_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) ||
         strcmp(szTempA, TEST_STRING1) != 0 ||
-        Str_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs$", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) + 1 ||
+        String_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs$", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) + 1 ||
         strcmp(szTempA, TEST_STRING1) != 0 ||
-        Str_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs$$", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) + 2 ||
+        String_CchPrintfA(szTempA, ARRAYSIZE(szTempA), "%hs$$", TEST_STRING1) != _STR_CCH_LEN(TEST_STRING1) + 2 ||
         strcmp(szTempA, TEST_STRING1) != 0)
     {
         PrintF("Test Str_CchPrintfA failed\n");
         bRet = FALSE;
     }
 
-    if (Str_CchPrintfW(NULL, 0, L"%ls", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) ||
-        Str_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls", _A2W(TEST_STRING1_PART1)) != _STR_CCH_LEN(TEST_STRING1_PART1) ||
+    if (String_CchPrintfW(NULL, 0, L"%ls", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) ||
+        String_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls", _A2W(TEST_STRING1_PART1)) != _STR_CCH_LEN(TEST_STRING1_PART1) ||
         wcscmp(szTempW, _A2W(TEST_STRING1_PART1)) != 0 ||
-        Str_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) ||
+        String_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) ||
         wcscmp(szTempW, _A2W(TEST_STRING1)) != 0 ||
-        Str_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls$", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) + 1 ||
+        String_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls$", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) + 1 ||
         wcscmp(szTempW, _A2W(TEST_STRING1)) != 0 ||
-        Str_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls$$", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) + 2 ||
+        String_CchPrintfW(szTempW, ARRAYSIZE(szTempW), L"%ls$$", _A2W(TEST_STRING1)) != _STR_CCH_LEN(TEST_STRING1) + 2 ||
         wcscmp(szTempW, _A2W(TEST_STRING1)) != 0)
     {
         PrintF("Test Str_CchPrintfW failed\n");

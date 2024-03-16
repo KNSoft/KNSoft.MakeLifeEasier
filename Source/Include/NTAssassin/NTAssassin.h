@@ -9,4 +9,7 @@
 
 #include "./Windows.h"
 
+#include "Lib/Text.h"
 #include "Lib/NT.Security.h"
+#include "Lib/IO.h"
+#include "Lib/UnitTestFramework.h"

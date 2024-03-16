@@ -6,18 +6,46 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
-    <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\NT.Security.h">
       <Filter>NT\Security</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h">
+      <Filter>UnitTest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Lib\IO.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Lib\Text.h">
+      <Filter>Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="UnitTestFramework.c" />
     <ClCompile Include="NT\Security\NT.Security.Token.c">
       <Filter>NT\Security</Filter>
     </ClCompile>
     <ClCompile Include="NT\Security\NT.Security.SeExports.c">
       <Filter>NT\Security</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Hardware\HW.Firmware.c">
+      <Filter>IO\Hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\File\File.Find.c">
+      <Filter>IO\File</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Device\IO.Device.c">
+      <Filter>IO\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="UnitTest\UnitTestFramework.c">
+      <Filter>UnitTest</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\File\IO.File.c">
+      <Filter>IO\File</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Device\Device.Storage.c">
+      <Filter>IO\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="Text\String\String.Format.c">
+      <Filter>Text\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -26,6 +54,27 @@
     </Filter>
     <Filter Include="NT\Security">
       <UniqueIdentifier>{47c43fbf-a0d3-41d6-843d-df998b69d8e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO">
+      <UniqueIdentifier>{b6dfe7c1-b80b-4b53-bac5-9eebeb8cf512}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Hardware">
+      <UniqueIdentifier>{352ea47b-8424-49c5-a5bc-5e3653906598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\File">
+      <UniqueIdentifier>{85267d9b-4955-4085-8bf9-b84483fe78ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Device">
+      <UniqueIdentifier>{f8fe3ca7-25a3-444c-bc1f-10be030862e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UnitTest">
+      <UniqueIdentifier>{7c369ae5-8825-4a23-9c92-4a146edd78da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Text">
+      <UniqueIdentifier>{f09d8f4c-950b-4ed0-85a8-a18d274039dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Text\String">
+      <UniqueIdentifier>{841b8be3-1819-44df-b715-b5bf8757c6d8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

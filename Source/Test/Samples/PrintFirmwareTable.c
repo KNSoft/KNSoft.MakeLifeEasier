@@ -361,10 +361,10 @@ BOOL Sample_PrintFirmwareTable()
 
     /* Print SMBIOS Info */
 
-    FirmwareInfo = NT_GetFirmwareTable('RSMB', 0, SystemFirmwareTable_Get);
+    FirmwareInfo = HW_GetFirmwareTable('RSMB', 0, SystemFirmwareTable_Get);
     if (FirmwareInfo == NULL)
     {
-        PrintF("NT_GetFirmwareTable failed with 0x%08lX\n", NtGetLastStatus());
+        PrintF("HW_GetFirmwareTable failed with 0x%08lX\n", NtGetLastStatus());
         return FALSE;
     }
     SMBIOSRawData = (PSMBIOS_RAWDATA)FirmwareInfo->TableBuffer;
@@ -402,10 +402,10 @@ BOOL Sample_PrintFirmwareTable()
 
     /* Get ACPI Info */
 
-    FirmwareInfo = NT_GetFirmwareTable('ACPI', 'PCAF', SystemFirmwareTable_Get);
+    FirmwareInfo = HW_GetFirmwareTable('ACPI', 'PCAF', SystemFirmwareTable_Get);
     if (FirmwareInfo == NULL)
     {
-        PrintF("NT_GetFirmwareTable failed with 0x%08lX\n", NtGetLastStatus());
+        PrintF("HW_GetFirmwareTable failed with 0x%08lX\n", NtGetLastStatus());
         return FALSE;
     }
 

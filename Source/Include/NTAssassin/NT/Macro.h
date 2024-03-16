@@ -35,6 +35,12 @@
 
 #pragma endregion
 
+#pragma region List
+
+#define RTL_STATIC_LIST_HEAD(x) LIST_ENTRY x = { &x, &x }
+
+#pragma endregion
+
 #pragma region Pseudo Handles
 
 #define NtCurrentProcess() ((HANDLE)(LONG_PTR)-1)

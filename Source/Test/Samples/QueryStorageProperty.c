@@ -1,76 +1,12 @@
 ﻿#include "../Test.h"
 
-#include <winioctl.h>
-
 static PCSTR g_pszDescription = "This sample queries the first hard disk volume information.";
 
-_Must_inspect_result_
-_Ret_maybenull_
-static PVOID IO_QueryStorageProperty(
-    _In_ HANDLE DeviceHandle,
-    _In_ PSTORAGE_PROPERTY_QUERY Query,
-    _In_ ULONG QuerySize)
-{
-    NTSTATUS Status;
-    IO_STATUS_BLOCK IoStatusBlock;
-    STORAGE_DESCRIPTOR_HEADER sdh;
-    PVOID Buffer;
-
-    /* Query header for size */
-    Status = NtDeviceIoControlFile(DeviceHandle,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   &IoStatusBlock,
-                                   IOCTL_STORAGE_QUERY_PROPERTY,
-                                   Query,
-                                   QuerySize,
-                                   &sdh,
-                                   sizeof(sdh));
-    if (!NT_SUCCESS(Status))
-    {
-        goto _fail_0;
-    }
-
-    /* Allocate buffer to receive data */
-    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, sdh.Size);
-    if (Buffer == NULL)
-    {
-        return NULL;
-    }
-    Status = NtDeviceIoControlFile(DeviceHandle,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   &IoStatusBlock,
-                                   IOCTL_STORAGE_QUERY_PROPERTY,
-                                   Query,
-                                   QuerySize,
-                                   Buffer,
-                                   sdh.Size);
-    if (!NT_SUCCESS(Status))
-    {
-        goto _fail_1;
-    }
-
-    return Buffer;
-
-_fail_1:
-    RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
-_fail_0:
-    NtSetLastStatus(Status);
-    return NULL;
-}
-
-static VOID IO_FreeStorageProperty(_Frees_ptr_ PVOID Buffer)
-{
-    RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
-}
-
-static UNICODE_STRING g_usQueryVolumeDeviceName = RTL_CONSTANT_STRING(L"\\Device\\HarddiskVolume1");
+static CONST UNICODE_STRING g_usQueryVolumeDeviceName = RTL_CONSTANT_STRING(L"\\Device\\HarddiskVolume1");
 
 BOOL Sample_QueryStorageProperty()
 {
+    NTSTATUS Status;
     HANDLE DeviceHandle;
     PSTORAGE_DEVICE_DESCRIPTOR psdd;
     STORAGE_PROPERTY_QUERY spq = {
@@ -81,18 +17,18 @@ BOOL Sample_QueryStorageProperty()
     PrintTitle(__FUNCTION__, g_pszDescription);
 
     /* Open Device */
-    DeviceHandle = IO_OpenDevice(&g_usQueryVolumeDeviceName, FILE_READ_ATTRIBUTES | SYNCHRONIZE);
-    if (!DeviceHandle)
+    Status = Device_Open(&g_usQueryVolumeDeviceName, FILE_READ_ATTRIBUTES | SYNCHRONIZE, &DeviceHandle);
+    if (!NT_SUCCESS(Status))
     {
-        PrintF("IO_OpenDevice failed with: 0x%08lX\n", NtGetLastStatus());
+        PrintF("Device_Open failed with: 0x%08lX\n", Status);
         return FALSE;
     }
 
     /* Query Property */
-    psdd = IO_QueryStorageProperty(DeviceHandle, &spq, sizeof(spq));
-    if (!psdd)
+    Status = Device_QueryStorageProperty(DeviceHandle, &spq, sizeof(spq), &psdd);
+    if (!NT_SUCCESS(Status))
     {
-        PrintF("IO_QueryStorageProperty failed with: 0x%08lX\n", NtGetLastStatus());
+        PrintF("Device_QueryStorageProperty failed with: 0x%08lX\n", Status);
         NtClose(DeviceHandle);
         return FALSE;
     }
@@ -116,7 +52,7 @@ BOOL Sample_QueryStorageProperty()
         PrintF("\tSerialNumber: %hs\n", (PCSTR)Add2Ptr(psdd, psdd->SerialNumberOffset));
     }
 
-    IO_FreeStorageProperty(psdd);
+    Device_FreeStorageProperty(psdd);
     NtClose(DeviceHandle);
     return TRUE;
 }
