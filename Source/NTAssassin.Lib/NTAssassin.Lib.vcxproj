@@ -201,7 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\Lib\IO.h" />
-    <ClInclude Include="..\Include\NTAssassin\Lib\NT.Security.h" />
+    <ClInclude Include="..\Include\NTAssassin\Lib\NT.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\Text.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h" />
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />

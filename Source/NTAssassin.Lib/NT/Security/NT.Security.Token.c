@@ -1,60 +1,60 @@
 ﻿#include "NTAssassin.Lib.inl"
 
-static SECURITY_QUALITY_OF_SERVICE g_DuplicateTokenSqos = {
+static CONST SECURITY_QUALITY_OF_SERVICE g_DuplicateTokenSqos = {
     sizeof(g_DuplicateTokenSqos),
     SecurityImpersonation,
     0,
     FALSE
 };
 
-static OBJECT_ATTRIBUTES g_DuplicateTokenObjectAttribute = {
+static CONST OBJECT_ATTRIBUTES g_DuplicateTokenObjectAttribute = {
     sizeof(g_DuplicateTokenObjectAttribute),
     NULL,
     NULL,
     0,
     NULL,
-    &g_DuplicateTokenSqos
+    RTL_CONST_CAST(PVOID)(&g_DuplicateTokenSqos)
 };
 
-HANDLE NTAPI NT_GetCurrentThreadToken()
+NTSTATUS NTAPI NT_DuplicateToken(
+    _In_ HANDLE TokenHandle,
+    _In_ TOKEN_TYPE TokenType,
+    _Out_ PHANDLE NewTokenHandle)
+{
+    return NtDuplicateToken(TokenHandle,
+                            TOKEN_QUERY | TOKEN_IMPERSONATE,
+                            RTL_CONST_CAST(POBJECT_ATTRIBUTES)(&g_DuplicateTokenObjectAttribute),
+                            FALSE,
+                            TokenType,
+                            NewTokenHandle);
+}
+
+NTSTATUS NTAPI NT_GetCurrentThreadToken(_Out_ PHANDLE TokenHandle)
 {
     NTSTATUS Status;
-    HANDLE hToken, hPrimaryToken;
+    HANDLE hPrimaryToken;
 
-    Status = NtOpenThreadToken(NtCurrentThread(), TOKEN_QUERY, FALSE, &hToken);
-    if (NT_SUCCESS(Status))
+    if (NtCurrentTeb()->IsImpersonating)
     {
-        return hToken;
-    } else if (Status != STATUS_NO_TOKEN)
-    {
-        goto _error;
+        Status = NtOpenThreadToken(NtCurrentThread(), TOKEN_QUERY, FALSE, TokenHandle);
+        if (Status != STATUS_NO_TOKEN)
+        {
+            return Status;
+        }
     }
 
     /* Duplicate the primary token to create an impersonation token */
     Status = NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hPrimaryToken);
     if (!NT_SUCCESS(Status))
     {
-        goto _error;
+        return Status;
     }
-
-    Status = NtDuplicateToken(hPrimaryToken,
-                              TOKEN_QUERY | TOKEN_IMPERSONATE,
-                              &g_DuplicateTokenObjectAttribute,
-                              FALSE,
-                              TokenImpersonation,
-                              &hToken);
+    Status = NT_DuplicateToken(hPrimaryToken, TokenImpersonation, TokenHandle);
     NtClose(hPrimaryToken);
-    if (NT_SUCCESS(Status))
-    {
-        return hToken;
-    }
-
-_error:
-    NtSetLastStatus(Status);
-    return NULL;
+    return Status;
 }
 
-static DECLSPEC_ALIGN(4) struct
+static CONST DECLSPEC_ALIGN(4) struct
 {
     DECLSPEC_ALIGN(4) ACL Acl;
     DECLSPEC_ALIGN(4) struct
@@ -78,7 +78,7 @@ static DECLSPEC_ALIGN(4) struct
     }
 };
 
-static DECLSPEC_ALIGN(SIZE_OF_POINTER) struct
+static CONST DECLSPEC_ALIGN(SIZE_OF_POINTER) struct
 {
     DECLSPEC_ALIGN(SIZE_OF_POINTER) SECURITY_DESCRIPTOR Sd;
 } g_AdminGroupSD = {
@@ -86,63 +86,58 @@ static DECLSPEC_ALIGN(SIZE_OF_POINTER) struct
         SECURITY_DESCRIPTOR_REVISION,
         0,
         SE_DACL_PRESENT,
-        &g_AdminGroupDacl.Ace.Sid2,
-        &g_AdminGroupDacl.Ace.Sid2,
+        RTL_CONST_CAST(PSID)(&g_AdminGroupDacl.Ace.Sid2),
+        RTL_CONST_CAST(PSID)(&g_AdminGroupDacl.Ace.Sid2),
         NULL,
-        &g_AdminGroupDacl.Acl
+        RTL_CONST_CAST(PACL)(&g_AdminGroupDacl.Acl)
     }
 };
 
-static GENERIC_MAPPING g_GenericMapping = {
+static CONST GENERIC_MAPPING g_GenericMapping = {
     STANDARD_RIGHTS_READ,
     STANDARD_RIGHTS_WRITE,
     STANDARD_RIGHTS_EXECUTE,
     STANDARD_RIGHTS_ALL
 };
 
-NTSTATUS NTAPI NT_IsAdminToken(_In_opt_ HANDLE TokenHandle)
+NTSTATUS NTAPI NT_IsAdminToken(_In_ HANDLE TokenHandle)
 {
+    NTSTATUS Status, AccessStatus;
     ACCESS_MASK GrantedAccess;
     DEFINE_ANYSIZE_STRUCT(PrivilegeSet, PRIVILEGE_SET, LUID_AND_ATTRIBUTES, 4);
     ULONG PrivilegeSetSize = sizeof(PrivilegeSet);
 
-    HANDLE hToken = NULL;
-    NTSTATUS Status, AccessStatus;
-
-    if (TokenHandle == NULL)
-    {
-        hToken = NT_GetCurrentThreadToken();
-        if (hToken == NULL)
-        {
-            return NtGetLastStatus();
-        }
-    } else
-    {
-        hToken = TokenHandle;
-    }
-
-    Status = NtAccessCheck(&g_AdminGroupSD.Sd,
-                           hToken,
+    Status = NtAccessCheck(RTL_CONST_CAST(PSECURITY_DESCRIPTOR)(&g_AdminGroupSD.Sd),
+                           TokenHandle,
                            g_AdminGroupDacl.Ace.AccessMask,
-                           &g_GenericMapping,
+                           RTL_CONST_CAST(PGENERIC_MAPPING)(&g_GenericMapping),
                            &PrivilegeSet.BaseType,
                            &PrivilegeSetSize,
                            &GrantedAccess,
                            &AccessStatus);
-    if (hToken != TokenHandle)
+    if (!NT_SUCCESS(Status))
     {
-        NtClose(hToken);
+        return Status;
+    } else if (AccessStatus != STATUS_SUCCESS)
+    {
+        return AccessStatus;
+    }
+    
+    return GrantedAccess == g_AdminGroupDacl.Ace.AccessMask ? STATUS_SUCCESS : STATUS_NOT_ALL_ASSIGNED;
+}
+
+NTSTATUS NTAPI NT_IsCurrentAdminToken()
+{
+    NTSTATUS Status;
+    HANDLE hToken;
+
+    Status = NT_GetCurrentThreadToken(&hToken);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
     }
 
-    if (NT_SUCCESS(Status))
-    {
-        if (!NT_SUCCESS(AccessStatus))
-        {
-            return AccessStatus;
-        } else if (GrantedAccess != g_AdminGroupDacl.Ace.AccessMask)
-        {
-            return STATUS_NOT_ALL_ASSIGNED;
-        }
-    }
+    Status = NT_IsAdminToken(hToken);
+    NtClose(hToken);
     return Status;
 }

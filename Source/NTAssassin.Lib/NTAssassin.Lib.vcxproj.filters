@@ -6,7 +6,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\NTAssassin.h" />
-    <ClInclude Include="..\Include\NTAssassin\Lib\NT.Security.h">
+    <ClInclude Include="..\Include\NTAssassin\Lib\NT.h">
       <Filter>NT\Security</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h">

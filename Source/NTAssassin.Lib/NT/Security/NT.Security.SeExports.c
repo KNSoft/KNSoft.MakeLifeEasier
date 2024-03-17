@@ -1,6 +1,4 @@
-﻿#include <NTAssassin/Lib/NT.Security.h>
-
-#include <NTAssassin/NT/NT.h>
+﻿#include "NTAssassin.Lib.inl"
 
 /* SeExport */
 PSID SeWorldSid = &(SID)SID_EVERYONE;

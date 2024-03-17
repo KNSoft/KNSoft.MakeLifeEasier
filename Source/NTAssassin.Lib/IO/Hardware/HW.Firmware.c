@@ -1,33 +1,39 @@
 ﻿#include "NTAssassin.Lib.inl"
 
-_Ret_maybenull_
-PSYSTEM_FIRMWARE_TABLE_INFORMATION NTAPI HW_GetFirmwareTable(
-    ULONG ProviderSignature,
-    ULONG TableID,
-    SYSTEM_FIRMWARE_TABLE_ACTION Action)
+// TODO: Improve SAL
+NTSTATUS NTAPI HW_GetFirmwareTable(
+    _In_ ULONG ProviderSignature,
+    _In_ ULONG TableID,
+    _In_ SYSTEM_FIRMWARE_TABLE_ACTION Action,
+    _Out_ PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
+    _Out_ PULONG FirmwareInformationLength)
 {
     NTSTATUS Status;
-    ULONG Length;
-    SYSTEM_FIRMWARE_TABLE_INFORMATION FirmwareInfo;
     PSYSTEM_FIRMWARE_TABLE_INFORMATION Buffer;
-
-    FirmwareInfo.ProviderSignature = ProviderSignature;
-    FirmwareInfo.Action = Action;
-    FirmwareInfo.TableID = TableID;
-    FirmwareInfo.TableBufferLength = 0;
+    ULONG Length;
+    SYSTEM_FIRMWARE_TABLE_INFORMATION FirmwareInfo = {
+        .ProviderSignature = ProviderSignature,
+        .Action = Action,
+        .TableID = TableID,
+        .TableBufferLength = 0
+    };
 
     Status = NtQuerySystemInformation(SystemFirmwareTableInformation, &FirmwareInfo, sizeof(FirmwareInfo), &Length);
     if (Status != STATUS_BUFFER_TOO_SMALL)
     {
-        NtSetLastStatus(Status);
-        return NULL;
+        if (NT_SUCCESS(Status))
+        {
+            *FirmwareInformation = NULL;
+            *FirmwareInformationLength = 0;
+        }
+        return Status;
     }
 
     _Analysis_assume_(Length >= sizeof(FirmwareInfo));
     Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, Length);
     if (Buffer == NULL)
     {
-        return NULL;
+        return STATUS_NO_MEMORY;
     }
 
     RtlCopyMemory(Buffer, &FirmwareInfo, sizeof(FirmwareInfo));
@@ -35,8 +41,10 @@ PSYSTEM_FIRMWARE_TABLE_INFORMATION NTAPI HW_GetFirmwareTable(
     if (!NT_SUCCESS(Status))
     {
         RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
-        return NULL;
+    } else
+    {
+        *FirmwareInformation = Buffer;
+        *FirmwareInformationLength = Length;
     }
-
-    return Buffer;
+    return Status;
 }
