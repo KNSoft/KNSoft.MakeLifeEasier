@@ -6,7 +6,7 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
     _In_ ULONG TableID,
     _In_ SYSTEM_FIRMWARE_TABLE_ACTION Action,
     _Out_ PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
-    _Out_ PULONG FirmwareInformationLength)
+    _Out_opt_ PULONG FirmwareInformationLength)
 {
     NTSTATUS Status;
     PSYSTEM_FIRMWARE_TABLE_INFORMATION Buffer;
@@ -24,7 +24,10 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
         if (NT_SUCCESS(Status))
         {
             *FirmwareInformation = NULL;
-            *FirmwareInformationLength = 0;
+            if (FirmwareInformationLength != NULL)
+            {
+                *FirmwareInformationLength = 0;
+            }
         }
         return Status;
     }
@@ -44,7 +47,10 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
     } else
     {
         *FirmwareInformation = Buffer;
-        *FirmwareInformationLength = Length;
+        if (FirmwareInformationLength != NULL)
+        {
+            *FirmwareInformationLength = Length;
+        }
     }
     return Status;
 }

@@ -19,8 +19,6 @@ typedef struct _FILE_FIND
     /* Initialize parameters */
     PCUNICODE_STRING SearchFilter;
     FILE_INFORMATION_CLASS FileInformationClass;
-
-    /* Runtime data */
     HANDLE DirectoryHandle;
 
     /* Output data */
@@ -39,12 +37,6 @@ NTSTATUS NTAPI File_Find(
     _Out_ PBOOL HasData);
 
 NTSTATUS NTAPI File_BeginFind(
-    _Out_ PFILE_FIND FindData,
-    _In_ PCUNICODE_STRING DirectoryPath,
-    _In_opt_ PCUNICODE_STRING SearchFilter,
-    _In_ FILE_INFORMATION_CLASS FileInformationClass);
-
-NTSTATUS NTAPI File_BeginFindByHandle(
     _Out_ PFILE_FIND FindData,
     _In_ HANDLE DirectoryHandle,
     _In_opt_ PCUNICODE_STRING SearchFilter,
@@ -83,7 +75,7 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
     _In_ ULONG TableID,
     _In_ SYSTEM_FIRMWARE_TABLE_ACTION Action,
     _Out_ PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
-    _Out_ PULONG FirmwareInformationLength);
+    _Out_opt_ PULONG FirmwareInformationLength);
 
 #pragma endregion
 

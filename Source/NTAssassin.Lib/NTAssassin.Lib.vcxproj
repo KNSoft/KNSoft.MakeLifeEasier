@@ -201,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\NTAssassin\Lib\IO.h" />
+    <ClInclude Include="..\Include\NTAssassin\Lib\Memory.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\NT.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\Text.h" />
     <ClInclude Include="..\Include\NTAssassin\Lib\UnitTestFramework.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="IO\File\File.Find.c" />
     <ClCompile Include="IO\File\IO.File.c" />
     <ClCompile Include="IO\Hardware\HW.Firmware.c" />
+    <ClCompile Include="Memory\Mem.Heap.c" />
     <ClCompile Include="NT\Security\NT.Security.SeExports.c" />
     <ClCompile Include="NT\Security\NT.Security.Token.c" />
     <ClCompile Include="Text\String\String.Format.c" />

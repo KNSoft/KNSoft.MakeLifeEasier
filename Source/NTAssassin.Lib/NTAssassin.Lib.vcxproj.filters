@@ -18,6 +18,9 @@
     <ClInclude Include="..\Include\NTAssassin\Lib\Text.h">
       <Filter>Text</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Lib\Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NT\Security\NT.Security.Token.c">
@@ -47,6 +50,9 @@
     <ClCompile Include="Text\String\String.Format.c">
       <Filter>Text\String</Filter>
     </ClCompile>
+    <ClCompile Include="Memory\Mem.Heap.c">
+      <Filter>Memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="NT">
@@ -75,6 +81,9 @@
     </Filter>
     <Filter Include="Text\String">
       <UniqueIdentifier>{841b8be3-1819-44df-b715-b5bf8757c6d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{7ccd9418-3019-4d33-95f2-2bcdacacbc85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

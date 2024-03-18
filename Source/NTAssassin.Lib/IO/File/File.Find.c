@@ -2,7 +2,6 @@
 
 #define FILE_FIND_BUFFER_SIZE PAGE_SIZE
 
-__inline
 NTSTATUS NTAPI File_Find(
     _In_ HANDLE DirectoryHandle,
     _Out_ PVOID Buffer,
@@ -39,7 +38,7 @@ NTSTATUS NTAPI File_Find(
     return Status;
 }
 
-NTSTATUS NTAPI File_BeginFindByHandle(
+NTSTATUS NTAPI File_BeginFind(
     _Out_ PFILE_FIND FindData,
     _In_ HANDLE DirectoryHandle,
     _In_opt_ PCUNICODE_STRING SearchFilter,
@@ -53,7 +52,6 @@ NTSTATUS NTAPI File_BeginFindByHandle(
     Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, FILE_FIND_BUFFER_SIZE);
     if (Buffer == NULL)
     {
-        NtClose(DirectoryHandle);
         return STATUS_NO_MEMORY;
     }
 
@@ -78,31 +76,8 @@ NTSTATUS NTAPI File_BeginFindByHandle(
     } else
     {
         RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
-        NtClose(DirectoryHandle);
     }
-
     return Status;
-}
-
-NTSTATUS NTAPI File_BeginFind(
-    _Out_ PFILE_FIND FindData,
-    _In_ PCUNICODE_STRING DirectoryPath,
-    _In_opt_ PCUNICODE_STRING SearchFilter,
-    _In_ FILE_INFORMATION_CLASS FileInformationClass)
-{
-    NTSTATUS Status;
-    HANDLE DirectoryHandle;
-
-    Status = File_OpenDirectory(&DirectoryHandle,
-                                DirectoryPath,
-                                FILE_LIST_DIRECTORY | SYNCHRONIZE,
-                                FILE_SHARE_READ | FILE_SHARE_WRITE);
-    if (!NT_SUCCESS(Status))
-    {
-        return Status;
-    }
-
-    return File_BeginFindByHandle(FindData, DirectoryHandle, SearchFilter, FileInformationClass);
 }
 
 NTSTATUS NTAPI File_ContinueFind(_Inout_ PFILE_FIND FindData)
@@ -119,5 +94,4 @@ NTSTATUS NTAPI File_ContinueFind(_Inout_ PFILE_FIND FindData)
 VOID NTAPI File_EndFind(_In_ PFILE_FIND FindData)
 {
     RtlFreeHeap(NtGetProcessHeap(), 0, FindData->Buffer);
-    NtClose(FindData->DirectoryHandle);
 }

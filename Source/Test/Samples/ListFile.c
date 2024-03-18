@@ -5,6 +5,7 @@ static PCSTR g_pszDescription = "This sample lists all files in current working 
 BOOL Sample_ListFile()
 {
     NTSTATUS Status;
+    HANDLE DirectoryHandle;
     FILE_FIND FindData;
     PCURDIR CurDir;
     PFILE_FULL_DIR_INFORMATION pData;
@@ -22,13 +23,24 @@ BOOL Sample_ListFile()
         PrintF("RtlDosPathNameToNtPathName_U_WithStatus failed with 0x%08lX\n", Status);
         return FALSE;
     }
-    Status = File_BeginFind(&FindData, &NtName, NULL, FileFullDirectoryInformation);
+    Status = File_OpenDirectory(&DirectoryHandle,
+                                &NtName,
+                                FILE_LIST_DIRECTORY | SYNCHRONIZE,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE);
     if (NtName.Buffer != NULL)
     {
         RtlFreeHeap(NtGetProcessHeap(), 0, NtName.Buffer);
     }
     if (!NT_SUCCESS(Status))
     {
+        PrintF("File_OpenDirectory failed with 0x%08lX\n", Status);
+        return FALSE;
+    }
+
+    Status = File_BeginFind(&FindData, DirectoryHandle, NULL, FileFullDirectoryInformation);
+    if (!NT_SUCCESS(Status))
+    {
+        NtClose(DirectoryHandle);
         PrintF("File_BeginFind failed with 0x%08lX\n", Status);
         return FALSE;
     }
@@ -56,6 +68,7 @@ BOOL Sample_ListFile()
         Status = File_ContinueFind(&FindData);
     }
     File_EndFind(&FindData);
+    NtClose(DirectoryHandle);
 
     if (NT_SUCCESS(Status))
     {

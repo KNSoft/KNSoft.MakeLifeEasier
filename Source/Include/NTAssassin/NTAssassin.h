@@ -9,6 +9,7 @@
 
 #include "./Windows.h"
 
+#include "Lib/Memory.h"
 #include "Lib/Text.h"
 #include "Lib/NT.h"
 #include "Lib/IO.h"
