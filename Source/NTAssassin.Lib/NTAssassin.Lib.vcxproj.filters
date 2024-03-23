@@ -21,6 +21,7 @@
     <ClInclude Include="..\Include\NTAssassin\Lib\Memory.h">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\NTAssassin\Lib\Lib.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NT\Security\NT.Security.Token.c">
@@ -53,6 +54,7 @@
     <ClCompile Include="Memory\Mem.Heap.c">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="NTAssassin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="NT">

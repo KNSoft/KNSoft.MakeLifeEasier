@@ -2,7 +2,7 @@
 
 #include "MinDef.h"
 
-#include "Types.h"
+#include "Types/Types.h"
 
 #pragma region WinSDK
 

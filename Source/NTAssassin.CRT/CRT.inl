@@ -4,8 +4,8 @@
 #define _CORECRT_BUILD
 #define _CRT_DECLARE_GLOBAL_VARIABLES_DIRECTLY
 
-#include "../Include/NTAssassin/NT/NT.h"
-#include "../Include/NTAssassin/WinDef/API/Ntdll.h"
+#include "../Include/NTAssassin/NDK/NT/NT.h"
+#include "../Include/NTAssassin/NDK/WinDef/API/Ntdll.h"
 
 #include "../Include/NTAssassin/CRT.h"
 

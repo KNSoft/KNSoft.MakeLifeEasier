@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "../../Include/NTAssassin/NT/Extension.h"
-#include "../../Include/NTAssassin/WinDef/API/Ntdll.h"
+#include "../../Include/NTAssassin/NDK/NT/Extension.h"
+#include "../../Include/NTAssassin/NDK/WinDef/API/Ntdll.h"
 
 _Must_inspect_result_
 _Ret_maybenull_

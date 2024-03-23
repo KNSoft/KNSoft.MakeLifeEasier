@@ -1,12 +1,8 @@
 ﻿#pragma once
 
-#if defined(_VC_NODEFAULTLIB)
-
-#pragma comment(lib, "NTAssassin.CRT.lib")
-
 #define _NO_CRT_STDIO_INLINE
 
-#include "NT/MinDef.h"
+#include "NDK/NT/MinDef.h"
 
 #if defined(__cplusplus) && defined(_MT)
 #if !defined(_DEBUG) && !defined(_DLL)
@@ -27,5 +23,3 @@ EXTERN_C CHAR** __argv;
 EXTERN_C WCHAR** __wargv;
 EXTERN_C CHAR* _acmdln;
 EXTERN_C WCHAR* _wcmdln;
-
-#endif /* _VC_NODEFAULTLIB */

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../NT/MinDef.h"
+#include "../NDK/NT/MinDef.h"
 
 typedef struct _UNITTEST_RESULT
 {
@@ -21,35 +21,30 @@ typedef BOOL CALLBACK FN_UNITTEST_ENUM_PROC(_In_ PUNITTEST_ENTRY Entry, _In_opt_
 
 EXTERN_C_START
 
-BOOL
-NTAPI
-UnitTest_EnumEntries(
+NTA_API
+BOOL NTAPI UnitTest_EnumEntries(
     _In_ __callback FN_UNITTEST_ENUM_PROC* Callback,
     _In_opt_ PVOID Context);
 
+NTA_API
 _Ret_maybenull_
 _Must_inspect_result_
-PUNITTEST_ENTRY
-NTAPI
-UnitTest_FindEntry(
+PUNITTEST_ENTRY NTAPI UnitTest_FindEntry(
     _In_z_ PCWSTR Name);
 
-ULONG
-NTAPI
-UnitTest_RunAll(
+NTA_API
+ULONG NTAPI UnitTest_RunAll(
     _Out_ PUNITTEST_RESULT Result);
 
+NTA_API
 _Success_(return != FALSE)
-BOOL
-NTAPI
-UnitTest_Run(
+BOOL NTAPI UnitTest_Run(
     _In_z_ PCWSTR Name,
     _Out_ PUNITTEST_RESULT Result);
 
+NTA_API
 _Success_(return > 0)
-ULONG
-NTAPI
-UnitTest_Main(
+ULONG NTAPI UnitTest_Main(
     _In_ int argc,
     _In_reads_(argc) _Pre_z_ wchar_t** argv,
     _Out_ PUNITTEST_RESULT Result);

@@ -48,10 +48,8 @@ EXTERN_C_END
 
 #if defined(_DEBUG)
 #define MSB_CONFIGURATION "Debug"
-#define MSB_IS_DEBUG TRUE
 #else
 #define MSB_CONFIGURATION "Release"
-#define MSB_IS_DEBUG FALSE
 #endif
 
 #define MSB_LIB_PATH(LibName) (MSB_PLATFORMTARGET "/" MSB_CONFIGURATION "/" ##LibName)

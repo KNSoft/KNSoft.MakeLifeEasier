@@ -1,4 +1,4 @@
-﻿#include "../Include/NTAssassin/NT/MinDef.h"
+﻿#include "../Include/NTAssassin/NDK/NT/MinDef.h"
 
 #if defined(_M_IX86)
 

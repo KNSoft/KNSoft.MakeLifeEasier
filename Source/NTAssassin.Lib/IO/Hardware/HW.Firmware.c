@@ -1,11 +1,13 @@
 ﻿#include "NTAssassin.Lib.inl"
 
-// TODO: Improve SAL
 NTSTATUS NTAPI HW_GetFirmwareTable(
     _In_ ULONG ProviderSignature,
     _In_ ULONG TableID,
     _In_ SYSTEM_FIRMWARE_TABLE_ACTION Action,
-    _Out_ PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
+    _Out_ _At_(*FirmwareInformation,
+               _Readable_bytes_(*FirmwareInformationLength)
+               _Writable_bytes_(*FirmwareInformationLength)
+               _Post_readable_byte_size_(*FirmwareInformationLength)) PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
     _Out_opt_ PULONG FirmwareInformationLength)
 {
     NTSTATUS Status;

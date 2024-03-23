@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#ifndef _NTASSASSIN_WINDOWS_
-#define _NTASSASSIN_WINDOWS_
-
 #include "NT/NT.h"
 
 /* Windows.h */
@@ -25,20 +22,18 @@
 
 /* Enable extensions */
 
-#ifndef _NTASSASSIN_NO_EXTENSION_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION
 #include "Extension/Extension.h"
 #endif
 
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_CPU_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_CPU
 #include "Extension/CPU.h"
 #endif
 
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_MSTOOLCHAIN_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_MSTOOLCHAIN
 #include "Extension/MSToolChain.h"
 #endif
 
-#ifndef _NTASSASSIN_NDK_NO_EXTENSION_SMBIOS_
+#ifndef _NTASSASSIN_NDK_NO_EXTENSION_SMBIOS
 #include "Extension/SMBIOS.h"
 #endif
-
-#endif /* _NTASSASSIN_WINDOWS_ */

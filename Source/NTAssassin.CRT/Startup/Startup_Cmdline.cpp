@@ -1,6 +1,6 @@
 ﻿#include "../CRT.inl"
 #include "../Memory/Memory.inl"
-#include "../../Include/NTAssassin/NT/Macro.h"
+#include "../../Include/NTAssassin/NDK/NT/Macro.h"
 
 INT __argc = 0;
 CHAR** __argv = NULL;

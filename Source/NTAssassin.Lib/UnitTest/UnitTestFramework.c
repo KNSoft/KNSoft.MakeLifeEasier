@@ -1,21 +1,23 @@
-﻿#include "../Include/NTAssassin/Lib/UnitTestFramework.h"
-
-#include "../Include/NTAssassin/WinDef/API/Ntdll.h"
+﻿#include "NTAssassin.Lib.inl"
 
 #pragma section(".NUT$ELA", long, read) // First
 #pragma section(".NUT$ELZ", long, read) // Last
 
 __declspec(allocate(".NUT$ELA")) static PUNITTEST_ENTRY g_EntryList_First = NULL;
-__declspec(allocate(".NUT$ELZ")) static PUNITTEST_ENTRY g_EntryList_Last= NULL;
+__declspec(allocate(".NUT$ELZ")) static PUNITTEST_ENTRY g_EntryList_Last = NULL;
+static PUNITTEST_ENTRY* g_pEntryBegin = (&g_EntryList_First) + 1;
+static PUNITTEST_ENTRY* g_pEntryEnd = (&g_EntryList_Last);
 
 #pragma comment(linker, "/merge:.NUT=.rdata")
 
-BOOL NTAPI UnitTest_EnumEntries(_In_ __callback FN_UNITTEST_ENUM_PROC* Callback, _In_opt_ PVOID Context)
+BOOL NTAPI UnitTest_EnumEntries(
+    _In_ __callback FN_UNITTEST_ENUM_PROC* Callback,
+    _In_opt_ PVOID Context)
 {
     PUNITTEST_ENTRY* Entry;
     BOOL Ret;
 
-    for (Entry = &g_EntryList_First; Entry != &g_EntryList_Last; Entry++)
+    for (Entry = g_pEntryBegin; Entry != g_pEntryEnd; Entry++)
     {
         if (*Entry != NULL)
         {
@@ -32,14 +34,15 @@ BOOL NTAPI UnitTest_EnumEntries(_In_ __callback FN_UNITTEST_ENUM_PROC* Callback,
 
 _Ret_maybenull_
 _Must_inspect_result_
-PUNITTEST_ENTRY NTAPI UnitTest_FindEntry(_In_z_ PCWSTR Name)
+PUNITTEST_ENTRY NTAPI UnitTest_FindEntry(
+    _In_z_ PCWSTR Name)
 {
     PUNITTEST_ENTRY* Entry;
     UNICODE_STRING NameString;
 
     RtlInitUnicodeString(&NameString, Name);
 
-    for (Entry = &g_EntryList_First; Entry != &g_EntryList_Last; Entry++)
+    for (Entry = g_pEntryBegin; Entry != g_pEntryEnd; Entry++)
     {
         if (*Entry != NULL && RtlEqualUnicodeString(&(*Entry)->Name, &NameString, FALSE))
         {
@@ -50,14 +53,15 @@ PUNITTEST_ENTRY NTAPI UnitTest_FindEntry(_In_z_ PCWSTR Name)
     return NULL;
 }
 
-ULONG NTAPI UnitTest_RunAll(_Out_ PUNITTEST_RESULT Result)
+ULONG NTAPI UnitTest_RunAll(
+    _Out_ PUNITTEST_RESULT Result)
 {
     ULONG Ret = 0;
     PUNITTEST_ENTRY* Entry;
 
     RtlZeroMemory(Result, sizeof(*Result));
 
-    for (Entry = &g_EntryList_First; Entry != &g_EntryList_Last; Entry++)
+    for (Entry = g_pEntryBegin; Entry != g_pEntryEnd; Entry++)
     {
         if (*Entry != NULL)
         {
@@ -70,7 +74,9 @@ ULONG NTAPI UnitTest_RunAll(_Out_ PUNITTEST_RESULT Result)
 }
 
 _Success_(return != FALSE)
-BOOL NTAPI UnitTest_Run(_In_z_ PCWSTR Name, _Out_ PUNITTEST_RESULT Result)
+BOOL NTAPI UnitTest_Run(
+    _In_z_ PCWSTR Name,
+    _Out_ PUNITTEST_RESULT Result)
 {
     PUNITTEST_ENTRY Entry = UnitTest_FindEntry(Name);
 
@@ -84,7 +90,10 @@ BOOL NTAPI UnitTest_Run(_In_z_ PCWSTR Name, _Out_ PUNITTEST_RESULT Result)
 }
 
 _Success_(return > 0)
-ULONG NTAPI UnitTest_Main(_In_ int argc, _In_reads_(argc) _Pre_z_ wchar_t** argv, _Out_ PUNITTEST_RESULT Result)
+ULONG NTAPI UnitTest_Main(
+    _In_ int argc,
+    _In_reads_(argc) _Pre_z_ wchar_t** argv,
+    _Out_ PUNITTEST_RESULT Result)
 {
     ULONG RunCount;
     int i;
@@ -103,7 +112,7 @@ ULONG NTAPI UnitTest_Main(_In_ int argc, _In_reads_(argc) _Pre_z_ wchar_t** argv
         {
             RtlInitUnicodeString(&NameString, argv[i]);
 
-            for (Entry = &g_EntryList_First; Entry != &g_EntryList_Last; Entry++)
+            for (Entry = g_pEntryBegin; Entry != g_pEntryEnd; Entry++)
             {
                 if (RtlEqualUnicodeString(&(*Entry)->Name, &NameString, FALSE))
                 {

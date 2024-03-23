@@ -1,4 +1,4 @@
-﻿#include "../Include/NTAssassin/NT/MinDef.h"
+﻿#include "../Include/NTAssassin/NDK/NT/MinDef.h"
 
 extern "C" void __cdecl _RTC_InitBase()
 {

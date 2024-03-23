@@ -187,11 +187,11 @@ static VOID PrintSMBIOSTableInfo(_In_ PSMBIOS_TABLE Table)
     if (Table->Header.Type == 0)
     {
         PrintF("\tRelease Version: %u.%u\n",
-                 Table->TYPE_0_BIOS_INFO.MajorRelease,
-                 Table->TYPE_0_BIOS_INFO.MinorRelease);
+               Table->TYPE_0_BIOS_INFO.MajorRelease,
+               Table->TYPE_0_BIOS_INFO.MinorRelease);
         PrintF("\tEC Firmware Release Version: %u.%u\n",
-                 Table->TYPE_0_BIOS_INFO.ECFirmwareMajorRelease,
-                 Table->TYPE_0_BIOS_INFO.ECFirmwareMinorRelease);
+               Table->TYPE_0_BIOS_INFO.ECFirmwareMajorRelease,
+               Table->TYPE_0_BIOS_INFO.ECFirmwareMinorRelease);
     } else if (Table->Header.Type == 4)
     {
         PrintF("\tID: 0x%016llX\n", Table->TYPE_4_PROCESSOR_INFO.ID);
@@ -246,13 +246,13 @@ static VOID PrintSMBIOSTableInfo(_In_ PSMBIOS_TABLE Table)
     } else if (Table->Header.Type == 43)
     {
         PrintF("\tVendorID: %c%c%c%c\n",
-                 Table->TYPE_43_TPM_DEVICE.VendorID[0],
-                 Table->TYPE_43_TPM_DEVICE.VendorID[1],
-                 Table->TYPE_43_TPM_DEVICE.VendorID[2],
-                 Table->TYPE_43_TPM_DEVICE.VendorID[3]);
+               Table->TYPE_43_TPM_DEVICE.VendorID[0],
+               Table->TYPE_43_TPM_DEVICE.VendorID[1],
+               Table->TYPE_43_TPM_DEVICE.VendorID[2],
+               Table->TYPE_43_TPM_DEVICE.VendorID[3]);
         PrintF("\tSpecVersion: %u.%u\n",
-                 Table->TYPE_43_TPM_DEVICE.MajorSpecVersion,
-                 Table->TYPE_43_TPM_DEVICE.MinorSpecVersion);
+               Table->TYPE_43_TPM_DEVICE.MajorSpecVersion,
+               Table->TYPE_43_TPM_DEVICE.MinorSpecVersion);
         PrintF("\tOEMDefined: 0x%08lX\n", Table->TYPE_43_TPM_DEVICE.OEMDefined);
     } else if (Table->Header.Type == 45)
     {

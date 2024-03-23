@@ -1,7 +1,7 @@
 ﻿#include "Startup.inl"
 
-#include "../../Include/NTAssassin/Extension/Extension.h"
-#include "../../Include/NTAssassin/Extension/CPU.h"
+#include "../../Include/NTAssassin/NDK/Extension/Extension.h"
+#include "../../Include/NTAssassin/NDK/Extension/CPU.h"
 
 #include <isa_availability.h>
 

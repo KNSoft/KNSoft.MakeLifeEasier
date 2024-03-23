@@ -5,7 +5,6 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NTAssassin.Lib", "NTAssassin.Lib\NTAssassin.Lib.vcxproj", "{3CCD2D73-E56A-4B53-9E11-C906FB7B2D85}"
 	ProjectSection(ProjectDependencies) = postProject
-		{0405085A-FF8E-4671-98E0-22FBE9279744} = {0405085A-FF8E-4671-98E0-22FBE9279744}
 		{1A6001A4-2E81-4CFB-86F3-E1FE1B4A5991} = {1A6001A4-2E81-4CFB-86F3-E1FE1B4A5991}
 	EndProjectSection
 EndProject
