@@ -55,6 +55,9 @@
       <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="NTAssassin.cpp" />
+    <ClCompile Include="IO\Path\IO.Path.c">
+      <Filter>IO\Path</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="NT">
@@ -86,6 +89,9 @@
     </Filter>
     <Filter Include="Memory">
       <UniqueIdentifier>{7ccd9418-3019-4d33-95f2-2bcdacacbc85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Path">
+      <UniqueIdentifier>{b91d18c2-4ffe-4467-af23-b9f2b6f0d1b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

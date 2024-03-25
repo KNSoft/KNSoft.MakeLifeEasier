@@ -37,7 +37,7 @@ typedef struct _CLIENT_ID
     HANDLE UniqueThread;
 } CLIENT_ID, *PCLIENT_ID;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _CLIENT_ID64
 {
@@ -51,7 +51,7 @@ typedef struct _CLIENT_ID32
     VOID* POINTER_32 UniqueThread;
 } CLIENT_ID32, *PCLIENT_ID32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -63,7 +63,7 @@ typedef struct _CURDIR
     HANDLE Handle;
 } CURDIR, *PCURDIR;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _CURDIR64
 {
@@ -77,7 +77,7 @@ typedef struct _CURDIR32
     VOID* POINTER_32 Handle;
 } CURDIR32, *PCURDIR32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -90,7 +90,7 @@ typedef struct _ASSEMBLY_STORAGE_MAP_ENTRY
     HANDLE Handle;
 } ASSEMBLY_STORAGE_MAP_ENTRY, *PASSEMBLY_STORAGE_MAP_ENTRY;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _ASSEMBLY_STORAGE_MAP_ENTRY64
 {
@@ -106,7 +106,7 @@ typedef struct _ASSEMBLY_STORAGE_MAP_ENTRY32
     VOID* POINTER_32 Handle;
 } ASSEMBLY_STORAGE_MAP_ENTRY32, *PASSEMBLY_STORAGE_MAP_ENTRY32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -119,7 +119,7 @@ typedef struct _ASSEMBLY_STORAGE_MAP
     PASSEMBLY_STORAGE_MAP_ENTRY* AssemblyArray;
 } ASSEMBLY_STORAGE_MAP, *PASSEMBLY_STORAGE_MAP;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _ASSEMBLY_STORAGE_MAP64
 {
@@ -135,7 +135,7 @@ typedef struct _ASSEMBLY_STORAGE_MAP32
     ASSEMBLY_STORAGE_MAP_ENTRY32* POINTER_32* AssemblyArray;
 } ASSEMBLY_STORAGE_MAP32, *PASSEMBLY_STORAGE_MAP32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -208,7 +208,7 @@ typedef struct _GDI_TEB_BATCH
     ULONG Buffer[310];
 } GDI_TEB_BATCH, *PGDI_TEB_BATCH;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _GDI_TEB_BATCH64
 {
@@ -232,6 +232,6 @@ typedef struct _GDI_TEB_BATCH32
     ULONG Buffer[310];
 } GDI_TEB_BATCH32, *PGDI_TEB_BATCH32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion

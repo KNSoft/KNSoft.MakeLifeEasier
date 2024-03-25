@@ -49,10 +49,10 @@ NTSTATUS NTAPI File_BeginFind(
     BOOL HasData;
 
     /* Allocate buffer */
-    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, FILE_FIND_BUFFER_SIZE);
-    if (Buffer == NULL)
+    Status = NTA_Alloc(&Buffer, FILE_FIND_BUFFER_SIZE);
+    if (!NT_SUCCESS(Status))
     {
-        return STATUS_NO_MEMORY;
+        return Status;
     }
 
     /* Find the first time */
@@ -75,7 +75,7 @@ NTSTATUS NTAPI File_BeginFind(
         FindData->HasData = HasData;
     } else
     {
-        RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
+        NTA_Free(Buffer);
     }
     return Status;
 }
@@ -93,5 +93,5 @@ NTSTATUS NTAPI File_ContinueFind(_Inout_ PFILE_FIND FindData)
 
 VOID NTAPI File_EndFind(_In_ PFILE_FIND FindData)
 {
-    RtlFreeHeap(NtGetProcessHeap(), 0, FindData->Buffer);
+    NTA_Free(FindData->Buffer);
 }

@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-#define _NO_CRT_STDIO_INLINE
-
-#include "NDK/NT/MinDef.h"
-
 #if defined(__cplusplus) && defined(_MT)
 #if !defined(_DEBUG) && !defined(_DLL)
 #pragma comment(linker, "/NODEFAULTLIB:libcpmt.lib")
@@ -16,7 +12,17 @@
 #endif
 #endif
 
+#pragma comment(linker, "/DEFAULTLIB:NTAssassin.CRT.lib")
+
+#define _NO_CRT_STDIO_INLINE
+
+#include "NDK/NT/MinDef.h"
+
 EXTERN_C NTSTATUS NTAPI ExeMain();
+
+EXTERN_C int __isa_available;
+EXTERN_C int __isa_enabled;
+EXTERN_C int __favor;
 
 EXTERN_C INT __argc;
 EXTERN_C CHAR** __argv;

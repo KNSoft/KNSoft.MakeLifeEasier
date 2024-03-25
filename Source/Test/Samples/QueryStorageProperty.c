@@ -25,7 +25,7 @@ BOOL Sample_QueryStorageProperty()
     }
 
     /* Query Property */
-    Status = Device_QueryStorageProperty(DeviceHandle, &spq, sizeof(spq), &psdd);
+    Status = Device_QueryStorageProperty(DeviceHandle, &spq, sizeof(spq), &psdd, NULL);
     if (!NT_SUCCESS(Status))
     {
         PrintF("Device_QueryStorageProperty failed with: 0x%08lX\n", Status);
@@ -52,7 +52,7 @@ BOOL Sample_QueryStorageProperty()
         PrintF("\tSerialNumber: %hs\n", (PCSTR)Add2Ptr(psdd, psdd->SerialNumberOffset));
     }
 
-    Device_FreeStorageProperty(psdd);
+    NTA_Free(psdd);
     NtClose(DeviceHandle);
     return TRUE;
 }

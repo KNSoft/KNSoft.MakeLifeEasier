@@ -17,20 +17,17 @@ BOOL Sample_ListFile()
     PrintF("Current directory: %wZ\n", &CurDir->DosPath);
 
     /* Initialize the enumeration */
-    Status = RtlDosPathNameToNtPathName_U_WithStatus(CurDir->DosPath.Buffer, &NtName, NULL, NULL);
+    Status = Path_ToNtPath(CurDir->DosPath.Buffer, &NtName, NULL);
     if (!NT_SUCCESS(Status))
     {
-        PrintF("RtlDosPathNameToNtPathName_U_WithStatus failed with 0x%08lX\n", Status);
+        PrintF("Path_ToNtPath failed with 0x%08lX\n", Status);
         return FALSE;
     }
     Status = File_OpenDirectory(&DirectoryHandle,
                                 &NtName,
                                 FILE_LIST_DIRECTORY | SYNCHRONIZE,
                                 FILE_SHARE_READ | FILE_SHARE_WRITE);
-    if (NtName.Buffer != NULL)
-    {
-        RtlFreeHeap(NtGetProcessHeap(), 0, NtName.Buffer);
-    }
+    Path_ReleaseNtPath(&NtName);
     if (!NT_SUCCESS(Status))
     {
         PrintF("File_OpenDirectory failed with 0x%08lX\n", Status);

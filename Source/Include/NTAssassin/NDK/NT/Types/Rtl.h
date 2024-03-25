@@ -166,7 +166,7 @@ typedef struct _RTL_DRIVE_LETTER_CURDIR
     STRING DosPath;
 } RTL_DRIVE_LETTER_CURDIR, *PRTL_DRIVE_LETTER_CURDIR;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _RTL_DRIVE_LETTER_CURDIR64
 {
@@ -184,7 +184,7 @@ typedef struct _RTL_DRIVE_LETTER_CURDIR32
     STRING32 DosPath;
 } RTL_DRIVE_LETTER_CURDIR32, *PRTL_DRIVE_LETTER_CURDIR32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -196,7 +196,7 @@ typedef struct _RTL_BITMAP
     PULONG Buffer;                          // Pointer to the bit map itself
 } RTL_BITMAP, *PRTL_BITMAP;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _RTL_BITMAP64
 {
@@ -210,7 +210,7 @@ typedef struct _RTL_BITMAP32
     ULONG* POINTER_32 Buffer;
 } RTL_BITMAP32, *PRTL_BITMAP32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
@@ -259,7 +259,7 @@ typedef struct _RTL_USER_PROCESS_PARAMETERS
     ULONG HeapMemoryTypeMask;
 } RTL_USER_PROCESS_PARAMETERS, *PRTL_USER_PROCESS_PARAMETERS;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _RTL_USER_PROCESS_PARAMETERS64
 {
@@ -347,11 +347,11 @@ typedef struct _RTL_USER_PROCESS_PARAMETERS32
     ULONG HeapMemoryTypeMask;
 } RTL_USER_PROCESS_PARAMETERS32, *PRTL_USER_PROCESS_PARAMETERS32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 #pragma region RTL_BALANCED_NODE(64/32)
 
@@ -454,4 +454,4 @@ struct _RTL_CRITICAL_SECTION32
 
 #pragma endregion
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */

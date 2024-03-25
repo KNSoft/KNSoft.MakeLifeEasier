@@ -2,7 +2,7 @@
 
 #ifndef _NTASSASSIN_NDK_NO_EXTENSION
 
-#define _NTASSASSIN_NDK_EXTENSION_
+#define _NTASSASSIN_NDK_EXTENSION
 #include "Extension.h"
 
 #endif

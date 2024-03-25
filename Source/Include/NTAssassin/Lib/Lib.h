@@ -24,17 +24,17 @@ EXTERN_C_START
 
 BOOL NTAPI NTA_Initialize();
 
-EXTERN_C_END
+EXTERN_C BOOL _NTA_Initialized;
+EXTERN_C HANDLE _NTA_Heap;
+EXTERN_C CPUID_INFO _NTA_CpuidInfo_00_00;
+EXTERN_C CPUID_INFO _NTA_CpuidInfo_01_00;
+EXTERN_C CPUID_INFO _NTA_CpuidInfo_07_00;
+EXTERN_C CPUID_INFO _NTA_CpuidInfo_07_01;
+EXTERN_C unsigned __int64 _NTA_XCR_XFeature;
+EXTERN_C PPEB _NTA_PEB;
+EXTERN_C USHORT _NTA_Process_WinntVersion;
 
-extern BOOL _NTA_Initialized;
-extern HANDLE _NTA_Heap;
-extern CPUID_INFO _NTA_CpuidInfo_00_00;
-extern CPUID_INFO _NTA_CpuidInfo_01_00;
-extern CPUID_INFO _NTA_CpuidInfo_07_00;
-extern CPUID_INFO _NTA_CpuidInfo_07_01;
-extern unsigned __int64 _NTA_XCR_XFeature;
-extern PPEB _NTA_PEB;
-extern USHORT _NTA_Process_WinntVersion;
+EXTERN_C_END
 
 #pragma endregion
 

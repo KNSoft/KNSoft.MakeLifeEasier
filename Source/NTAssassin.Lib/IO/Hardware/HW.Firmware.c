@@ -5,6 +5,7 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
     _In_ ULONG TableID,
     _In_ SYSTEM_FIRMWARE_TABLE_ACTION Action,
     _Out_ _At_(*FirmwareInformation,
+               _Maybenull_
                _Readable_bytes_(*FirmwareInformationLength)
                _Writable_bytes_(*FirmwareInformationLength)
                _Post_readable_byte_size_(*FirmwareInformationLength)) PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
@@ -35,17 +36,17 @@ NTSTATUS NTAPI HW_GetFirmwareTable(
     }
 
     _Analysis_assume_(Length >= sizeof(FirmwareInfo));
-    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, Length);
-    if (Buffer == NULL)
+    Status = NTA_Alloc(&Buffer, Length);
+    if (!NT_SUCCESS(Status))
     {
-        return STATUS_NO_MEMORY;
+        return Status;
     }
 
     RtlCopyMemory(Buffer, &FirmwareInfo, sizeof(FirmwareInfo));
     Status = NtQuerySystemInformation(SystemFirmwareTableInformation, Buffer, Length, &Length);
     if (!NT_SUCCESS(Status))
     {
-        RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
+        NTA_Free(Buffer);
     } else
     {
         *FirmwareInformation = Buffer;

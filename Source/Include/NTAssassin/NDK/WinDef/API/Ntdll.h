@@ -684,7 +684,7 @@ RtlConvertUlongToLuid(_In_ ULONG Ulong)
 
 _Post_satisfies_(return >= 8 && return <= SECURITY_MAX_SID_SIZE)
 ULONG
-#if !defined(_NTASSASSIN_NDK_EXTENSION_)
+#if !defined(_NTASSASSIN_NDK_EXTENSION)
 NTSYSAPI
 NTAPI
 RtlLengthSid(

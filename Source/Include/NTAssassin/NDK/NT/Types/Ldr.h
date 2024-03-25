@@ -184,7 +184,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY
     LDR_HOT_PATCH_STATE HotPatchState;
 } LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
 
-#if defined(_NTASSASSIN_NDK_EXTENSION_)
+#if defined(_NTASSASSIN_NDK_EXTENSION)
 
 typedef struct _LDR_DATA_TABLE_ENTRY64
 {
@@ -332,7 +332,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY32
     LDR_HOT_PATCH_STATE HotPatchState;
 } LDR_DATA_TABLE_ENTRY32, *PLDR_DATA_TABLE_ENTRY32;
 
-#endif /* defined(_NTASSASSIN_NDK_EXTENSION_) */
+#endif /* defined(_NTASSASSIN_NDK_EXTENSION) */
 
 #pragma endregion
 

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#pragma comment(lib, "ntdll.lib")
+
 #include "NT/NT.h"
 
 /* Windows.h */

@@ -4,7 +4,11 @@ NTSTATUS NTAPI Device_QueryStorageProperty(
     _In_ HANDLE DeviceHandle,
     _In_ PSTORAGE_PROPERTY_QUERY Query,
     _In_ ULONG QuerySize,
-    _Out_ PVOID* AllocateBuffer)
+    _Out_ _At_(*StoragePropertyLength,
+               _Readable_bytes_(*StoragePropertyLength)
+               _Writable_bytes_(*StoragePropertyLength)
+               _Post_readable_byte_size_(*StoragePropertyLength)) PVOID* StorageProperty,
+    _Out_opt_ PULONG StoragePropertyLength)
 {
     NTSTATUS Status;
     IO_STATUS_BLOCK IoStatusBlock;
@@ -28,10 +32,10 @@ NTSTATUS NTAPI Device_QueryStorageProperty(
     }
 
     /* Allocate buffer and receive data */
-    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, sdh.Size);
-    if (Buffer == NULL)
+    Status = NTA_Alloc(&Buffer, sdh.Size);
+    if (!NT_SUCCESS(Status))
     {
-        return STATUS_NO_MEMORY;
+        return Status;
     }
     Status = NtDeviceIoControlFile(DeviceHandle,
                                    NULL,
@@ -45,15 +49,14 @@ NTSTATUS NTAPI Device_QueryStorageProperty(
                                    sdh.Size);
     if (NT_SUCCESS(Status))
     {
-        *AllocateBuffer = Buffer;
+        *StorageProperty = Buffer;
+        if (StoragePropertyLength != NULL)
+        {
+            *StoragePropertyLength = sdh.Size;
+        }
     } else
     {
-        RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
+        NTA_Free(Buffer);
     }
     return Status;
-}
-
-VOID NTAPI Device_FreeStorageProperty(_Frees_ptr_ PVOID Buffer)
-{
-    RtlFreeHeap(NtGetProcessHeap(), 0, Buffer);
 }

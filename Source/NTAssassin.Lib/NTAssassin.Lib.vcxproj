@@ -208,6 +208,7 @@
     <ClCompile Include="IO\File\File.Find.c" />
     <ClCompile Include="IO\File\IO.File.c" />
     <ClCompile Include="IO\Hardware\HW.Firmware.c" />
+    <ClCompile Include="IO\Path\IO.Path.c" />
     <ClCompile Include="Memory\Mem.Heap.c" />
     <ClCompile Include="NTAssassin.cpp" />
     <ClCompile Include="NT\Security\NT.Security.SeExports.c" />
