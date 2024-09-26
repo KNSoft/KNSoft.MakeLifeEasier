@@ -1,0 +1,36 @@
+name: MSBuild
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  SOLUTION_FILE_PATH: .\Source\KNSoft.MakeLifeEasier.sln
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [x64, x86, ARM64]
+        config: [Debug, Release]
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+    - name: Source checkout
+      uses: actions/checkout@main
+      with:
+          submodules: recursive
+    - name: Prepare MSBuild
+      uses: microsoft/setup-msbuild@main
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /restore /m /p:Configuration=${{matrix.config}} /p:Platform=${{matrix.platform}} /p:RestorePackagesConfig=true
+    - name: Run Unit Test (x64, x86)
+      if: ${{ matrix.platform == 'x64' || matrix.platform == 'x86' }}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: .\Source\OutDir\${{matrix.platform}}\${{matrix.config}}\Test.exe -Run

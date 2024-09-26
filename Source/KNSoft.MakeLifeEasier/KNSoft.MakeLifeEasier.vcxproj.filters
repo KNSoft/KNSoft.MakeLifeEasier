@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="IO">
+      <UniqueIdentifier>{e7b41999-cdc9-4123-ae67-e504e872622c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{4c99c82f-dc94-487b-894f-f509b8bc8287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{95fee4d2-126a-4634-ae40-2868a04afc1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{5700933c-0695-4851-858d-50b379344836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shell">
+      <UniqueIdentifier>{20e6e3c4-0dbc-40c1-af85-d5ee9d65ad69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="String">
+      <UniqueIdentifier>{210804f5-0bd4-4dcc-8c4c-5530f530408d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Time">
+      <UniqueIdentifier>{b05800f2-9ab7-4424-a5b5-7ef30b77e3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Error">
+      <UniqueIdentifier>{566a3cfc-616e-48ca-b606-fa446a2ff007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{855e0848-467e-48e5-ae8d-f29a6ae5bb47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PE">
+      <UniqueIdentifier>{43c94c01-ef4f-42f3-bc73-fb9fd5814dca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialog">
+      <UniqueIdentifier>{65e23add-fb07-4714-8cba-c5f79f8968e7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Memory\Memory.c">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Rand.c">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Device.c">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Message.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Paint.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Window.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\File.c">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Shell\Shell.c">
+      <Filter>Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="Time\Time.c">
+      <Filter>Time</Filter>
+    </ClCompile>
+    <ClCompile Include="String\Hash.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\Message.c">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Library.c">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\PE.c">
+      <Filter>PE</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\Dialog.c">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MakeLifeEasier.inl" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Memory\Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MakeLifeEasier.h" />
+    <ClInclude Include="Math\Rand.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Device.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Message.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Paint.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Window.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\File.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Math.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell\Shell.h">
+      <Filter>Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Basic.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Time\Time.h">
+      <Filter>Time</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Hash.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\Message.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Library.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\PE.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog\Dialog.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
