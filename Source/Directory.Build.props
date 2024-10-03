@@ -42,7 +42,7 @@
             <PreprocessorDefinitions>MSB_VCTOOLS_VERSION="$(VCToolsVersion)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <PreprocessorDefinitions>MSB_PLATFORM_TOOLSET="$(PlatformToolset)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <PreprocessorDefinitions>MSB_PLATFORM_TOOLSET_VERSION="$(PlatformToolsetVersion)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <PreprocessorDefinitions>MSB_PLATFORM_TARGET_VERSION="$(PlatformTarget)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>MSB_PLATFORM_TARGET="$(PlatformTarget)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <PreprocessorDefinitions>MSB_TARGET_PLATFORM_VERSION="$(TargetPlatformVersion)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <PreprocessorDefinitions>MSB_TARGET_PLATFORM_DISPLAY_NAME="$(TargetPlatformDisplayName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>

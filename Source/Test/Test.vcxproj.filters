@@ -6,9 +6,9 @@
     <ClCompile Include="String.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ClInclude Include="Test.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Test.h" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

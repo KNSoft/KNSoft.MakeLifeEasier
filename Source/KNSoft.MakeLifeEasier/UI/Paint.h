@@ -4,6 +4,10 @@
 
 EXTERN_C_START
 
+/// <summary>
+/// Buffered paint
+/// </summary>
+
 typedef struct _UI_BUFFEREDPAINT
 {
     PAINTSTRUCT PaintStruct;    // Native PAINTSTRUCT structure from "BeginPaint"

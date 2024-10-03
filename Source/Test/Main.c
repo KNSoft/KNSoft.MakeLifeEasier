@@ -1,5 +1,7 @@
 ﻿#define MLE_API
 
+#include "Test.h"
+
 #include <KNSoft/NDK/Package/UnitTest.inl>
 
 #pragma comment (lib, "KNSoft.MakeLifeEasier.lib")
@@ -19,5 +21,12 @@ wmain(
     _In_ int argc,
     _In_reads_(argc) _Pre_z_ wchar_t** argv)
 {
+    RECT rc = { 1, 2, 3, 4 };
+    W32ERROR Ret;
+    do
+    {
+        Ret = Dlg_RectEditor(NULL, &rc);
+    } while (Ret == ERROR_SUCCESS);
+
     return UnitTest_Main(argc, argv);
 }

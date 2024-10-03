@@ -4,6 +4,9 @@
 
 EXTERN_C_START
 
+/// <summary>
+/// Gets position and size of virtual screen (multiple monitors support)
+/// </summary>
 MLE_API
 VOID
 NTAPI

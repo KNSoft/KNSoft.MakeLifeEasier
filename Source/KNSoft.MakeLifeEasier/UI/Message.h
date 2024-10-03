@@ -4,10 +4,100 @@
 
 EXTERN_C_START
 
+/// <summary>
+/// Allow WM_DROPFILES and WM_COPYGLOBALDATA message, especially in an elevated application
+/// </summary>
 MLE_API
 W32ERROR
 NTAPI
 UI_AllowDrop(
     _In_ HWND Window);
+
+MLE_API
+_Success_(return > 0)
+ULONG
+NTAPI
+UI_GetWindowTextExW(
+    _In_ HWND Window,
+    _Out_writes_z_(TextCch) PWSTR Text,
+    _In_ UINT TextCch);
+
+MLE_API
+_Success_(return > 0)
+ULONG
+NTAPI
+UI_GetWindowTextExA(
+    _In_ HWND Window,
+    _Out_writes_z_(TextCch) PSTR Text,
+    _In_ UINT TextCch);
+
+#define UI_GetWindowTextW(Window, Text) UI_GetWindowTextExW(Window, Text, ARRAYSIZE(Text))
+#define UI_GetWindowTextA(Window, Text) UI_GetWindowTextExA(Window, Text, ARRAYSIZE(Text))
+
+/// <seealso cref="EnableWindow"/>
+#define UI_EnableDlgItem(Dialog, ItemID, EnableState) EnableWindow(GetDlgItem(Dialog, ItemID), EnableState)
+
+/// <seealso cref="SendMessage"/>
+#define UI_SendMsgW(Window, Msg, wParam, lParam) SendMessageW(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
+#define UI_SendMsgA(Window, Msg, wParam, lParam) SendMessageA(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
+#define UI_LocalSendMsgW(Window, Msg, wParam, lParam) DefWindowProcW(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
+#define UI_LocalSendMsgA(Window, Msg, wParam, lParam) DefWindowProcA(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
+
+/// <seealso cref="SendDlgItemMessage"/>
+#define UI_SendDlgItemMsgW(Dialog, ItemID, Msg, wParam, lParam) UI_SendMsgW(GetDlgItem(Dialog, ItemID), Msg, wParam, lParam)
+#define UI_SendDlgItemMsgA(Dialog, ItemID, Msg, wParam, lParam) UI_SendMsgA(GetDlgItem(Dialog, ItemID), Msg, wParam, lParam)
+#define UI_LocalSendDlgItemMsgW(Dialog, ItemID, Msg, wParam, lParam) UI_LocalSendMsgW(GetDlgItem(Dialog, ItemID), Msg, wParam, lParam)
+#define UI_LocalSendDlgItemMsgA(Dialog, ItemID, Msg, wParam, lParam) UI_LocalSendMsgA(GetDlgItem(Dialog, ItemID), Msg, wParam, lParam)
+
+/// <seealso cref="IsDlgButtonChecked"/>
+#define UI_GetDlgButtonCheck(Dialog, ButtonID) SendMessageW(GetDlgItem(Dialog, ButtonID), BM_GETCHECK, 0, 0)
+#define UI_LocalGetDlgButtonCheck(Dialog, ButtonID) DefWindowProcW(GetDlgItem(Dialog, ButtonID), BM_GETCHECK, 0, 0)
+
+/// <seealso cref="CheckDlgButton"/>
+#define UI_SetDlgButtonCheck(Dialog, ButtonID, CheckState) SendMessageW(GetDlgItem(Dialog, ButtonID), BM_SETCHECK, (WPARAM)(CheckState), 0)
+#define UI_LocalSetDlgButtonCheck(Dialog, ButtonID, CheckState) DefWindowProcW(GetDlgItem(Dialog, ButtonID), BM_SETCHECK, (WPARAM)(CheckState), 0)
+
+/// <seealso cref="SetWindowText"/>
+#define UI_SetWindowTextW(Window, Text) SendMessageW(Window, WM_SETTEXT, 0, (LPARAM)(Text))
+#define UI_SetWindowTextA(Window, Text) SendMessageA(Window, WM_SETTEXT, 0, (LPARAM)(Text))
+#define UI_LocalSetWindowTextW(Window, Text) DefWindowProcW(Window, WM_SETTEXT, 0, (LPARAM)(Text))
+#define UI_LocalSetWindowTextA(Window, Text) DefWindowProcA(Window, WM_SETTEXT, 0, (LPARAM)(Text))
+
+/// <seealso cref="SetDlgItemText"/>
+#define UI_SetDlgItemTextW(Dialog, ItemID, Text) UI_SetWindowTextW(GetDlgItem(Dialog, ItemID), Text)
+#define UI_SetDlgItemTextA(Dialog, ItemID, Text) UI_SetWindowTextA(GetDlgItem(Dialog, ItemID), Text)
+#define UI_LocalSetDlgItemTextW(Dialog, ItemID, Text) UI_LocalSetWindowTextW(GetDlgItem(Dialog, ItemID), Text)
+#define UI_LocalSetDlgItemTextA(Dialog, ItemID, Text) UI_LocalSetWindowTextA(GetDlgItem(Dialog, ItemID), Text)
+
+/// <summary>
+/// Set window text without notify, useful to avoid endless loop caused by notification triggled when handling itself
+/// </summary>
+
+MLE_API
+W32ERROR
+NTAPI
+UI_SetNoNotifyFlag(
+    _In_ HWND Window,
+    _In_ BOOL EnableState);
+
+MLE_API
+LOGICAL
+NTAPI
+UI_GetNoNotifyFlag(
+    _In_ HWND Window);
+
+MLE_API
+LRESULT
+NTAPI
+UI_SetWndTextNoNotifyW(
+    _In_ HWND Window,
+    _In_opt_ PCWSTR Text);
+
+MLE_API
+LRESULT
+NTAPI
+UI_SetWndTextNoNotifyA(
+    _In_ HWND Window,
+    _In_opt_ PCSTR Text);
 
 EXTERN_C_END
