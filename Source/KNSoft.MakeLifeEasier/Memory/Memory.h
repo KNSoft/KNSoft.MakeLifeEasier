@@ -24,6 +24,8 @@ NTAPI
 Mem_Free(
     __drv_freesMem(Mem) _Frees_ptr_ PVOID BaseAddress);
 
+#define Mem_AllocPtr(p) Mem_Alloc(&(p), sizeof(*(p)))
+
 #pragma endregion
 
 #pragma region Page

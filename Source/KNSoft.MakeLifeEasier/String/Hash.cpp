@@ -22,7 +22,7 @@ Str_Hash_X65599_Impl(
 ULONG
 NTAPI
 Str_Hash_X65599W(
-    _In_z_ PCWSTR String)
+    _In_ PCWSTR String)
 {
     return Str_Hash_X65599_Impl<WCHAR>(String);
 }
@@ -30,7 +30,7 @@ Str_Hash_X65599W(
 ULONG
 NTAPI
 Str_Hash_X65599A(
-    _In_z_ PCSTR String)
+    _In_ PCSTR String)
 {
     return Str_Hash_X65599_Impl<CHAR>(String);
 }
@@ -60,7 +60,7 @@ Str_Hash_FNV1a_Impl(
 ULONG
 NTAPI
 Str_Hash_FNV1aW(
-    _In_z_ PCWSTR String)
+    _In_ PCWSTR String)
 {
     return Str_Hash_FNV1a_Impl<WCHAR>(String);
 }
@@ -68,7 +68,7 @@ Str_Hash_FNV1aW(
 ULONG
 NTAPI
 Str_Hash_FNV1aA(
-    _In_z_ PCSTR String)
+    _In_ PCSTR String)
 {
     return Str_Hash_FNV1a_Impl<CHAR>(String);
 }

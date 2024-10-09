@@ -64,10 +64,10 @@ Error_Win32ErrorMessageBox(
     _In_opt_ PCWSTR Title,
     _In_ ULONG Win32Error)
 {
-    Dlg_MsgBox(Owner,
-               Err_GetWin32ErrorInfo(Win32Error),
-               Title,
-               (Win32Error == ERROR_SUCCESS ? MB_ICONINFORMATION : MB_ICONERROR) | MB_OK);
+    UI_MsgBox(Owner,
+              Err_GetWin32ErrorInfo(Win32Error),
+              Title,
+              (Win32Error == ERROR_SUCCESS ? MB_ICONINFORMATION : MB_ICONERROR) | MB_OK);
 }
 
 VOID
@@ -89,7 +89,7 @@ Error_NtStatusMessageBox(
     {
         Type = MB_ICONINFORMATION;
     }
-    Dlg_MsgBox(Owner, Err_GetNtStatusInfo(Status), Title, Type | MB_OK);
+    UI_MsgBox(Owner, Err_GetNtStatusInfo(Status), Title, Type | MB_OK);
 }
 
 VOID
@@ -99,8 +99,8 @@ Error_HResultMessageBox(
     _In_opt_ PCWSTR Title,
     _In_ HRESULT HResult)
 {
-    Dlg_MsgBox(Owner,
-               Err_GetHResultInfo(HResult),
-               Title,
-               (HRESULT_SEVERITY(HResult) == SEVERITY_ERROR ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
+    UI_MsgBox(Owner,
+              Err_GetHResultInfo(HResult),
+              Title,
+              (HRESULT_SEVERITY(HResult) == SEVERITY_ERROR ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
 }

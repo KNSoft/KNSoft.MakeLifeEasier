@@ -6,7 +6,7 @@ _Success_(return != FALSE)
 LOGICAL
 NTAPI
 Str_ToIntEx_Impl(
-    _In_z_ CONST TChar* StrValue,
+    _In_ CONST TChar* StrValue,
     _In_ BOOL Unsigned,
     _In_ ULONG Base,
     _Out_writes_bytes_(ValueSize) PVOID Value,
@@ -219,7 +219,7 @@ _Success_(return != FALSE)
 LOGICAL
 NTAPI
 Str_ToIntExW(
-    _In_z_ PCWSTR StrValue,
+    _In_ PCWSTR StrValue,
     _In_ BOOL Unsigned,
     _In_ ULONG Base,
     _Out_writes_bytes_(ValueSize) PVOID Value,
@@ -232,7 +232,7 @@ _Success_(return != FALSE)
 LOGICAL
 NTAPI
 Str_ToIntExA(
-    _In_z_ PCSTR StrValue,
+    _In_ PCSTR StrValue,
     _In_ BOOL Unsigned,
     _In_ ULONG Base,
     _Out_writes_bytes_(ValueSize) PVOID Value,
@@ -250,7 +250,7 @@ Str_FromIntEx_Impl(
     _In_ INT64 Value,
     _In_ BOOL Unsigned,
     _In_ UINT Base,
-    _Out_writes_z_(DestCchSize) TChar* StrValue,
+    _Out_writes_(DestCchSize) TChar* StrValue,
     _In_ ULONG DestCchSize)
 {
     TChar* psz = StrValue;
@@ -339,7 +339,7 @@ Str_FromIntExW(
     _In_ INT64 Value,
     _In_ BOOL Unsigned,
     _In_ UINT Base,
-    _Out_writes_z_(DestCchSize) PWSTR StrValue,
+    _Out_writes_(DestCchSize) PWSTR StrValue,
     _In_ ULONG DestCchSize)
 {
     return Str_FromIntEx_Impl<WCHAR>(Value, Unsigned, Base, StrValue, DestCchSize);
@@ -352,7 +352,7 @@ Str_FromIntExA(
     _In_ INT64 Value,
     _In_ BOOL Unsigned,
     _In_ UINT Base,
-    _Out_writes_z_(DestCchSize) PSTR StrValue,
+    _Out_writes_(DestCchSize) PSTR StrValue,
     _In_ ULONG DestCchSize)
 {
     return Str_FromIntEx_Impl<CHAR>(Value, Unsigned, Base, StrValue, DestCchSize);

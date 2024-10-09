@@ -6,8 +6,8 @@ EXTERN_C_START
 
 #pragma region Font
 
-_Success_(return != FALSE)
-LOGICAL
+MLE_API
+W32ERROR
 NTAPI
 UI_InitFontInfoEx(
     _Out_ PENUMLOGFONTEXDVW FontInfo,
@@ -24,16 +24,24 @@ UI_InitFontInfoEx(
     _In_ BYTE ClipPrecision,
     _In_ BYTE Quality,
     _In_ BYTE PitchAndFamily,
-    _In_opt_z_ PCWSTR Name);
+    _In_opt_ PCWSTR Name);
 
-_Success_(return != FALSE)
-LOGICAL
+MLE_API
+W32ERROR
 NTAPI
 UI_GetDefaultFont(
     _Out_ PENUMLOGFONTEXDVW FontInfo,
     _In_opt_ LONG NewHeight);
 
-_Success_(return != NULL)
+MLE_API
+W32ERROR
+NTAPI
+UI_CreateDefaultFont(
+    _Out_ HFONT* Font,
+    _In_opt_ LONG NewHeight);
+
+MLE_API
+_Success_(return != FALSE)
 LOGICAL
 NTAPI
 UI_GetFontInfo(

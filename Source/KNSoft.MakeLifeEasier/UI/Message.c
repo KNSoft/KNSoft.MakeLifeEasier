@@ -15,7 +15,7 @@ ULONG
 NTAPI
 UI_GetWindowTextExW(
     _In_ HWND Window,
-    _Out_writes_z_(TextCch) PWSTR Text,
+    _Out_writes_(TextCch) PWSTR Text,
     _In_ UINT TextCch)
 {
     ULONG cCh = (ULONG)GetWindowTextW(Window, Text, (INT)TextCch);
@@ -32,7 +32,7 @@ ULONG
 NTAPI
 UI_GetWindowTextExA(
     _In_ HWND Window,
-    _Out_writes_z_(TextCch) PSTR Text,
+    _Out_writes_(TextCch) PSTR Text,
     _In_ UINT TextCch)
 {
     ULONG cCh = (ULONG)GetWindowTextA(Window, Text, (INT)TextCch);

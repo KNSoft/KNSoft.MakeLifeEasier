@@ -6,7 +6,7 @@
 
 EXTERN_C_START
 
-#pragma region CRT alias
+#pragma region CRT Alias
 
 #define Str_LenW wcslen
 #define Str_LenA strlen

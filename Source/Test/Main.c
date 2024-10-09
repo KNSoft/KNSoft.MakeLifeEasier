@@ -25,7 +25,7 @@ wmain(
     W32ERROR Ret;
     do
     {
-        Ret = Dlg_RectEditor(NULL, &rc);
+        Ret = UI_RectEditorDlg(NULL, &rc);
     } while (Ret == ERROR_SUCCESS);
 
     return UnitTest_Main(argc, argv);

@@ -37,6 +37,7 @@ Err_GetHResultInfo(
 
 #pragma region Error Message Box
 
+MLE_API
 VOID
 NTAPI
 Error_Win32ErrorMessageBox(
@@ -44,6 +45,7 @@ Error_Win32ErrorMessageBox(
     _In_opt_ PCWSTR Title,
     _In_ ULONG Win32Error);
 
+MLE_API
 VOID
 NTAPI
 Error_NtStatusMessageBox(
@@ -51,6 +53,7 @@ Error_NtStatusMessageBox(
     _In_opt_ PCWSTR Title,
     _In_ NTSTATUS Status);
 
+MLE_API
 VOID
 NTAPI
 Error_HResultMessageBox(

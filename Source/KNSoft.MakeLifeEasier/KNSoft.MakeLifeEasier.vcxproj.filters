@@ -31,8 +31,8 @@
     <Filter Include="PE">
       <UniqueIdentifier>{43c94c01-ef4f-42f3-bc73-fb9fd5814dca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dialog">
-      <UniqueIdentifier>{65e23add-fb07-4714-8cba-c5f79f8968e7}</UniqueIdentifier>
+    <Filter Include="UI\Dialog">
+      <UniqueIdentifier>{c33347fe-2000-4c97-bd09-132385981b94}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,20 +75,26 @@
     <ClCompile Include="PE\PE.c">
       <Filter>PE</Filter>
     </ClCompile>
-    <ClCompile Include="Dialog\Dialog.c">
-      <Filter>Dialog</Filter>
-    </ClCompile>
     <ClCompile Include="Main.c" />
     <ClCompile Include="I18N.xml.g.c" />
     <ClCompile Include="Resource.rc.g.c" />
-    <ClCompile Include="Dialog\RectEditor.c">
-      <Filter>Dialog</Filter>
-    </ClCompile>
     <ClCompile Include="String\Convert.cpp">
       <Filter>String</Filter>
     </ClCompile>
     <ClCompile Include="UI\GDI.c">
       <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Config.c">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DPI.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\RectEditor.c">
+      <Filter>UI\Dialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +148,6 @@
     <ClInclude Include="PE\PE.h">
       <Filter>PE</Filter>
     </ClInclude>
-    <ClInclude Include="Dialog\Dialog.h">
-      <Filter>Dialog</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="I18N.xml.g.h" />
     <ClInclude Include="Resource.rc.g.h" />
@@ -153,6 +156,18 @@
     </ClInclude>
     <ClInclude Include="UI\GDI.h">
       <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Config.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\DPI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\Dialog.h">
+      <Filter>UI\Dialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

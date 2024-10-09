@@ -11,7 +11,7 @@ _Success_(return != FALSE)
 LOGICAL
 NTAPI
 Str_ToIntExW(
-    _In_z_ PCWSTR StrValue,
+    _In_ PCWSTR StrValue,
     _In_ BOOL Unsigned,
     _In_ ULONG Base,
     _Out_writes_bytes_(ValueSize) PVOID Value,
@@ -22,7 +22,7 @@ _Success_(return != FALSE)
 LOGICAL
 NTAPI
 Str_ToIntExA(
-    _In_z_ PCSTR StrValue,
+    _In_ PCSTR StrValue,
     _In_ BOOL Unsigned,
     _In_ ULONG Base,
     _Out_writes_bytes_(ValueSize) PVOID Value,
@@ -61,7 +61,7 @@ Str_FromIntExW(
     _In_ INT64 Value,
     _In_ BOOL Unsigned,
     _In_ UINT Base,
-    _Out_writes_z_(DestCchSize) PWSTR StrValue,
+    _Out_writes_(DestCchSize) PWSTR StrValue,
     _In_ ULONG DestCchSize);
 
 MLE_API
@@ -72,7 +72,7 @@ Str_FromIntExA(
     _In_ INT64 Value,
     _In_ BOOL Unsigned,
     _In_ UINT Base,
-    _Out_writes_z_(DestCchSize) PSTR StrValue,
+    _Out_writes_(DestCchSize) PSTR StrValue,
     _In_ ULONG DestCchSize);
 
 #define Str_FromIntW(Value, StrValue) Str_FromIntExW(Value, FALSE, 0, StrValue, ARRAYSIZE(StrValue))

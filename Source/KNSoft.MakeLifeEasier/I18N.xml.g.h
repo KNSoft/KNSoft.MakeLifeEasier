@@ -13,15 +13,15 @@
 
 enum
 {
-    I18N_All_RectangleEditor,
-    I18N_All_Reset,
-    I18N_All_OK,
-    I18N_All_Left,
-    I18N_All_Top,
-    I18N_All_Right,
-    I18N_All_Bottom,
-    I18N_All_Width,
-    I18N_All_Height,
+    Precomp4C_I18N_All_RectangleEditor,
+    Precomp4C_I18N_All_Reset,
+    Precomp4C_I18N_All_OK,
+    Precomp4C_I18N_All_Left,
+    Precomp4C_I18N_All_Top,
+    Precomp4C_I18N_All_Right,
+    Precomp4C_I18N_All_Bottom,
+    Precomp4C_I18N_All_Width,
+    Precomp4C_I18N_All_Height,
 };
 
-EXTERN_C PRECOMP4C_I18N_TABLE I18N_Table_All;
+EXTERN_C PRECOMP4C_I18N_TABLE Precomp4C_I18N_Table_All;

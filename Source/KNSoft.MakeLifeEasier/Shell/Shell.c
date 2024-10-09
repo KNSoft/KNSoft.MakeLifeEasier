@@ -6,9 +6,9 @@
 W32ERROR
 NTAPI
 Shell_Exec(
-    _In_z_ PCWSTR File,
+    _In_ PCWSTR File,
     _In_opt_ PCWSTR Param,
-    _In_opt_z_ PCWSTR Verb,
+    _In_opt_ PCWSTR Verb,
     _In_ INT ShowCmd,
     _Out_opt_ PHANDLE ProcessHandle)
 {
@@ -37,7 +37,7 @@ Shell_Exec(
 HRESULT
 NTAPI
 Shell_LocateItem(
-    _In_z_ PCWSTR Path)
+    _In_ PCWSTR Path)
 {
     HRESULT hr;
     WCHAR DirPath[MAX_PATH], wc;
@@ -82,8 +82,8 @@ Shell_LocateItem(
 HRESULT
 NTAPI
 Shell_GetLinkPath(
-    _In_z_ PCWSTR LinkFile,
-    _Out_writes_z_(PathCchSize) PWSTR Path,
+    _In_ PCWSTR LinkFile,
+    _Out_writes_(PathCchSize) PWSTR Path,
     _In_ INT PathCchSize)
 {
     HRESULT hr;

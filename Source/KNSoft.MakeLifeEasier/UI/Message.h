@@ -19,7 +19,7 @@ ULONG
 NTAPI
 UI_GetWindowTextExW(
     _In_ HWND Window,
-    _Out_writes_z_(TextCch) PWSTR Text,
+    _Out_writes_(TextCch) PWSTR Text,
     _In_ UINT TextCch);
 
 MLE_API
@@ -28,14 +28,22 @@ ULONG
 NTAPI
 UI_GetWindowTextExA(
     _In_ HWND Window,
-    _Out_writes_z_(TextCch) PSTR Text,
+    _Out_writes_(TextCch) PSTR Text,
     _In_ UINT TextCch);
 
 #define UI_GetWindowTextW(Window, Text) UI_GetWindowTextExW(Window, Text, ARRAYSIZE(Text))
 #define UI_GetWindowTextA(Window, Text) UI_GetWindowTextExA(Window, Text, ARRAYSIZE(Text))
 
 /// <seealso cref="EnableWindow"/>
-#define UI_EnableDlgItem(Dialog, ItemID, EnableState) EnableWindow(GetDlgItem(Dialog, ItemID), EnableState)
+FORCEINLINE
+LOGICAL
+UI_EnableDlgItem(
+    _In_ HWND Dialog,
+    _In_ INT ItemId,
+    _In_ LOGICAL EnableState)
+{
+    return EnableWindow(GetDlgItem(Dialog, ItemId), EnableState);
+}
 
 /// <seealso cref="SendMessage"/>
 #define UI_SendMsgW(Window, Msg, wParam, lParam) SendMessageW(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
@@ -68,6 +76,24 @@ UI_GetWindowTextExA(
 #define UI_SetDlgItemTextA(Dialog, ItemID, Text) UI_SetWindowTextA(GetDlgItem(Dialog, ItemID), Text)
 #define UI_LocalSetDlgItemTextW(Dialog, ItemID, Text) UI_LocalSetWindowTextW(GetDlgItem(Dialog, ItemID), Text)
 #define UI_LocalSetDlgItemTextA(Dialog, ItemID, Text) UI_LocalSetWindowTextA(GetDlgItem(Dialog, ItemID), Text)
+
+FORCEINLINE
+VOID
+UI_SetWindowFont(
+    _In_ HWND Window,
+    _In_opt_ HFONT Font,
+    _In_ LOGICAL Redraw)
+{
+    SendMessageW(Window, WM_SETFONT, (WPARAM)Font, Redraw);
+}
+
+FORCEINLINE
+HFONT
+UI_GetWindowFont(
+    _In_ HWND Window)
+{
+    return (HFONT)SendMessageW(Window, WM_GETFONT, 0, 0);
+}
 
 /// <summary>
 /// Set window text without notify, useful to avoid endless loop caused by notification triggled when handling itself

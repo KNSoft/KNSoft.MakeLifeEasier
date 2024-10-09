@@ -17,7 +17,6 @@
 
 typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 
-#include "Dialog/Dialog.h"
 #include "Error/Message.h"
 #include "IO/Device.h"
 #include "IO/File.h"
@@ -29,8 +28,12 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "String/Convert.h"
 #include "String/Hash.h"
 #include "Shell/Shell.h"
+#include "System/Config.h"
 #include "System/Library.h"
 #include "Time/Time.h"
+#include "UI/Dialog/Dialog.h"
+#include "UI/Dialog.h"
+#include "UI/DPI.h"
 #include "UI/GDI.h"
 #include "UI/Message.h"
 #include "UI/Paint.h"

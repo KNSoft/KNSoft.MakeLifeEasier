@@ -1,0 +1,26 @@
+﻿#pragma once
+
+#include "../MakeLifeEasier.h"
+
+EXTERN_C_START
+
+#define SYS_ENUM_PREFERRED_LOCALE_FALLBACK_PARENT  1
+#define SYS_ENUM_PREFERRED_LOCALE_FALLBACK_LIST    2
+
+// Return FALSE to stop enumeration
+typedef
+_Function_class_(SYS_ENUM_PREFERRED_LANGUAGES_FN)
+LOGICAL
+CALLBACK
+SYS_ENUM_PREFERRED_LANGUAGES_FN(
+    _In_ PCWSTR LanguageName,
+    _In_ ULONG FallbackFlags);
+typedef SYS_ENUM_PREFERRED_LANGUAGES_FN *PSYS_ENUM_PREFERRED_LANGUAGES_FN;
+
+MLE_API
+NTSTATUS
+NTAPI
+Sys_EnumPreferredLanguages(
+    _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback);
+
+EXTERN_C_END

@@ -19,6 +19,8 @@
 
 #include "MakeLifeEasier.h"
 
+#pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
+
 #pragma region Resource Access Support
 
 /*
@@ -37,8 +39,8 @@
 FORCEINLINE
 NTSTATUS
 Mlep_AccessResource(
-    _In_ PWSTR Type,
-    _In_ PWSTR Name,
+    _In_ PCWSTR Type,
+    _In_ PCWSTR Name,
     _In_  ULONG_PTR Language,
     _Out_ PVOID* Resource,
     _Out_ PULONG Length)
@@ -79,3 +81,11 @@ Mlep_GetString(
     _In_ INT Index);
 
 #pragma endregion
+
+W32ERROR
+Mlep_DlgBox(
+    _In_ PCWSTR DlgResName,
+    _In_opt_ HWND Owner,
+    _In_opt_ DLGPROC DlgProc,
+    _In_opt_ LPARAM InitParam,
+    _Out_opt_ PINT_PTR Result);
