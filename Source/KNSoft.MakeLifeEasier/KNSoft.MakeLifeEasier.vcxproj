@@ -36,29 +36,29 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -216,8 +216,10 @@
     <ClCompile Include="System\Config.c" />
     <ClCompile Include="System\Library.c" />
     <ClCompile Include="Time\Time.c" />
+    <ClCompile Include="UI\Control.c" />
     <ClCompile Include="UI\Dialog.c" />
     <ClCompile Include="UI\Dialog\RectEditor.c" />
+    <ClCompile Include="UI\Dialog\ValueEditor.c" />
     <ClCompile Include="UI\DPI.c" />
     <ClCompile Include="UI\GDI.c" />
     <ClCompile Include="UI\Message.c" />
@@ -247,6 +249,7 @@
     <ClInclude Include="System\Config.h" />
     <ClInclude Include="System\Library.h" />
     <ClInclude Include="Time\Time.h" />
+    <ClInclude Include="UI\Control.h" />
     <ClInclude Include="UI\Dialog.h" />
     <ClInclude Include="UI\Dialog\Dialog.h" />
     <ClInclude Include="UI\DPI.h" />

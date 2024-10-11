@@ -280,6 +280,16 @@ UI_InitializeDialogDPIScale(
     return SetPropW(Dialog, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo) ? ERROR_SUCCESS : NtGetLastError();
 }
 
+_Success_(return != NULL)
+_Ret_maybenull_
+PUI_DIALOG_DPI_INFO
+NTAPI
+UI_GetDialogDPIScaleInfo(
+    _In_ HWND Dialog)
+{
+    return GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
+}
+
 VOID
 NTAPI
 UI_UninitializeDialogDPIScale(

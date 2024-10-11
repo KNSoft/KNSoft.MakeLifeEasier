@@ -12,4 +12,5 @@
 #include <KNSoft/Precomp4C/Res2C/Res2C.h>
 
 EXTERN_C unsigned char Precomp4C_Res2C_Resource_O5_O101_1024[372];
-EXTERN_C PRECOMP4C_RES2C_ENTRY Precomp4C_Res2C_Resource[1];
+EXTERN_C unsigned char Precomp4C_Res2C_Resource_O5_O103_1024[204];
+EXTERN_C PRECOMP4C_RES2C_ENTRY Precomp4C_Res2C_Resource[2];

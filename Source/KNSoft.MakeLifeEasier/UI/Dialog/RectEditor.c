@@ -1,12 +1,12 @@
 ﻿#include "../../MakeLifeEasier.inl"
 
-#define DRE_MAX_NUM_CCH 16
+#define MAX_INT32_IN_DEC_CCH 16
 
-typedef struct _DLG_RECTEDITOR
+typedef struct _UI_RECTEDITOR_DATA
 {
     PRECT       Rect;
     W32ERROR    Ret;
-} DLG_RECTEDITOR, *PDLG_RECTEDITOR;
+} UI_RECTEDITOR_DATA, *PUI_RECTEDITOR_DATA;
 
 static
 _Success_(return != FALSE)
@@ -15,7 +15,7 @@ Dlg_RectEditor_GetValue(
     _In_ HWND Edit,
     _Out_ PINT Value)
 {
-    WCHAR Num[DRE_MAX_NUM_CCH];
+    WCHAR Num[MAX_INT32_IN_DEC_CCH];
 
     return UI_GetWindowTextW(Edit, Num) && Str_ToIntW(Num, Value);
 }
@@ -26,7 +26,7 @@ Dlg_RectEditor_SetValue(
     _In_ HWND Edit,
     _In_ INT Value)
 {
-    WCHAR Num[DRE_MAX_NUM_CCH];
+    WCHAR Num[MAX_INT32_IN_DEC_CCH];
 
     UI_SetWindowTextW(Edit, Str_DecFromIntW(Value, Num) ? Num : NULL);
 }
@@ -40,50 +40,49 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == WM_INITDIALOG)
     {
         HWND hEdit;
-        PDLG_RECTEDITOR lpstDRE = (PDLG_RECTEDITOR)lParam;
+        PUI_RECTEDITOR_DATA pData = (PUI_RECTEDITOR_DATA)lParam;
 
         UI_InitializeDialogDPIScale(hDlg);
-
         SetWindowLongPtrW(hDlg, DWLP_USER, lParam);
         UI_SetWindowTextW(hDlg, Mlep_GetString(Precomp4C_I18N_All_RectangleEditor));
 
         hEdit = GetDlgItem(hDlg, IDC_RECTEDITOR_TOP_EDIT);
-        SendMessageW(hEdit, EM_SETLIMITTEXT, DRE_MAX_NUM_CCH - 1, 0);
-        Dlg_RectEditor_SetValue(hEdit, lpstDRE->Rect->top);
+        SendMessageW(hEdit, EM_SETLIMITTEXT, MAX_INT32_IN_DEC_CCH - 1, 0);
+        Dlg_RectEditor_SetValue(hEdit, pData->Rect->top);
         UI_SetDlgItemTextW(hDlg, IDC_RECTEDITOR_TOP_TEXT, Mlep_GetString(Precomp4C_I18N_All_Top));
 
         hEdit = GetDlgItem(hDlg, IDC_RECTEDITOR_RIGHT_EDIT);
-        SendMessageW(hEdit, EM_SETLIMITTEXT, DRE_MAX_NUM_CCH - 1, 0);
-        Dlg_RectEditor_SetValue(hEdit, lpstDRE->Rect->right);
+        SendMessageW(hEdit, EM_SETLIMITTEXT, MAX_INT32_IN_DEC_CCH - 1, 0);
+        Dlg_RectEditor_SetValue(hEdit, pData->Rect->right);
         UI_SetDlgItemTextW(hDlg, IDC_RECTEDITOR_RIGHT_TEXT, Mlep_GetString(Precomp4C_I18N_All_Right));
 
         hEdit = GetDlgItem(hDlg, IDC_RECTEDITOR_BOTTOM_EDIT);
-        SendMessageW(hEdit, EM_SETLIMITTEXT, DRE_MAX_NUM_CCH - 1, 0);
-        Dlg_RectEditor_SetValue(hEdit, lpstDRE->Rect->bottom);
+        SendMessageW(hEdit, EM_SETLIMITTEXT, MAX_INT32_IN_DEC_CCH - 1, 0);
+        Dlg_RectEditor_SetValue(hEdit, pData->Rect->bottom);
         UI_SetDlgItemTextW(hDlg, IDC_RECTEDITOR_BOTTOM_TEXT, Mlep_GetString(Precomp4C_I18N_All_Bottom));
 
         hEdit = GetDlgItem(hDlg, IDC_RECTEDITOR_LEFT_EDIT);
-        SendMessageW(hEdit, EM_SETLIMITTEXT, DRE_MAX_NUM_CCH - 1, 0);
-        Dlg_RectEditor_SetValue(hEdit, lpstDRE->Rect->left);
+        SendMessageW(hEdit, EM_SETLIMITTEXT, MAX_INT32_IN_DEC_CCH - 1, 0);
+        Dlg_RectEditor_SetValue(hEdit, pData->Rect->left);
         UI_SetDlgItemTextW(hDlg, IDC_RECTEDITOR_LEFT_TEXT, Mlep_GetString(Precomp4C_I18N_All_Left));
 
         UI_SetDlgItemTextW(hDlg, IDOK, Mlep_GetString(Precomp4C_I18N_All_OK));
         UI_SetDlgItemTextW(hDlg, IDRETRY, Mlep_GetString(Precomp4C_I18N_All_Reset));
 
         return FALSE;
-
     } else if (uMsg == WM_COMMAND)
     {
         if (wParam == MAKEWPARAM(IDRETRY, 0))
         {
-            PDLG_RECTEDITOR lpstDRE = (PDLG_RECTEDITOR)GetWindowLongPtrW(hDlg, DWLP_USER);
-            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_TOP_EDIT), lpstDRE->Rect->top);
-            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_RIGHT_EDIT), lpstDRE->Rect->right);
-            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_BOTTOM_EDIT), lpstDRE->Rect->bottom);
-            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_LEFT_EDIT), lpstDRE->Rect->left);
+            PUI_RECTEDITOR_DATA pData = (PUI_RECTEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
+
+            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_TOP_EDIT), pData->Rect->top);
+            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_RIGHT_EDIT), pData->Rect->right);
+            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_BOTTOM_EDIT), pData->Rect->bottom);
+            Dlg_RectEditor_SetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_LEFT_EDIT), pData->Rect->left);
         } else if (wParam == MAKEWPARAM(IDOK, 0))
         {
-            PDLG_RECTEDITOR lpstDRE = (PDLG_RECTEDITOR)GetWindowLongPtrW(hDlg, DWLP_USER);
+            PUI_RECTEDITOR_DATA pData = (PUI_RECTEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
             RECT rc;
 
             // Verify inputs
@@ -93,11 +92,11 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 Dlg_RectEditor_GetValue(GetDlgItem(hDlg, IDC_RECTEDITOR_BOTTOM_EDIT), &rc.bottom) &&
                 rc.left <= rc.right && rc.top <= rc.bottom)
             {
-                lpstDRE->Rect->left = rc.left;
-                lpstDRE->Rect->top = rc.top;
-                lpstDRE->Rect->right = rc.right;
-                lpstDRE->Rect->bottom = rc.bottom;
-                lpstDRE->Ret = ERROR_SUCCESS;
+                pData->Rect->left = rc.left;
+                pData->Rect->top = rc.top;
+                pData->Rect->right = rc.right;
+                pData->Rect->bottom = rc.bottom;
+                pData->Ret = ERROR_SUCCESS;
                 EndDialog(hDlg, 0);
             } else
             {
@@ -109,9 +108,9 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
     } else if (uMsg == WM_CLOSE)
     {
-        PDLG_RECTEDITOR lpstDRE = (PDLG_RECTEDITOR)GetWindowLongPtrW(hDlg, DWLP_USER);
+        PUI_RECTEDITOR_DATA pData = (PUI_RECTEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
 
-        lpstDRE->Ret = ERROR_CANCELLED;
+        pData->Ret = ERROR_CANCELLED;
         EndDialog(hDlg, 0);
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
     } else if (uMsg == WM_DESTROY)
@@ -128,11 +127,11 @@ UI_RectEditorDlg(
     _Inout_ PRECT Rect)
 {
     W32ERROR Ret;
-    DLG_RECTEDITOR Info = {
+    UI_RECTEDITOR_DATA Data = {
         .Rect = Rect,
         .Ret = ERROR_INTERNAL_ERROR
     };
 
-    Ret = Mlep_DlgBox(MAKEINTRESOURCEW(IDD_RECTEDITOR), Owner, DlgProc, (LPARAM)&Info, NULL);
-    return Ret == ERROR_SUCCESS ? Info.Ret : Ret;
+    Ret = Mlep_DlgBox(MAKEINTRESOURCEW(IDD_RECTEDITOR), Owner, DlgProc, (LPARAM)&Data, NULL);
+    return Ret == ERROR_SUCCESS ? Data.Ret : Ret;
 }

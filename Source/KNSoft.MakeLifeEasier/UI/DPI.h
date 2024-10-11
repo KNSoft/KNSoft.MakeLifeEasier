@@ -99,6 +99,14 @@ UI_InitializeDialogDPIScale(
     _In_ HWND Dialog);
 
 MLE_API
+_Success_(return != NULL)
+_Ret_maybenull_
+PUI_DIALOG_DPI_INFO
+NTAPI
+UI_GetDialogDPIScaleInfo(
+    _In_ HWND Dialog);
+
+MLE_API
 VOID
 NTAPI
 UI_UninitializeDialogDPIScale(

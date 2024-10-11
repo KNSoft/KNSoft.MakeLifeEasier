@@ -96,6 +96,12 @@
     <ClCompile Include="UI\Dialog\RectEditor.c">
       <Filter>UI\Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Dialog\ValueEditor.c">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control.c">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -168,6 +174,9 @@
     </ClInclude>
     <ClInclude Include="UI\Dialog\Dialog.h">
       <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

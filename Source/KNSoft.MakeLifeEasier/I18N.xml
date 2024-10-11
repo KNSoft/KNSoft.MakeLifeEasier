@@ -4,6 +4,14 @@
       <Value Locale="en">Rectangle Editor</Value>
       <Value Locale="zh-Hans">矩形编辑器</Value>
     </String>
+    <String Name="ValueEditorCombine">
+      <Value Locale="en">Combine Value Editor</Value>
+      <Value Locale="zh-Hans">组合值编辑器</Value>
+    </String>
+    <String Name="EnumEditorCombine">
+      <Value Locale="en">Enumeration Value Editor</Value>
+      <Value Locale="zh-Hans">枚举值编辑器</Value>
+    </String>
     <String Name="Reset">
       <Value Locale="en">Reset</Value>
       <Value Locale="zh-Hans">重置</Value>
@@ -35,6 +43,22 @@
     <String Name="Height">
       <Value Locale="en">Height</Value>
       <Value Locale="zh-Hans">高</Value>
+    </String>
+    <String Name="Member">
+      <Value Locale="en">Member</Value>
+      <Value Locale="zh-Hans">成员</Value>
+    </String>
+    <String Name="Value">
+      <Value Locale="en">Value</Value>
+      <Value Locale="zh-Hans">值</Value>
+    </String>
+    <String Name="Description">
+      <Value Locale="en">Description</Value>
+      <Value Locale="zh-Hans">描述</Value>
+    </String>
+    <String Name="Unidentified_Parentheses">
+      <Value Locale="en">(Unidentified)</Value>
+      <Value Locale="zh-Hans">（未识别）</Value>
     </String>
   </Table>
 </I18N>
