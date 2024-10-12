@@ -42,7 +42,6 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         HWND hEdit;
         PUI_RECTEDITOR_DATA pData = (PUI_RECTEDITOR_DATA)lParam;
 
-        UI_InitializeDialogDPIScale(hDlg);
         SetWindowLongPtrW(hDlg, DWLP_USER, lParam);
         UI_SetWindowTextW(hDlg, Mlep_GetString(Precomp4C_I18N_All_RectangleEditor));
 
@@ -113,9 +112,6 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pData->Ret = ERROR_CANCELLED;
         EndDialog(hDlg, 0);
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
-    } else if (uMsg == WM_DESTROY)
-    {
-        UI_UninitializeDialogDPIScale(hDlg);
     }
     return 0;
 }

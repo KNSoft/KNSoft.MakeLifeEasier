@@ -13,6 +13,7 @@ typedef struct _UI_VALUEEDITOR_DATA
 
     /* Internal use */
     UINT64                      CurrentValue;
+    UINT64                      UnidentifiedValue;
 } UI_VALUEEDITOR_DATA, *PUI_VALUEEDITOR_DATA;
 
 static
@@ -112,19 +113,19 @@ static
 LOGICAL
 UI_ValueEditor_AppendUnidentifiedMember(
     _In_ HWND List,
-    _In_ UINT64 Value,
-    _In_ ULONG ValueSize,
+    _Inout_ PUI_VALUEEDITOR_DATA Data,
     _In_ UINT64 IdentifiedValue)
 {
     LVITEMW stLVI;
     WCHAR String[MAX_UINT64_IN_HEX_WITH_PREFIX_CCH];
 
-    if (Value <= IdentifiedValue)
+    if (Data->CurrentValue <= IdentifiedValue)
     {
+        Data->UnidentifiedValue = 0;
         return TRUE;
     }
 
-    Value -= IdentifiedValue;
+    Data->UnidentifiedValue = Data->CurrentValue - IdentifiedValue;
     stLVI.iItem = INT_MAX;
     stLVI.mask = LVIF_TEXT | LVIF_PARAM;
     stLVI.iSubItem = 0;
@@ -133,17 +134,13 @@ UI_ValueEditor_AppendUnidentifiedMember(
     stLVI.iItem = ListView_InsertItem(List, &stLVI);
     if (stLVI.iItem != -1)
     {
+        stLVI.mask = LVIF_TEXT;
         ListView_SetCheckState(List, stLVI.iItem, TRUE);
         stLVI.iSubItem++;
-        stLVI.lParam = HIDWORD(Value);
         stLVI.pszText = UI_ValueEditor_FormatValue(String,
                                                    ARRAYSIZE(String),
-                                                   &Value,
-                                                   ValueSize) ? String : NULL;
-        ListView_SetItem(List, &stLVI);
-        stLVI.mask = LVIF_PARAM;
-        stLVI.iSubItem++;
-        stLVI.lParam = LODWORD(Value);
+                                                   &Data->UnidentifiedValue,
+                                                   Data->ValueSize) ? String : NULL;
         ListView_SetItem(List, &stLVI);
     }
 
@@ -153,30 +150,26 @@ UI_ValueEditor_AppendUnidentifiedMember(
 _Success_(return != FALSE)
 static
 LOGICAL
-UI_ValueEditor_UpdateValue(
-    _In_ HWND Dialog,
-    _In_ ULONG ValueSize,
-    _In_ UINT64 ValueInput,
-    _Out_opt_ PUINT64 ValueOutput)
+UI_ValueEditor_UpdateListOrValue(
+    _In_ HWND List,
+    _Inout_ PUI_VALUEEDITOR_DATA Data,
+    _In_ BOOL UpdateList)
 {
-    HWND hList;
     INT i, iUnidentified;
     LVITEMW stLVI;
-    UINT64 qwTemp, qwUnidentified;
+    UINT64 qwTemp;
     BOOL bCheck;
     PUI_VALUEEDITOR_CONSTANT pConstData;
 
-    hList = GetDlgItem(Dialog, IDC_VALUEEDITOR_MEMBER_LIST);
-
     qwTemp = 0;
-    i = ListView_GetItemCount(hList);
+    i = ListView_GetItemCount(List);
     iUnidentified = -1;
     stLVI.iSubItem = 0;
     stLVI.mask = LVIF_PARAM;
     while (i-- > 0)
     {
         stLVI.iItem = i;
-        if (!ListView_GetItem(hList, &stLVI))
+        if (!ListView_GetItem(List, &stLVI))
         {
             return FALSE;
         }
@@ -188,9 +181,9 @@ UI_ValueEditor_UpdateValue(
 
         pConstData = (PUI_VALUEEDITOR_CONSTANT)stLVI.lParam;
 
-        if (ValueOutput == NULL)
+        if (UpdateList)
         {
-            if (ValueInput & pConstData->Value)
+            if (Data->CurrentValue & pConstData->Value)
             {
                 bCheck = TRUE;
                 qwTemp |= pConstData->Value;
@@ -198,48 +191,36 @@ UI_ValueEditor_UpdateValue(
             {
                 bCheck = FALSE;
             }
-            ListView_SetCheckState(hList, stLVI.iItem, bCheck);
+            ListView_SetCheckState(List, stLVI.iItem, bCheck);
         } else
         {
-            qwTemp |= pConstData->Value;
+            if (ListView_GetCheckState(List, stLVI.iItem))
+            {
+                qwTemp |= pConstData->Value;
+            }
         }
     }
 
-    if (ValueOutput == NULL)
+    if (UpdateList)
     {
         if (iUnidentified != -1)
         {
-            if (!ListView_DeleteItem(hList, iUnidentified))
+            if (!ListView_DeleteItem(List, iUnidentified))
             {
                 return FALSE;
             }
         }
-        if (!UI_ValueEditor_AppendUnidentifiedMember(hList, ValueInput, ValueSize, qwTemp))
+        if (!UI_ValueEditor_AppendUnidentifiedMember(List, Data, qwTemp))
         {
             return FALSE;
         }
     } else
     {
-        if (iUnidentified != -1)
+        if (iUnidentified != -1 && ListView_GetCheckState(List, iUnidentified))
         {
-            stLVI.iItem = iUnidentified;
-            stLVI.iSubItem = 1;
-            stLVI.mask = LVIF_PARAM;
-            if (!ListView_GetItem(hList, &stLVI))
-            {
-                return FALSE;
-            }
-            qwUnidentified = (UINT64)stLVI.lParam & 0xFFFFFFFF;
-            qwUnidentified <<= 32;
-            stLVI.iSubItem++;
-            if (!ListView_GetItem(hList, &stLVI))
-            {
-                return FALSE;
-            }
-            qwUnidentified &= (UINT64)stLVI.lParam & 0xFFFFFFFF;
-            qwTemp += qwUnidentified;
+            qwTemp += Data->UnidentifiedValue;
         }
-        *ValueOutput = qwTemp;
+        Data->CurrentValue = qwTemp;
     }
 
     return TRUE;
@@ -249,8 +230,41 @@ static INT g_aColCx[] = { 200, 210, 540 };
 static INT g_aColPsz[] = {
     Precomp4C_I18N_All_Member,
     Precomp4C_I18N_All_Value,
-    Precomp4C_I18N_All_Description };
+    Precomp4C_I18N_All_Description
+};
 C_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
+
+static
+int
+CALLBACK UI_ValueEditor_ColumnSort(
+    LPARAM lParam1,
+    LPARAM lParam2,
+    LPARAM iColumn)
+{
+    PUI_VALUEEDITOR_CONSTANT pConstData1 = (PUI_VALUEEDITOR_CONSTANT)lParam1;
+    PUI_VALUEEDITOR_CONSTANT pConstData2 = (PUI_VALUEEDITOR_CONSTANT)lParam2;
+
+    if (pConstData1 == pConstData2)
+    {
+        return 0;
+    } else if (pConstData1 == NULL)
+    {
+        return 1;
+    } else if (pConstData2 == NULL)
+    {
+        return -1;
+    }
+
+    if (iColumn == 0)
+    {
+        return wcscmp(pConstData1->Name, pConstData2->Name);
+    } else if (iColumn == 1)
+    {
+        return pConstData1->Value < pConstData2->Value;
+    }
+
+    return 0;
+}
 
 static
 INT_PTR
@@ -265,10 +279,9 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ULONG i;
         LVCOLUMNW stLVCol;
         LVITEMW stLVI;
-        UINT64 qwValue, qwTemp;
+        UINT64 qwTemp;
         WCHAR String[MAX_UINT64_IN_HEX_WITH_PREFIX_CCH];
 
-        UI_InitializeDialogDPIScale(hDlg);
         SetWindowLongPtrW(hDlg, DWLP_USER, lParam);
         UI_SetWindowTextW(hDlg, Mlep_GetString(pData->Type == UIValueEditorCombine ?
                                                Precomp4C_I18N_All_ValueEditorCombine :
@@ -293,7 +306,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         /* Add rows */
         stLVI.iItem = INT_MAX;
-        qwValue = UI_ValueEditor_GetValue(pData->Value, pData->ValueSize);
+        pData->CurrentValue = UI_ValueEditor_GetValue(pData->Value, pData->ValueSize);
         qwTemp = 0;
         for (i = 0; i < pData->ConstantCount; i++)
         {
@@ -305,7 +318,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (stLVI.iItem != -1)
             {
                 stLVI.mask = LVIF_TEXT;
-                if (TEST_FLAGS(qwValue, pData->Constants[i].Value))
+                if (TEST_FLAGS(pData->CurrentValue, pData->Constants[i].Value))
                 {
                     ListView_SetCheckState(hList, stLVI.iItem, TRUE);
                     qwTemp |= pData->Constants[i].Value;
@@ -317,12 +330,12 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                                            pData->ValueSize) ? String : NULL;
                 ListView_SetItem(hList, &stLVI);
                 stLVI.iSubItem++;
-                stLVI.pszText = (LPWSTR)pData->Constants[i].Info;
+                stLVI.pszText = (PWSTR)pData->Constants[i].Info;
                 ListView_SetItem(hList, &stLVI);
             }
             stLVI.iItem++;
         }
-        UI_ValueEditor_AppendUnidentifiedMember(hList, qwValue, pData->ValueSize, qwTemp);
+        UI_ValueEditor_AppendUnidentifiedMember(hList, pData, qwTemp);
 
         UI_SetNoNotifyFlag(hList, FALSE);
 
@@ -343,13 +356,17 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 !UI_GetNoNotifyFlag(lpnmlv->hdr.hwndFrom))
             {
                 PUI_VALUEEDITOR_DATA pData = (PUI_VALUEEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
-                UINT64 qwValue;
 
                 UI_SetNoNotifyFlag(lpnmlv->hdr.hwndFrom, TRUE);
-                UI_ValueEditor_UpdateValue(hDlg, pData->ValueSize, 0, &qwValue);
+                UI_ValueEditor_UpdateListOrValue(lpnmlv->hdr.hwndFrom, pData, FALSE);
                 UI_SetNoNotifyFlag(lpnmlv->hdr.hwndFrom, FALSE);
-                pData->CurrentValue = qwValue;
-                UI_ValueEditor_SetValueText(hDlg, &qwValue, pData->ValueSize);
+                UI_ValueEditor_SetValueText(hDlg, &pData->CurrentValue, pData->ValueSize);
+            } else if (lpnmlv->hdr.code == LVN_COLUMNCLICK && lpnmlv->iItem == -1)
+            {
+                if (lpnmlv->iSubItem <= 1)
+                {
+                    ListView_SortItems(lpnmlv->hdr.hwndFrom, UI_ValueEditor_ColumnSort, lpnmlv->iSubItem);
+                }
             }
         }
     } else if (uMsg == WM_COMMAND)
@@ -358,11 +375,13 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (wParam == MAKEWPARAM(IDRETRY, 0))
         {
+            HWND hList = GetDlgItem(hDlg, IDC_VALUEEDITOR_MEMBER_LIST);
+
             pData->CurrentValue = UI_ValueEditor_GetValue(pData->Value, pData->ValueSize);
             UI_ValueEditor_SetValueText(hDlg, pData->Value, pData->ValueSize);
-            UI_SetNoNotifyFlag((HWND)lParam, TRUE);
-            UI_ValueEditor_UpdateValue(hDlg, pData->ValueSize, pData->CurrentValue, NULL);
-            UI_SetNoNotifyFlag((HWND)lParam, FALSE);
+            UI_SetNoNotifyFlag(hList, TRUE);
+            UI_ValueEditor_UpdateListOrValue(hList, pData, TRUE);
+            UI_SetNoNotifyFlag(hList, FALSE);
         } else if (wParam == MAKEWPARAM(IDOK, 0))
         {
             UI_ValueEditor_SetValue(pData->Value, pData->ValueSize, pData->CurrentValue);
@@ -377,9 +396,6 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         pData->Ret = ERROR_CANCELLED;
         EndDialog(hDlg, 0);
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
-    } else if (uMsg == WM_DESTROY)
-    {
-        UI_UninitializeDialogDPIScale(hDlg);
     }
     return 0;
 }

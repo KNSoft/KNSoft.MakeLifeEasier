@@ -93,10 +93,9 @@ typedef struct _UI_DIALOG_DPI_INFO
 } UI_DIALOG_DPI_INFO, *PUI_DIALOG_DPI_INFO;
 
 MLE_API
-W32ERROR
-NTAPI
-UI_InitializeDialogDPIScale(
-    _In_ HWND Dialog);
+INT_PTR
+CALLBACK
+UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 MLE_API
 _Success_(return != NULL)
@@ -105,17 +104,6 @@ PUI_DIALOG_DPI_INFO
 NTAPI
 UI_GetDialogDPIScaleInfo(
     _In_ HWND Dialog);
-
-MLE_API
-VOID
-NTAPI
-UI_UninitializeDialogDPIScale(
-    _In_ HWND Dialog);
-
-MLE_API
-INT_PTR
-CALLBACK
-UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 MLE_API
 _Success_(return != NULL)

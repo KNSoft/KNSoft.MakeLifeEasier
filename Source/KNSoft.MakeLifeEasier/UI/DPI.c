@@ -232,6 +232,7 @@ UI_DPIScaleDialog(
 
 #define UI_DIALOG_DPISCALE_PROP L"KNSoft.MakeLifeEasier.UI.DialogDPIScale"
 
+static
 W32ERROR
 NTAPI
 UI_InitializeDialogDPIScale(
@@ -274,46 +275,19 @@ UI_InitializeDialogDPIScale(
     DPIUpdateInfo.DPIInfo = DPIInfo;
     UI_EnumChildWindows(Dialog, UI_DPIScaleDialog_EnumChild_Proc, (LPARAM)&DPIUpdateInfo);
 
-    UI_Redraw(Dialog);
     DPIInfo->DPIX = DPIUpdateInfo.NewDPIX;
     DPIInfo->DPIY = DPIUpdateInfo.NewDPIY;
     return SetPropW(Dialog, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo) ? ERROR_SUCCESS : NtGetLastError();
-}
-
-_Success_(return != NULL)
-_Ret_maybenull_
-PUI_DIALOG_DPI_INFO
-NTAPI
-UI_GetDialogDPIScaleInfo(
-    _In_ HWND Dialog)
-{
-    return GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
-}
-
-VOID
-NTAPI
-UI_UninitializeDialogDPIScale(
-    _In_ HWND Dialog)
-{
-    PUI_DIALOG_DPI_INFO DPIInfo;
-
-    DPIInfo = GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
-    if (DPIInfo != NULL)
-    {
-        if (DPIInfo->Font != NULL)
-        {
-            DeleteObject(DPIInfo->Font);
-        }
-        Mem_Free(DPIInfo);
-        RemovePropW(Dialog, UI_DIALOG_DPISCALE_PROP);
-    }
 }
 
 INT_PTR
 CALLBACK
 UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (uMsg == WM_DPICHANGED)
+    if (uMsg == WM_INITDIALOG)
+    {
+        UI_InitializeDialogDPIScale(hDlg);
+    } else if (uMsg == WM_DPICHANGED)
     {
         UINT DPIX = LOWORD(wParam), DPIY = HIWORD(wParam);
         PUI_DIALOG_DPI_INFO DPIInfo = GetPropW(hDlg, UI_DIALOG_DPISCALE_PROP);
@@ -333,8 +307,32 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
         }
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
+    } else if (uMsg == WM_DESTROY)
+    {
+        PUI_DIALOG_DPI_INFO DPIInfo;
+
+        DPIInfo = GetPropW(hDlg, UI_DIALOG_DPISCALE_PROP);
+        if (DPIInfo != NULL)
+        {
+            if (DPIInfo->Font != NULL)
+            {
+                DeleteObject(DPIInfo->Font);
+            }
+            Mem_Free(DPIInfo);
+            RemovePropW(hDlg, UI_DIALOG_DPISCALE_PROP);
+        }
     }
     return 0;
+}
+
+_Success_(return != NULL)
+_Ret_maybenull_
+PUI_DIALOG_DPI_INFO
+NTAPI
+UI_GetDialogDPIScaleInfo(
+    _In_ HWND Dialog)
+{
+    return GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
 }
 
 _Success_(return != NULL)
