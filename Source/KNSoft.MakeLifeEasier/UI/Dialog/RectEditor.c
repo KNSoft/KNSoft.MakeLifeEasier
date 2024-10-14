@@ -68,7 +68,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         UI_SetDlgItemTextW(hDlg, IDOK, Mlep_GetString(Precomp4C_I18N_All_OK));
         UI_SetDlgItemTextW(hDlg, IDRETRY, Mlep_GetString(Precomp4C_I18N_All_Reset));
 
-        return FALSE;
+        return TRUE;
     } else if (uMsg == WM_COMMAND)
     {
         if (wParam == MAKEWPARAM(IDRETRY, 0))

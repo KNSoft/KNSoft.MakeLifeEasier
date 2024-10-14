@@ -15,7 +15,7 @@ typedef struct _UI_VALUEEDITOR_CONSTANT
 {
     UINT64  Value;
     PCWSTR  Name;
-    PCWSTR  Info;
+    PCWSTR  Description;
 } UI_VALUEEDITOR_CONSTANT, *PUI_VALUEEDITOR_CONSTANT;
 
 typedef enum _UI_VALUEEDITOR_TYPE

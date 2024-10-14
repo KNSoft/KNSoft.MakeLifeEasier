@@ -76,38 +76,23 @@ UI_DPIScaleDialogRect(
     {
         return NtGetLastError();
     }
-
     rc.left += pt.x;
     rc.right += pt.x;
     rc.top += pt.y;
     rc.bottom += pt.y;
+    
+    lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
+    rc.left -= lDelta;
+    rc.right += lDelta;
+    lDelta = Math_RoundInt((rc.bottom - rc.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
+    rc.top -= lDelta;
+    rc.bottom += lDelta;
     if (!AdjustWindowRectEx(&rc,
                             (DWORD)GetWindowLongPtrW(Dialog, GWL_STYLE),
                             GetMenu(Dialog) != NULL,
                             (DWORD)GetWindowLongPtrW(Dialog, GWL_EXSTYLE)))
     {
         return NtGetLastError();
-    }
-
-    lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
-    if (lDelta <= rc.left)
-    {
-        rc.left -= lDelta;
-        rc.right += lDelta;
-    } else
-    {
-        rc.right += 2 * lDelta - rc.left;
-        rc.left = 0;
-    }
-    lDelta = Math_RoundInt((rc.bottom - rc.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
-    if (lDelta <= rc.top)
-    {
-        rc.top -= lDelta;
-        rc.bottom += lDelta;
-    } else
-    {
-        rc.bottom += 2 * lDelta - rc.top;
-        rc.top = 0;
     }
 
     return UI_SetWindowRect(Dialog, &rc, Redraw);
@@ -232,61 +217,62 @@ UI_DPIScaleDialog(
 
 #define UI_DIALOG_DPISCALE_PROP L"KNSoft.MakeLifeEasier.UI.DialogDPIScale"
 
-static
-W32ERROR
-NTAPI
-UI_InitializeDialogDPIScale(
-    _In_ HWND Dialog)
-{
-    W32ERROR Ret;
-    PUI_DIALOG_DPI_INFO DPIInfo;
-    UI_DPISCALEDIALOG_UPATE_CHILD_INFO DPIUpdateInfo;
-
-    if (!NT_SUCCESS(Mem_AllocPtr(DPIInfo)))
-    {
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-
-    /* Scale dialog itself */
-    UI_GetWindowDPI(Dialog, &DPIUpdateInfo.NewDPIX, &DPIUpdateInfo.NewDPIY);
-    Ret = UI_DPIScaleDialogRect(Dialog,
-                                USER_DEFAULT_SCREEN_DPI,
-                                DPIUpdateInfo.NewDPIX,
-                                USER_DEFAULT_SCREEN_DPI,
-                                DPIUpdateInfo.NewDPIY, FALSE);
-    if (Ret != ERROR_SUCCESS)
-    {
-        return Ret;
-    }
-    DPIUpdateInfo.DialogScreenOrigin.x = DPIUpdateInfo.DialogScreenOrigin.y = 0;
-    if (!ClientToScreen(Dialog, &DPIUpdateInfo.DialogScreenOrigin))
-    {
-        return NtGetLastError();
-    }
-
-    /* Default font is already DPI scaled */
-    if (UI_CreateDefaultFont(&DPIInfo->Font, 0) != ERROR_SUCCESS)
-    {
-        DPIInfo->Font = NULL;
-    }
-
-    /* Adjust child windows */
-    DPIInfo->DPIX = DPIInfo->DPIY = USER_DEFAULT_SCREEN_DPI;
-    DPIUpdateInfo.DPIInfo = DPIInfo;
-    UI_EnumChildWindows(Dialog, UI_DPIScaleDialog_EnumChild_Proc, (LPARAM)&DPIUpdateInfo);
-
-    DPIInfo->DPIX = DPIUpdateInfo.NewDPIX;
-    DPIInfo->DPIY = DPIUpdateInfo.NewDPIY;
-    return SetPropW(Dialog, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo) ? ERROR_SUCCESS : NtGetLastError();
-}
-
 INT_PTR
 CALLBACK
 UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     if (uMsg == WM_INITDIALOG)
     {
-        UI_InitializeDialogDPIScale(hDlg);
+        W32ERROR Ret;
+        PUI_DIALOG_DPI_INFO DPIInfo;
+        UI_DPISCALEDIALOG_UPATE_CHILD_INFO DPIUpdateInfo;
+
+        if (!NT_SUCCESS(Mem_AllocPtr(DPIInfo)))
+        {
+            EndDialog(hDlg, ERROR_NOT_ENOUGH_MEMORY);
+            return 0;
+        }
+
+        /* Scale dialog itself */
+        UI_GetWindowDPI(hDlg, &DPIUpdateInfo.NewDPIX, &DPIUpdateInfo.NewDPIY);
+        Ret = UI_DPIScaleDialogRect(hDlg,
+                                    USER_DEFAULT_SCREEN_DPI,
+                                    DPIUpdateInfo.NewDPIX,
+                                    USER_DEFAULT_SCREEN_DPI,
+                                    DPIUpdateInfo.NewDPIY, FALSE);
+        if (Ret != ERROR_SUCCESS)
+        {
+            EndDialog(hDlg, Ret);
+            return 0;
+        }
+        DPIUpdateInfo.DialogScreenOrigin.x = DPIUpdateInfo.DialogScreenOrigin.y = 0;
+        if (!ClientToScreen(hDlg, &DPIUpdateInfo.DialogScreenOrigin))
+        {
+            EndDialog(hDlg, NtGetLastError());
+            return 0;
+        }
+
+        /* Default font is already DPI scaled */
+        if (UI_CreateDefaultFont(&DPIInfo->Font, 0) != ERROR_SUCCESS)
+        {
+            DPIInfo->Font = NULL;
+        }
+
+        /* Adjust child windows */
+        DPIInfo->DPIX = DPIInfo->DPIY = USER_DEFAULT_SCREEN_DPI;
+        DPIUpdateInfo.DPIInfo = DPIInfo;
+        UI_EnumChildWindows(hDlg, UI_DPIScaleDialog_EnumChild_Proc, (LPARAM)&DPIUpdateInfo);
+
+        DPIInfo->DPIX = DPIUpdateInfo.NewDPIX;
+        DPIInfo->DPIY = DPIUpdateInfo.NewDPIY;
+        if (!SetPropW(hDlg, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo))
+        {
+            if (DPIInfo->Font != NULL)
+            {
+                DeleteObject(DPIInfo->Font);
+            }
+            EndDialog(hDlg, NtGetLastError());
+        }
     } else if (uMsg == WM_DPICHANGED)
     {
         UINT DPIX = LOWORD(wParam), DPIY = HIWORD(wParam);

@@ -31,6 +31,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "System/Config.h"
 #include "System/Library.h"
 #include "Time/Time.h"
+#include "UI/Control.h"
 #include "UI/Dialog/Dialog.h"
 #include "UI/Dialog.h"
 #include "UI/DPI.h"

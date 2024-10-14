@@ -236,34 +236,68 @@ C_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
 
 static
 int
-CALLBACK UI_ValueEditor_ColumnSort(
+CALLBACK
+UI_ValueEditor_ColumnSort(
     LPARAM lParam1,
     LPARAM lParam2,
     LPARAM iColumn)
 {
     PUI_VALUEEDITOR_CONSTANT pConstData1 = (PUI_VALUEEDITOR_CONSTANT)lParam1;
     PUI_VALUEEDITOR_CONSTANT pConstData2 = (PUI_VALUEEDITOR_CONSTANT)lParam2;
+    BOOL Ascend = iColumn >= 0;
+    INT iCmp;
+
+    if (iColumn < 0)
+    {
+        if (iColumn != INT_MIN)
+        {
+            iColumn = -iColumn;
+        } else
+        {
+            iColumn = 0;
+        }
+    }
 
     if (pConstData1 == pConstData2)
     {
         return 0;
     } else if (pConstData1 == NULL)
     {
-        return 1;
+        iCmp = 1;
     } else if (pConstData2 == NULL)
     {
-        return -1;
+        iCmp = -1;
+    } else
+    {
+        if (iColumn == 0)
+        {
+            iCmp = wcscmp(pConstData1->Name, pConstData2->Name);
+        } else if (iColumn == 1)
+        {
+            if (pConstData1->Value < pConstData2->Value)
+            {
+                iCmp = -1;
+            } else if (pConstData1->Value == pConstData2->Value)
+            {
+                return 0;
+            } else
+            {
+                iCmp = 1;
+            }
+        } else if (iColumn == 2)
+        {
+            iCmp = wcscmp(pConstData1->Description, pConstData2->Description);
+        } else
+        {
+            return 0;
+        }
+        if (!Ascend)
+        {
+            iCmp = -iCmp;
+        }
     }
 
-    if (iColumn == 0)
-    {
-        return wcscmp(pConstData1->Name, pConstData2->Name);
-    } else if (iColumn == 1)
-    {
-        return pConstData1->Value < pConstData2->Value;
-    }
-
-    return 0;
+    return iCmp;
 }
 
 static
@@ -330,7 +364,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                                            pData->ValueSize) ? String : NULL;
                 ListView_SetItem(hList, &stLVI);
                 stLVI.iSubItem++;
-                stLVI.pszText = (PWSTR)pData->Constants[i].Info;
+                stLVI.pszText = (PWSTR)pData->Constants[i].Description;
                 ListView_SetItem(hList, &stLVI);
             }
             stLVI.iItem++;
@@ -342,10 +376,11 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         UI_SetDlgItemTextW(hDlg, IDOK, Mlep_GetString(Precomp4C_I18N_All_OK));
         UI_SetDlgItemTextW(hDlg, IDRETRY, Mlep_GetString(Precomp4C_I18N_All_Reset));
 
-        return FALSE;
+        return TRUE;
     } else if (uMsg == WM_NOTIFY)
     {
         LPNMHDR lpnm = (LPNMHDR)lParam;
+
         if (lpnm->idFrom == IDC_VALUEEDITOR_MEMBER_LIST)
         {
             LPNMLISTVIEW lpnmlv = (LPNMLISTVIEW)lParam;
@@ -363,10 +398,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 UI_ValueEditor_SetValueText(hDlg, &pData->CurrentValue, pData->ValueSize);
             } else if (lpnmlv->hdr.code == LVN_COLUMNCLICK && lpnmlv->iItem == -1)
             {
-                if (lpnmlv->iSubItem <= 1)
-                {
-                    ListView_SortItems(lpnmlv->hdr.hwndFrom, UI_ValueEditor_ColumnSort, lpnmlv->iSubItem);
-                }
+                UI_ListViewSort(lpnmlv->hdr.hwndFrom, UI_ValueEditor_ColumnSort, lpnmlv->iSubItem);
             }
         }
     } else if (uMsg == WM_COMMAND)
