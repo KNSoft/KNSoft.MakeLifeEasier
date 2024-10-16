@@ -20,16 +20,26 @@ Time_UnixTimeToFileTime(
 /// 1e3 for millisecond, 1e6 for microsecond, ...
 /// </param>
 
-MLE_API
+FORCEINLINE
 ULONGLONG
-NTAPI
-Time_StopWatchStart(VOID);
+Time_StopWatchStart(VOID)
+{
+    LARGE_INTEGER liCounter;
 
-MLE_API
+    NtQueryPerformanceCounter(&liCounter, NULL);
+    return (ULONGLONG)liCounter.QuadPart;
+}
+
+FORCEINLINE
 ULONGLONG
-NTAPI
 Time_StopWatchStop(
     _In_ ULONGLONG PrevTime,
-    _In_ ULONG Multiplier);
+    _In_ ULONG Multiplier)
+{
+    LARGE_INTEGER liCounter, liFreq;
+
+    NtQueryPerformanceCounter(&liCounter, &liFreq);
+    return (ULONGLONG)((((ULONGLONG)liCounter.QuadPart - PrevTime) * Multiplier / (DOUBLE)liFreq.QuadPart) + (DOUBLE)0.5);
+}
 
 EXTERN_C_END

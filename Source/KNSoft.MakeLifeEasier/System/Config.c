@@ -16,7 +16,7 @@ Sys_EnumPreferredLanguages(
         .Buffer = wcName
     };
 
-    Status = RtlGetUserPreferredUILanguages(MUI_LANGUAGE_NAME, NULL, &Count, NULL, &Length);
+    Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, NULL, &Length);
     if (!NT_SUCCESS(Status))
     {
         return Status;
@@ -28,7 +28,7 @@ Sys_EnumPreferredLanguages(
         return Status;
     }
 
-    Status = RtlGetUserPreferredUILanguages(MUI_LANGUAGE_NAME, NULL, &Count, Languages, &Length);
+    Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, Languages, &Length);
     if (NT_SUCCESS(Status))
     {
         Flags = 0;

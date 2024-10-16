@@ -40,6 +40,10 @@ UI_DPIScaleFont(
     ENUMLOGFONTEXDVW FontInfo;
     HFONT NewFont;
 
+    if (OldDPIY == NewDPIY)
+    {
+        return ERROR_SUCCESS;
+    }
     if (!UI_GetFontInfo(*Font, &FontInfo))
     {
         return ERROR_INVALID_PARAMETER;
@@ -72,6 +76,10 @@ UI_DPIScaleDialogRect(
     RECT rc;
     POINT pt = { 0 };
 
+    if (OldDPIX == NewDPIX && OldDPIY == NewDPIY)
+    {
+        return ERROR_SUCCESS;
+    }
     if (!GetClientRect(Dialog, &rc) || !ClientToScreen(Dialog, &pt))
     {
         return NtGetLastError();
@@ -111,10 +119,15 @@ UI_DPIScaleChildRect(
 {
     RECT rc;
 
+    if (OldDPIX == NewDPIX && OldDPIY == NewDPIY)
+    {
+        return ERROR_SUCCESS;
+    }
     if (!GetWindowRect(Window, &rc))
     {
         return NtGetLastError();
     }
+
     rc.left -= ParentScreenOrigin->x;
     rc.right -= ParentScreenOrigin->x;
     rc.top -= ParentScreenOrigin->y;

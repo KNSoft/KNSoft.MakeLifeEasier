@@ -30,6 +30,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Shell/Shell.h"
 #include "System/Config.h"
 #include "System/Library.h"
+#include "System/Registry.h"
 #include "Time/Time.h"
 #include "UI/Control.h"
 #include "UI/Dialog/Dialog.h"

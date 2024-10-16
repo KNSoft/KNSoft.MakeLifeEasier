@@ -4,6 +4,7 @@
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math.c" />
     <ClCompile Include="String.c" />
+    <ClCompile Include="Registry.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.h" />

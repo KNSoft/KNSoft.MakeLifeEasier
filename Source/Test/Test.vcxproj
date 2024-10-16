@@ -178,6 +178,7 @@
   <ItemGroup>
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math.c" />
+    <ClCompile Include="Registry.c" />
     <ClCompile Include="String.c" />
   </ItemGroup>
   <ItemGroup>

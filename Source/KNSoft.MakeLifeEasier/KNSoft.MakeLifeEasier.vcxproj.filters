@@ -77,7 +77,6 @@
     </ClCompile>
     <ClCompile Include="Main.c" />
     <ClCompile Include="I18N.xml.g.c" />
-    <ClCompile Include="Resource.rc.g.c" />
     <ClCompile Include="String\Convert.cpp">
       <Filter>String</Filter>
     </ClCompile>
@@ -102,6 +101,10 @@
     <ClCompile Include="UI\Control.c">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="System\Registry.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.Embedded.rc.g.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -154,9 +157,8 @@
     <ClInclude Include="PE\PE.h">
       <Filter>PE</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="Resource.Embedded.h" />
     <ClInclude Include="I18N.xml.g.h" />
-    <ClInclude Include="Resource.rc.g.h" />
     <ClInclude Include="String\Convert.h">
       <Filter>String</Filter>
     </ClInclude>
@@ -178,8 +180,14 @@
     <ClInclude Include="UI\Control.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="System\Registry.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Resource.Embedded.rc.g.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="Resource.Embedded.rc" />
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>

@@ -3,8 +3,6 @@
 #pragma region I18N Support
 
 static _Interlocked_operand_ LONG volatile g_I18N_Init = FALSE;
-static ENUMLOGFONTEXDVW g_I18N_Font;
-static HFONT g_Dlg_Font = NULL;
 
 static
 _Function_class_(SYS_ENUM_PREFERRED_LANGUAGES_FN)
@@ -55,15 +53,19 @@ Mlep_DlgBox(
     _Out_opt_ PINT_PTR Result)
 {
     W32ERROR Ret;
-    NTSTATUS Status;
     PVOID Res;
     ULONG Len;
     INT_PTR DlgRet;
 
-    Status = Mlep_AccessResource(RT_DIALOG, DlgResName, LANG_USER_DEFAULT, &Res, &Len);
-    if (!NT_SUCCESS(Status))
+    if (!Precomp4C_Res2C_AccessResource(Precomp4C_Res2C_Resource_Embedded,
+                                        ARRAYSIZE(Precomp4C_Res2C_Resource_Embedded),
+                                        MAKEINTRESOURCEW(RT_DIALOG),
+                                        DlgResName,
+                                        LANG_USER_DEFAULT,
+                                        &Res,
+                                        &Len))
     {
-        return RtlNtStatusToDosErrorNoTeb(Status);
+        return ERROR_RESOURCE_DATA_NOT_FOUND;
     }
     DlgRet = DialogBoxIndirectParamW((HINSTANCE)&__ImageBase, Res, Owner, DlgProc, InitParam);
     if (DlgRet == -1)

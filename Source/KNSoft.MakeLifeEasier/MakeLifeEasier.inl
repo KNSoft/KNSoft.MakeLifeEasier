@@ -21,66 +21,14 @@
 
 #pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
 
-#pragma region Resource Access Support
-
-/*
- * Support access resource for both of Dll and Lib
- * 
- * Caution: Resource support for Lib is powered by KNSoft.Precomp4C,
- *   which is very incomplete and limited.
- */
-
-#include "resource.h"
-
-#ifdef MSB_CONFIGURATIONTYPE_LIB
-#include "Resource.rc.g.h"
-#endif
-
-FORCEINLINE
-NTSTATUS
-Mlep_AccessResource(
-    _In_ PCWSTR Type,
-    _In_ PCWSTR Name,
-    _In_  ULONG_PTR Language,
-    _Out_ PVOID* Resource,
-    _Out_ PULONG Length)
-{
-
-#ifndef MSB_CONFIGURATIONTYPE_LIB
-
-    const LDR_RESOURCE_INFO ResInfo = {
-        .Type = (ULONG_PTR)Type,
-        .Name = (ULONG_PTR)Name,
-        .Language = Language
-    };
-    
-    return PE_AccessResource(&__ImageBase, (PLDR_RESOURCE_INFO)&ResInfo, Resource, Length);
-
-#else
-
-    return Precomp4C_Res2C_AccessResource(Precomp4C_Res2C_Resource,
-                                          ARRAYSIZE(Precomp4C_Res2C_Resource),
-                                          (PCWSTR)Type,
-                                          (PCWSTR)Name,
-                                          (USHORT)Language,
-                                          Resource,
-                                          (PUINT)Length) ? STATUS_SUCCESS : STATUS_RESOURCE_LANG_NOT_FOUND;
-
-#endif
-}
-
-#pragma endregion
-
-#pragma region I18N Support
-
+#include "Resource.Embedded.h"
+#include "Resource.Embedded.rc.g.h"
 #include "I18N.xml.g.h"
 
 EXTERN_C
 PCWSTR
 Mlep_GetString(
     _In_ INT Index);
-
-#pragma endregion
 
 W32ERROR
 Mlep_DlgBox(
