@@ -58,10 +58,10 @@ IO_QueryStorageProperty(
     }
 
     /* Allocate buffer and receive data */
-    Status = Mem_Alloc(&Buffer, sdh.Size);
-    if (!NT_SUCCESS(Status))
+    Buffer = Mem_Alloc(sdh.Size);
+    if (Buffer == NULL)
     {
-        return Status;
+        return STATUS_NO_MEMORY;
     }
     Status = NtDeviceIoControlFile(DeviceHandle,
                                    NULL,
@@ -129,13 +129,13 @@ IO_GetFirmwareTable(
     }
 
     _Analysis_assume_(Length >= sizeof(FirmwareInfo));
-    Status = Mem_Alloc(&Buffer, Length);
-    if (!NT_SUCCESS(Status))
+    Buffer = Mem_Alloc(Length);
+    if (Buffer == NULL)
     {
-        return Status;
+        return STATUS_NO_MEMORY;
     }
 
-    RtlCopyMemory(Buffer, &FirmwareInfo, sizeof(FirmwareInfo));
+    memcpy(Buffer, &FirmwareInfo, sizeof(FirmwareInfo));
     Status = NtQuerySystemInformation(SystemFirmwareTableInformation, Buffer, Length, &Length);
     if (!NT_SUCCESS(Status))
     {

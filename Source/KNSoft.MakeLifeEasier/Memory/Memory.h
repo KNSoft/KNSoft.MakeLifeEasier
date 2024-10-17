@@ -6,57 +6,85 @@ EXTERN_C_START
 
 #pragma region Heap
 
-MLE_API
+/*
+ * If failed, the caller could use STATUS_NO_MEMORY, ERROR_NOT_ENOUGH_MEMORY, ... as error code
+ */
+FORCEINLINE
+_Success_(return != NULL)
 _Must_inspect_result_
+_Ret_maybenull_
+_Post_writable_byte_size_(Size)
 __drv_allocatesMem(Mem)
-NTSTATUS
-NTAPI
+DECLSPEC_ALLOCATOR
+DECLSPEC_NOALIAS
+DECLSPEC_RESTRICT
+PVOID
 Mem_Alloc(
-    _Out_ _At_(*BaseAddress,
-               _Readable_bytes_(Size)
-               _Writable_bytes_(Size)
-               _Post_readable_byte_size_(Size)) PVOID* BaseAddress,
-    _In_ SIZE_T Size);
+    _In_ SIZE_T Size)
+{
+    return RtlAllocateHeap(NtGetProcessHeap(), 0, Size);
+}
 
-MLE_API
+FORCEINLINE
+_Success_(return != FALSE)
 LOGICAL
-NTAPI
 Mem_Free(
-    __drv_freesMem(Mem) _Frees_ptr_ PVOID BaseAddress);
+    __drv_freesMem(Mem) _Frees_ptr_ PVOID BaseAddress)
+{
+    return RtlFreeHeap(NtGetProcessHeap(), 0, BaseAddress);
+}
 
-#define Mem_AllocPtr(p) Mem_Alloc(&(p), sizeof(*(p)))
+#if !defined(__cplusplus) && _MSC_FULL_VER >= 193933428
+#define Mem_AllocPtr(p) ((p = (__typeof__(p))Mem_Alloc(sizeof(*(p)))) != NULL)
+#endif
 
 #pragma endregion
 
 #pragma region Page
 
-MLE_API
+FORCEINLINE
 _Must_inspect_result_
 __drv_allocatesMem(Mem)
 NTSTATUS
-NTAPI
 Mem_AllocPage(
     _Out_ _At_(*BaseAddress,
                _Readable_bytes_(Size)
                _Writable_bytes_(Size)
                _Post_readable_byte_size_(Size)) PVOID* BaseAddress,
     _In_ SIZE_T Size,
-    _In_ ULONG Protect);
+    _In_ ULONG Protect)
+{
+    PVOID Base = NULL;
+    NTSTATUS Status;
 
-MLE_API
+    Status = NtAllocateVirtualMemory(NtCurrentProcess(), &Base, 0, &Size, MEM_COMMIT | MEM_RESERVE, Protect);
+    if (NT_SUCCESS(Status))
+    {
+        *BaseAddress = Base;
+    }
+    return Status;
+}
+
+FORCEINLINE
 NTSTATUS
-NTAPI
 Mem_ProtectPage(
     _In_ PVOID BaseAddress,
     _In_ SIZE_T Size,
     _In_ ULONG Protect,
-    _Out_ PULONG OldProtect);
+    _Out_ PULONG OldProtect)
+{
+    return NtProtectVirtualMemory(NtCurrentProcess(), &BaseAddress, &Size, Protect, OldProtect);
+}
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
 Mem_FreePage(
-    __drv_freesMem(Mem) _Frees_ptr_ _In_ PVOID BaseAddress);
+    __drv_freesMem(Mem) _Frees_ptr_ _In_ PVOID BaseAddress)
+{
+    SIZE_T Size = 0;
+
+    return NtFreeVirtualMemory(NtCurrentProcess(), &BaseAddress, &Size, MEM_RELEASE);
+}
 
 #pragma endregion
 

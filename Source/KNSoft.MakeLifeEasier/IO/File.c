@@ -78,10 +78,10 @@ IO_BeginFindFile(
     BOOL HasData;
 
     /* Allocate buffer */
-    Status = Mem_Alloc(&Buffer, FILE_FIND_BUFFER_SIZE);
-    if (!NT_SUCCESS(Status))
+    Buffer = Mem_Alloc(FILE_FIND_BUFFER_SIZE);
+    if (Buffer == NULL)
     {
-        return Status;
+        return STATUS_NO_MEMORY;
     }
 
     /* Find the first time */

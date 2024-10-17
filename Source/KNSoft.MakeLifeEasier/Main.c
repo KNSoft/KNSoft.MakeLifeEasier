@@ -56,6 +56,7 @@ Mlep_DlgBox(
     PVOID Res;
     ULONG Len;
     INT_PTR DlgRet;
+    PVOID Cookie;
 
     if (!Precomp4C_Res2C_AccessResource(Precomp4C_Res2C_Resource_Embedded,
                                         ARRAYSIZE(Precomp4C_Res2C_Resource_Embedded),
@@ -67,7 +68,9 @@ Mlep_DlgBox(
     {
         return ERROR_RESOURCE_DATA_NOT_FOUND;
     }
+    UI_EnableDPIAwareContext(&Cookie);
     DlgRet = DialogBoxIndirectParamW((HINSTANCE)&__ImageBase, Res, Owner, DlgProc, InitParam);
+    UI_RestoreDPIAwareContext(Cookie);
     if (DlgRet == -1)
     {
         Ret = NtGetLastError();

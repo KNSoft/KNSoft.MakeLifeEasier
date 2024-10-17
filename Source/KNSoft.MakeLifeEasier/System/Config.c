@@ -22,10 +22,10 @@ Sys_EnumPreferredLanguages(
         return Status;
     }
 
-    Status = Mem_Alloc(&Languages, Length * sizeof(WCHAR));
-    if (!NT_SUCCESS(Status))
+    Languages = Mem_Alloc(Length * sizeof(WCHAR));
+    if (Languages == NULL)
     {
-        return Status;
+        return STATUS_NO_MEMORY;
     }
 
     Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, Languages, &Length);

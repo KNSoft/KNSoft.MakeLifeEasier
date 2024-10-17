@@ -91,7 +91,8 @@ Sys_RegQueryData(
     {
         return NT_SUCCESS(Status) ? STATUS_UNSUCCESSFUL : Status;
     }
-    if (!NT_SUCCESS(Mem_Alloc((PVOID*)&Buffer, Length)))
+    Buffer = (PKEY_VALUE_PARTIAL_INFORMATION)Mem_Alloc(Length);
+    if (Buffer == NULL)
     {
         return STATUS_NO_MEMORY;
     }

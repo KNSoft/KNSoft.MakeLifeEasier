@@ -106,10 +106,10 @@ UI_GetDialogDPIScaleInfo(
     _In_ HWND Dialog);
 
 MLE_API
-_Success_(return != NULL)
-PVOID
+LOGICAL
 NTAPI
-UI_EnableDPIAwareContext(VOID);
+UI_EnableDPIAwareContext(
+    _Out_ PVOID* Cookie);
 
 MLE_API
 LOGICAL

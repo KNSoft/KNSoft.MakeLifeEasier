@@ -88,7 +88,7 @@ UI_DPIScaleDialogRect(
     rc.right += pt.x;
     rc.top += pt.y;
     rc.bottom += pt.y;
-    
+
     lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
     rc.left -= lDelta;
     rc.right += lDelta;
@@ -240,7 +240,7 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PUI_DIALOG_DPI_INFO DPIInfo;
         UI_DPISCALEDIALOG_UPATE_CHILD_INFO DPIUpdateInfo;
 
-        if (!NT_SUCCESS(Mem_AllocPtr(DPIInfo)))
+        if (!Mem_AllocPtr(DPIInfo))
         {
             EndDialog(hDlg, ERROR_NOT_ENOUGH_MEMORY);
             return 0;
@@ -252,7 +252,8 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                     USER_DEFAULT_SCREEN_DPI,
                                     DPIUpdateInfo.NewDPIX,
                                     USER_DEFAULT_SCREEN_DPI,
-                                    DPIUpdateInfo.NewDPIY, FALSE);
+                                    DPIUpdateInfo.NewDPIY,
+                                    FALSE);
         if (Ret != ERROR_SUCCESS)
         {
             EndDialog(hDlg, Ret);
@@ -334,23 +335,61 @@ UI_GetDialogDPIScaleInfo(
     return GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
 }
 
-_Success_(return != NULL)
-PVOID
+typedef
+DPI_AWARENESS_CONTEXT
+WINAPI
+FN_SetThreadDpiAwarenessContext(
+    _In_ DPI_AWARENESS_CONTEXT dpiContext);
+
+static FN_SetThreadDpiAwarenessContext* g_pfnSetThreadDpiAwarenessContext = NULL;
+static CONST ANSI_STRING g_asSetThreadDpiAwarenessContext = RTL_CONSTANT_STRING("SetThreadDpiAwarenessContext");
+
+LOGICAL
 NTAPI
-UI_EnableDPIAwareContext(VOID)
+UI_EnableDPIAwareContext(
+    _Out_ PVOID* Cookie)
 {
-    /* TODO */
-
+    NTSTATUS Status;
     DPI_AWARENESS_CONTEXT Context;
+    PVOID User32Base;
 
-    /* PMv2 since Win10 1703 (Redstone 2, 10.0.15063) */
-    if (SharedUserData->NtMajorVersion < 10 || SharedUserData->NtBuildNumber < 15063)
+    /* SetThreadDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
+    if (SharedUserData->NtMajorVersion < 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
     {
-        return NULL;
+        goto _Fail;
+    }
+    if (g_pfnSetThreadDpiAwarenessContext == NULL)
+    {
+        Status = Sys_LoadDll(SysLibUser32, &User32Base);
+        if (!NT_SUCCESS(Status))
+        {
+            goto _Fail;
+        }
+        Status = LdrGetProcedureAddress(User32Base,
+                                        (PANSI_STRING)&g_asSetThreadDpiAwarenessContext,
+                                        0,
+                                        (PVOID*)&g_pfnSetThreadDpiAwarenessContext);
+        if (!NT_SUCCESS(Status))
+        {
+            goto _Fail;
+        }
     }
 
-    Context = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    return Context;
+    /* PMv2 since Win10 1703 (Redstone 2, 10.0.15063) */
+    Context = (SharedUserData->NtMajorVersion > 10 || SharedUserData->NtBuildNumber >= 15063) ?
+        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 : DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
+    Context = g_pfnSetThreadDpiAwarenessContext(Context);
+    if (Context == NULL)
+    {
+        goto _Fail;
+    }
+    *Cookie = (PVOID)Context;
+    return TRUE;
+
+_Fail:
+    *Cookie = NULL;
+    return FALSE;
 }
 
 LOGICAL
@@ -358,6 +397,9 @@ NTAPI
 UI_RestoreDPIAwareContext(
     _In_ PVOID Cookie)
 {
-    /* TODO */
-    return SetThreadDpiAwarenessContext(Cookie) != NULL;
+    if (Cookie == NULL)
+    {
+        return FALSE;
+    }
+    return g_pfnSetThreadDpiAwarenessContext((DPI_AWARENESS_CONTEXT)Cookie) != NULL;
 }

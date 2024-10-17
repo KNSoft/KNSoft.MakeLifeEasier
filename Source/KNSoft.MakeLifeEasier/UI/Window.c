@@ -72,7 +72,7 @@ UI_InitializeWindowResize(
 {
     PUI_WINDOW_RESIZE_INFO ResizeInfo;
 
-    if (!NT_SUCCESS(Mem_AllocPtr(ResizeInfo)))
+    if (!Mem_AllocPtr(ResizeInfo))
     {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
