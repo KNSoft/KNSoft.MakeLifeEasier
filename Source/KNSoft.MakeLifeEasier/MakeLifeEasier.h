@@ -24,6 +24,8 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Math/Rand.h"
 #include "Memory/Memory.h"
 #include "PE/PE.h"
+#include "Process/Loader.h"
+#include "Process/Token.h"
 #include "String/Basic.h"
 #include "String/Convert.h"
 #include "String/Hash.h"

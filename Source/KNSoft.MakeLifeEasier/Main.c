@@ -56,7 +56,7 @@ Mlep_DlgBox(
     PVOID Res;
     ULONG Len;
     INT_PTR DlgRet;
-    PVOID Cookie;
+    DPI_AWARENESS_CONTEXT DPIContext;
 
     if (!Precomp4C_Res2C_AccessResource(Precomp4C_Res2C_Resource_Embedded,
                                         ARRAYSIZE(Precomp4C_Res2C_Resource_Embedded),
@@ -68,9 +68,9 @@ Mlep_DlgBox(
     {
         return ERROR_RESOURCE_DATA_NOT_FOUND;
     }
-    UI_EnableDPIAwareContext(&Cookie);
+    DPIContext = UI_EnableDPIAwareContext();
     DlgRet = DialogBoxIndirectParamW((HINSTANCE)&__ImageBase, Res, Owner, DlgProc, InitParam);
-    UI_RestoreDPIAwareContext(Cookie);
+    UI_RestoreDPIAwareContext(DPIContext);
     if (DlgRet == -1)
     {
         Ret = NtGetLastError();
@@ -92,29 +92,12 @@ Mlep_DlgBox(
 
 #ifdef MSB_CONFIGURATIONTYPE_EXE
 
-static UI_VALUEEDITOR_CONSTANT g_Consts[] = {
-    { WS_BORDER, L"WS_BORDER", L"Window has border" },
-    { WS_ACTIVECAPTION, L"WS_ACTIVECAPTION", L"Active caption" },
-    { WS_DLGFRAME, L"WS_DLGFRAME", L"Window has frame" },
-    { WS_CHILD, L"WS_CHILD", L"Window is a child" },
-    { WS_DISABLED, L"WS_DISABLED", L"Window is disabled" },
-    { WS_MINIMIZEBOX, L"WS_MINIMIZEBOX", L"Window has _" },
-};
-
 int
 _cdecl
 wmain(
     _In_ int argc,
     _In_reads_(argc) _Pre_z_ wchar_t** argv)
 {
-    ULONG Flags = WS_BORDER | WS_ACTIVECAPTION | WS_DLGFRAME | WS_MINIMIZEBOX | 3;
-
-    W32ERROR Ret = UI_ValueEditorDlg(NULL,
-                                     UIValueEditorCombine,
-                                     &Flags,
-                                     sizeof(Flags),
-                                     g_Consts,
-                                     ARRAYSIZE(g_Consts));
     return 0;
 }
 

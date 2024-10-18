@@ -34,6 +34,9 @@
     <Filter Include="UI\Dialog">
       <UniqueIdentifier>{c33347fe-2000-4c97-bd09-132385981b94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Process">
+      <UniqueIdentifier>{eaaf15c6-cd44-4910-ba55-056be3466ea0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory\Memory.c">
@@ -105,6 +108,12 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Resource.Embedded.rc.g.c" />
+    <ClCompile Include="Process\Loader.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Token.c">
+      <Filter>Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -185,6 +194,12 @@
     </ClInclude>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Resource.Embedded.rc.g.h" />
+    <ClInclude Include="Process\Loader.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Token.h">
+      <Filter>Process</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.Embedded.rc" />

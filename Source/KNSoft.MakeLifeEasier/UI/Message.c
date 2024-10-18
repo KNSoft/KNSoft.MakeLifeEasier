@@ -78,7 +78,7 @@ UI_SetWndTextNoNotifyW(
     LRESULT Ret;
 
     UI_SetNoNotifyFlag(Window, TRUE);
-    Ret = UI_SendMsgW(Window, WM_SETTEXT, 0, Text);
+    Ret = UI_SetWindowTextW(Window, Text);
     UI_SetNoNotifyFlag(Window, FALSE);
 
     return Ret;
@@ -93,7 +93,7 @@ UI_SetWndTextNoNotifyA(
     LRESULT Ret;
 
     UI_SetNoNotifyFlag(Window, TRUE);
-    Ret = UI_SendMsgA(Window, WM_SETTEXT, 0, (LPARAM)Text);
+    Ret = UI_SetWindowTextA(Window, Text);
     UI_SetNoNotifyFlag(Window, FALSE);
 
     return Ret;

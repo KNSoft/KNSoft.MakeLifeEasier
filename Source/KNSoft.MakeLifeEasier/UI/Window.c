@@ -26,7 +26,7 @@ UI_EnumChildWindows(
     _In_opt_ LPARAM Param)
 {
     HWND hWndChild = GetWindow(ParentWindow, GW_CHILD);
-    while (hWndChild && WindowEnumProc(hWndChild, Param))
+    while (hWndChild != NULL && WindowEnumProc(hWndChild, Param))
     {
         hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);
     }

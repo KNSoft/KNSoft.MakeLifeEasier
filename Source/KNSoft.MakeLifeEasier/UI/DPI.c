@@ -1,34 +1,8 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-VOID
-NTAPI
-UI_GetWindowDPI(
-    _In_ HWND Window,
-    _Out_ PUINT DPIX,
-    _Out_ PUINT DPIY)
-{
-    HDC hDC;
+#include <shellscalingapi.h>
 
-    hDC = GetDC(Window);
-    *DPIX = GetDeviceCaps(hDC, LOGPIXELSX);
-    *DPIY = GetDeviceCaps(hDC, LOGPIXELSY);
-    ReleaseDC(Window, hDC);
-}
-
-VOID
-NTAPI
-UI_DPIScaleRect(
-    _Inout_ PRECT Rect,
-    _In_ UINT OldDPIX,
-    _In_ UINT NewDPIX,
-    _In_ UINT OldDPIY,
-    _In_ UINT NewDPIY)
-{
-    UI_DPIScaleInt(&Rect->left, OldDPIX, NewDPIX);
-    UI_DPIScaleInt(&Rect->right, OldDPIX, NewDPIX);
-    UI_DPIScaleInt(&Rect->top, OldDPIY, NewDPIY);
-    UI_DPIScaleInt(&Rect->bottom, OldDPIY, NewDPIY);
-}
+#pragma region Scale
 
 W32ERROR
 NTAPI
@@ -62,113 +36,58 @@ UI_DPIScaleFont(
     return ERROR_SUCCESS;
 }
 
-W32ERROR
-NTAPI
-UI_DPIScaleDialogRect(
-    _In_ HWND Dialog,
-    _In_ UINT OldDPIX,
-    _In_ UINT NewDPIX,
-    _In_ UINT OldDPIY,
-    _In_ UINT NewDPIY,
-    _In_ LOGICAL Redraw)
-{
-    LONG lDelta;
-    RECT rc;
-    POINT pt = { 0 };
+typedef
+BOOL
+WINAPI
+FN_AdjustWindowRectExForDpi(
+    _Inout_ LPRECT lpRect,
+    _In_ DWORD dwStyle,
+    _In_ BOOL bMenu,
+    _In_ DWORD dwExStyle,
+    _In_ UINT dpi);
 
-    if (OldDPIX == NewDPIX && OldDPIY == NewDPIY)
-    {
-        return ERROR_SUCCESS;
-    }
-    if (!GetClientRect(Dialog, &rc) || !ClientToScreen(Dialog, &pt))
-    {
-        return NtGetLastError();
-    }
-    rc.left += pt.x;
-    rc.right += pt.x;
-    rc.top += pt.y;
-    rc.bottom += pt.y;
-
-    lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
-    rc.left -= lDelta;
-    rc.right += lDelta;
-    lDelta = Math_RoundInt((rc.bottom - rc.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
-    rc.top -= lDelta;
-    rc.bottom += lDelta;
-    if (!AdjustWindowRectEx(&rc,
-                            (DWORD)GetWindowLongPtrW(Dialog, GWL_STYLE),
-                            GetMenu(Dialog) != NULL,
-                            (DWORD)GetWindowLongPtrW(Dialog, GWL_EXSTYLE)))
-    {
-        return NtGetLastError();
-    }
-
-    return UI_SetWindowRect(Dialog, &rc, Redraw);
-}
-
-W32ERROR
-NTAPI
-UI_DPIScaleChildRect(
-    _In_ HWND Window,
-    _In_ PPOINT ParentScreenOrigin,
-    _In_ UINT OldDPIX,
-    _In_ UINT NewDPIX,
-    _In_ UINT OldDPIY,
-    _In_ UINT NewDPIY,
-    _In_ LOGICAL Redraw)
-{
-    RECT rc;
-
-    if (OldDPIX == NewDPIX && OldDPIY == NewDPIY)
-    {
-        return ERROR_SUCCESS;
-    }
-    if (!GetWindowRect(Window, &rc))
-    {
-        return NtGetLastError();
-    }
-
-    rc.left -= ParentScreenOrigin->x;
-    rc.right -= ParentScreenOrigin->x;
-    rc.top -= ParentScreenOrigin->y;
-    rc.bottom -= ParentScreenOrigin->y;
-    UI_DPIScaleRect(&rc, OldDPIX, NewDPIX, OldDPIY, NewDPIY);
-
-    return UI_SetWindowRect(Window, &rc, Redraw);
-}
-
-typedef struct _UI_DPISCALEDIALOG_UPATE_CHILD_INFO
-{
-    PUI_DIALOG_DPI_INFO DPIInfo;
-    POINT               DialogScreenOrigin;
-    DWORD               NewDPIX;
-    DWORD               NewDPIY;
-} UI_DPISCALEDIALOG_UPATE_CHILD_INFO, *PUI_DPISCALEDIALOG_UPATE_CHILD_INFO;
+static FN_AdjustWindowRectExForDpi* g_pfnAdjustWindowRectExForDpi = NULL;
+static CONST ANSI_STRING g_asAdjustWindowRectExForDpi = RTL_CONSTANT_STRING("AdjustWindowRectExForDpi");
 
 static
-BOOL
-CALLBACK
-UI_DPIScaleDialog_EnumChild_Proc(
-    HWND hCtl,
-    LPARAM lParam)
+W32ERROR
+UI_DPIScaleDialogRect_AdjustRect(
+    _In_ HWND Dialog,
+    _Inout_ PRECT Rect,
+    _In_ UINT DPI)
 {
-    PUI_DPISCALEDIALOG_UPATE_CHILD_INFO pInfo = (PUI_DPISCALEDIALOG_UPATE_CHILD_INFO)lParam;
+    DWORD Style, ExStyle;
+    BOOL HasMenu;
 
-    if (pInfo->DPIInfo->Font != NULL)
+    Style = (DWORD)GetWindowLongPtrW(Dialog, GWL_STYLE);
+    ExStyle = (DWORD)GetWindowLongPtrW(Dialog, GWL_EXSTYLE);
+    HasMenu = GetMenu(Dialog) != NULL;
+
+    /* AdjustWindowRectExForDpi since Win10 1607 (Redstone, 10.0.14393) */
+    if (SharedUserData->NtMajorVersion < 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
     {
-        UI_SetWindowFont(hCtl, pInfo->DPIInfo->Font, FALSE);
+        goto _Fallback;
     }
-    UI_DPIScaleChildRect(hCtl,
-                         &pInfo->DialogScreenOrigin,
-                         pInfo->DPIInfo->DPIX,
-                         pInfo->NewDPIX,
-                         pInfo->DPIInfo->DPIY,
-                         pInfo->NewDPIY,
-                         FALSE);
+    if (g_pfnAdjustWindowRectExForDpi == NULL)
+    {
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
+                                           &g_asAdjustWindowRectExForDpi,
+                                           (PVOID*)&g_pfnAdjustWindowRectExForDpi)))
+        {
+            goto _Fallback;
+        }
+    }
+    if (g_pfnAdjustWindowRectExForDpi(Rect, Style, HasMenu, ExStyle, DPI))
+    {
+        return ERROR_SUCCESS;
+    }
 
-    return TRUE;
+_Fallback:
+    return AdjustWindowRectEx(Rect, Style, HasMenu, ExStyle) ? ERROR_SUCCESS : NtGetLastError();
 }
 
+static
 W32ERROR
 NTAPI
 UI_DPIScaleDialog(
@@ -177,56 +96,100 @@ UI_DPIScaleDialog(
     _In_ UINT NewDPIX,
     _In_ UINT OldDPIY,
     _In_ UINT NewDPIY,
-    _In_opt_ PRECT SuggestedPos,
-    _Inout_opt_ HFONT* Font)
+    _In_opt_ PRECT SuggestRect,
+    _When_(ScaleFont != FALSE, _Inout_opt_) _When_(ScaleFont == FALSE, _In_opt_) HFONT* Font,
+    _In_ LOGICAL ScaleFont,
+    _In_ LOGICAL Redraw)
 {
-    W32ERROR Error;
-    UI_DIALOG_DPI_INFO DPIInfo;
-    UI_DPISCALEDIALOG_UPATE_CHILD_INFO DPIUpdateInfo;
+    W32ERROR eRet;
+    RECT rc;
+    LONG lDelta;
+    POINT ptOrigin = { 0, 0 };
+    HFONT hFont;
+    HWND hWnd;
 
     /* Adjust dialog rect */
-    if (SuggestedPos != NULL)
+    if (SuggestRect == NULL)
     {
-        Error = UI_SetWindowRect(Dialog, SuggestedPos, FALSE);
+        if (!GetClientRect(Dialog, &rc) || !ClientToScreen(Dialog, &ptOrigin))
+        {
+            return NtGetLastError();
+        }
+        rc.left += ptOrigin.x;
+        rc.right += ptOrigin.x;
+        rc.top += ptOrigin.y;
+        rc.bottom += ptOrigin.y;
+
+        lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
+        rc.left -= lDelta;
+        rc.right += lDelta;
+        lDelta = Math_RoundInt((rc.bottom - rc.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
+        rc.top -= lDelta;
+        rc.bottom += lDelta;
+
+        eRet = UI_DPIScaleDialogRect_AdjustRect(Dialog, &rc, NewDPIX);
+        if (eRet == ERROR_SUCCESS)
+        {
+            eRet = UI_SetWindowRect(Dialog, &rc, FALSE);
+        }
     } else
     {
-        Error = UI_DPIScaleDialogRect(Dialog, OldDPIX, NewDPIX, OldDPIY, NewDPIY, FALSE);
+        eRet = UI_SetWindowRect(Dialog, SuggestRect, FALSE);
     }
-    if (Error != ERROR_SUCCESS)
+    if (eRet != ERROR_SUCCESS)
     {
-        return Error;
-    }
-    DPIUpdateInfo.DialogScreenOrigin.x = DPIUpdateInfo.DialogScreenOrigin.y = 0;
-    if (!ClientToScreen(Dialog, &DPIUpdateInfo.DialogScreenOrigin))
-    {
-        return NtGetLastError();
+        return eRet;
     }
 
     /* Adjust font */
     if (Font != NULL)
     {
-        Error = UI_DPIScaleFont(Font, OldDPIY, NewDPIY);
-        if (Error != ERROR_SUCCESS)
+        if (ScaleFont)
         {
-            return Error;
+            eRet = UI_DPIScaleFont(Font, OldDPIY, NewDPIY);
+            if (eRet != ERROR_SUCCESS)
+            {
+                return eRet;
+            }
         }
-        DPIInfo.Font = *Font;
+        hFont = *Font;
     } else
     {
-        DPIInfo.Font = NULL;
+        hFont = NULL;
     }
 
     /* Adjust child windows */
-    DPIInfo.DPIX = OldDPIX;
-    DPIInfo.DPIY = OldDPIY;
-    DPIUpdateInfo.DPIInfo = &DPIInfo;
-    DPIUpdateInfo.NewDPIX = NewDPIX;
-    DPIUpdateInfo.NewDPIY = NewDPIY;
-    UI_EnumChildWindows(Dialog, UI_DPIScaleDialog_EnumChild_Proc, (LPARAM)&DPIUpdateInfo);
+    ptOrigin.x = ptOrigin.y = 0;
+    ClientToScreen(Dialog, &ptOrigin);
+    hWnd = GetWindow(Dialog, GW_CHILD);
+    while (hWnd != NULL)
+    {
+        if (hFont != NULL)
+        {
+            UI_SetWindowFont(hWnd, hFont, FALSE);
+        }
+        if (GetWindowRect(hWnd, &rc))
+        {
+            rc.left -= ptOrigin.x;
+            rc.right -= ptOrigin.x;
+            rc.top -= ptOrigin.y;
+            rc.bottom -= ptOrigin.y;
+            UI_DPIScaleRect(&rc, OldDPIX, NewDPIX, OldDPIY, NewDPIY);
+            UI_SetWindowRect(hWnd, &rc, FALSE);
+        }
+        hWnd = GetWindow(hWnd, GW_HWNDNEXT);
+    }
 
-    UI_Redraw(Dialog);
+    if (Redraw)
+    {
+        UI_Redraw(Dialog);
+    }
     return ERROR_SUCCESS;
 }
+
+#pragma endregion
+
+#pragma region Dialog Auto Scaling
 
 #define UI_DIALOG_DPISCALE_PROP L"KNSoft.MakeLifeEasier.UI.DialogDPIScale"
 
@@ -238,31 +201,9 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         W32ERROR Ret;
         PUI_DIALOG_DPI_INFO DPIInfo;
-        UI_DPISCALEDIALOG_UPATE_CHILD_INFO DPIUpdateInfo;
 
         if (!Mem_AllocPtr(DPIInfo))
         {
-            EndDialog(hDlg, ERROR_NOT_ENOUGH_MEMORY);
-            return 0;
-        }
-
-        /* Scale dialog itself */
-        UI_GetWindowDPI(hDlg, &DPIUpdateInfo.NewDPIX, &DPIUpdateInfo.NewDPIY);
-        Ret = UI_DPIScaleDialogRect(hDlg,
-                                    USER_DEFAULT_SCREEN_DPI,
-                                    DPIUpdateInfo.NewDPIX,
-                                    USER_DEFAULT_SCREEN_DPI,
-                                    DPIUpdateInfo.NewDPIY,
-                                    FALSE);
-        if (Ret != ERROR_SUCCESS)
-        {
-            EndDialog(hDlg, Ret);
-            return 0;
-        }
-        DPIUpdateInfo.DialogScreenOrigin.x = DPIUpdateInfo.DialogScreenOrigin.y = 0;
-        if (!ClientToScreen(hDlg, &DPIUpdateInfo.DialogScreenOrigin))
-        {
-            EndDialog(hDlg, NtGetLastError());
             return 0;
         }
 
@@ -272,35 +213,54 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             DPIInfo->Font = NULL;
         }
 
-        /* Adjust child windows */
-        DPIInfo->DPIX = DPIInfo->DPIY = USER_DEFAULT_SCREEN_DPI;
-        DPIUpdateInfo.DPIInfo = DPIInfo;
-        UI_EnumChildWindows(hDlg, UI_DPIScaleDialog_EnumChild_Proc, (LPARAM)&DPIUpdateInfo);
-
-        DPIInfo->DPIX = DPIUpdateInfo.NewDPIX;
-        DPIInfo->DPIY = DPIUpdateInfo.NewDPIY;
-        if (!SetPropW(hDlg, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo))
+        UI_GetWindowDPI(hDlg, &DPIInfo->DPIX, &DPIInfo->DPIY);
+        Ret = UI_DPIScaleDialog(hDlg,
+                                USER_DEFAULT_SCREEN_DPI,
+                                DPIInfo->DPIX,
+                                USER_DEFAULT_SCREEN_DPI,
+                                DPIInfo->DPIY,
+                                NULL,
+                                &DPIInfo->Font,
+                                FALSE,
+                                FALSE);
+        if (Ret == ERROR_SUCCESS)
         {
-            if (DPIInfo->Font != NULL)
+            if (SetPropW(hDlg, UI_DIALOG_DPISCALE_PROP, (HANDLE)DPIInfo))
             {
-                DeleteObject(DPIInfo->Font);
+                /* Success */
+                return 0;
             }
-            EndDialog(hDlg, NtGetLastError());
+            Ret = NtGetLastError();
         }
+
+        if (DPIInfo->Font != NULL)
+        {
+            DeleteObject(DPIInfo->Font);
+        }
+        Mem_Free(DPIInfo);
     } else if (uMsg == WM_DPICHANGED)
     {
-        UINT DPIX = LOWORD(wParam), DPIY = HIWORD(wParam);
+        UINT DPIX, DPIY;
+        PRECT prc;
         PUI_DIALOG_DPI_INFO DPIInfo = GetPropW(hDlg, UI_DIALOG_DPISCALE_PROP);
 
         if (DPIInfo)
         {
+            /* FIXME: Seems given lParam not right in PMv2 mode? */
+            prc = UI_CompareDPIAwareContext(UI_GetWindowDPIAwareContext(hDlg),
+                                            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ? NULL : (PRECT)lParam;
+
+            DPIX = LOWORD(wParam);
+            DPIY = HIWORD(wParam);
             if (UI_DPIScaleDialog(hDlg,
                                   DPIInfo->DPIX,
                                   DPIX,
                                   DPIInfo->DPIY,
                                   DPIY,
-                                  (PRECT)lParam,
-                                  &DPIInfo->Font) == ERROR_SUCCESS)
+                                  prc,
+                                  &DPIInfo->Font,
+                                  TRUE,
+                                  TRUE) == ERROR_SUCCESS)
             {
                 DPIInfo->DPIX = DPIX;
                 DPIInfo->DPIY = DPIY;
@@ -335,6 +295,10 @@ UI_GetDialogDPIScaleInfo(
     return GetPropW(Dialog, UI_DIALOG_DPISCALE_PROP);
 }
 
+#pragma endregion
+
+#pragma region DPI Awareness Context
+
 typedef
 DPI_AWARENESS_CONTEXT
 WINAPI
@@ -344,62 +308,186 @@ FN_SetThreadDpiAwarenessContext(
 static FN_SetThreadDpiAwarenessContext* g_pfnSetThreadDpiAwarenessContext = NULL;
 static CONST ANSI_STRING g_asSetThreadDpiAwarenessContext = RTL_CONSTANT_STRING("SetThreadDpiAwarenessContext");
 
-LOGICAL
-NTAPI
-UI_EnableDPIAwareContext(
-    _Out_ PVOID* Cookie)
-{
-    NTSTATUS Status;
-    DPI_AWARENESS_CONTEXT Context;
-    PVOID User32Base;
+typedef
+DPI_AWARENESS_CONTEXT
+WINAPI
+FN_GetThreadDpiAwarenessContext(VOID);
 
+static FN_GetThreadDpiAwarenessContext* g_pfnGetThreadDpiAwarenessContext = NULL;
+static CONST ANSI_STRING g_asGetThreadDpiAwarenessContext = RTL_CONSTANT_STRING("GetThreadDpiAwarenessContext");
+
+typedef
+BOOL
+WINAPI
+FN_AreDpiAwarenessContextsEqual(
+    _In_ DPI_AWARENESS_CONTEXT dpiContextA,
+    _In_ DPI_AWARENESS_CONTEXT dpiContextB);
+
+static FN_AreDpiAwarenessContextsEqual* g_pfnAreDpiAwarenessContextsEqual = NULL;
+static CONST ANSI_STRING g_asAreDpiAwarenessContextsEqual = RTL_CONSTANT_STRING("AreDpiAwarenessContextsEqual");
+
+typedef
+DPI_AWARENESS_CONTEXT
+WINAPI
+FN_GetWindowDpiAwarenessContext(
+    _In_ HWND hwnd);
+
+static FN_GetWindowDpiAwarenessContext* g_pfnGetWindowDpiAwarenessContext = NULL;
+static CONST ANSI_STRING g_asGetWindowDpiAwarenessContext = RTL_CONSTANT_STRING("GetWindowDpiAwarenessContext");
+
+typedef
+HRESULT
+STDAPICALLTYPE
+FN_GetProcessDpiAwareness(
+    _In_opt_ HANDLE hprocess,
+    _Out_ PROCESS_DPI_AWARENESS* value);
+
+static FN_GetProcessDpiAwareness* g_pfnGetProcessDpiAwareness = NULL;
+static CONST ANSI_STRING g_asGetProcessDpiAwareness = RTL_CONSTANT_STRING("GetProcessDpiAwareness");
+
+_Success_(return != NULL)
+DPI_AWARENESS_CONTEXT
+NTAPI
+UI_EnableDPIAwareContext(VOID)
+{
     /* SetThreadDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
     if (SharedUserData->NtMajorVersion < 10 ||
         (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
     {
-        goto _Fail;
+        return NULL;
     }
     if (g_pfnSetThreadDpiAwarenessContext == NULL)
     {
-        Status = Sys_LoadDll(SysLibUser32, &User32Base);
-        if (!NT_SUCCESS(Status))
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
+                                           &g_asSetThreadDpiAwarenessContext,
+                                           (PVOID*)&g_pfnSetThreadDpiAwarenessContext)))
         {
-            goto _Fail;
-        }
-        Status = LdrGetProcedureAddress(User32Base,
-                                        (PANSI_STRING)&g_asSetThreadDpiAwarenessContext,
-                                        0,
-                                        (PVOID*)&g_pfnSetThreadDpiAwarenessContext);
-        if (!NT_SUCCESS(Status))
-        {
-            goto _Fail;
+            return NULL;
         }
     }
 
     /* PMv2 since Win10 1703 (Redstone 2, 10.0.15063) */
-    Context = (SharedUserData->NtMajorVersion > 10 || SharedUserData->NtBuildNumber >= 15063) ?
-        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 : DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
-    Context = g_pfnSetThreadDpiAwarenessContext(Context);
+    return g_pfnSetThreadDpiAwarenessContext(
+        (SharedUserData->NtMajorVersion > 10 || SharedUserData->NtBuildNumber >= 15063) ?
+        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 : DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+}
+
+_Success_(return != NULL)
+DPI_AWARENESS_CONTEXT
+NTAPI
+UI_RestoreDPIAwareContext(
+    _In_opt_ DPI_AWARENESS_CONTEXT Context)
+{
     if (Context == NULL)
     {
-        goto _Fail;
+        return NULL;
     }
-    *Cookie = (PVOID)Context;
-    return TRUE;
+    return g_pfnSetThreadDpiAwarenessContext(Context);
+}
 
-_Fail:
-    *Cookie = NULL;
-    return FALSE;
+_Success_(return != NULL)
+DPI_AWARENESS_CONTEXT
+NTAPI
+UI_GetDPIAwareContext(VOID)
+{
+    /* GetThreadDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
+    if (SharedUserData->NtMajorVersion < 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    {
+        return NULL;
+    }
+    if (g_pfnGetThreadDpiAwarenessContext == NULL)
+    {
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
+                                           &g_asGetThreadDpiAwarenessContext,
+                                           (PVOID*)&g_pfnGetThreadDpiAwarenessContext)))
+        {
+            return NULL;
+        }
+    }
+    return g_pfnGetThreadDpiAwarenessContext();
+}
+
+DPI_AWARENESS_CONTEXT
+NTAPI
+UI_GetWindowDPIAwareContext(
+    _In_ HWND Window)
+{
+    PROCESS_DPI_AWARENESS Awareness;
+
+    /* GetWindowDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
+    if (SharedUserData->NtMajorVersion < 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    {
+        goto _Fallback_Win_8_1;
+    }
+    if (g_pfnGetWindowDpiAwarenessContext == NULL)
+    {
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
+                                           &g_asGetWindowDpiAwarenessContext,
+                                           (PVOID*)&g_pfnGetWindowDpiAwarenessContext)))
+        {
+            goto _Fallback_Win_8_1;
+        }
+    }
+    return g_pfnGetWindowDpiAwarenessContext(Window);
+
+_Fallback_Win_8_1:
+    if (SharedUserData->NtMajorVersion < 8 ||
+        (SharedUserData->NtMajorVersion == 8 && SharedUserData->NtMinorVersion < 1))
+    {
+        goto _Fallback_Win_6_0;
+    }
+    if (g_pfnGetProcessDpiAwareness == NULL)
+    {
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibShcore,
+                                           &g_asGetProcessDpiAwareness,
+                                           (PVOID*)&g_pfnGetProcessDpiAwareness)))
+        {
+            goto _Fallback_Win_6_0;
+        }
+    }
+    if (g_pfnGetProcessDpiAwareness(NULL, &Awareness) == S_OK)
+    {
+        if (Awareness == PROCESS_DPI_UNAWARE)
+        {
+            return DPI_AWARENESS_CONTEXT_UNAWARE;
+        } if (Awareness == PROCESS_SYSTEM_DPI_AWARE)
+        {
+            return DPI_AWARENESS_CONTEXT_SYSTEM_AWARE;
+        } else if (Awareness == PROCESS_PER_MONITOR_DPI_AWARE)
+        {
+            return DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
+        }
+    }
+    return NULL;
+
+_Fallback_Win_6_0:
+    return IsProcessDPIAware() ? DPI_AWARENESS_CONTEXT_SYSTEM_AWARE : DPI_AWARENESS_CONTEXT_UNAWARE;
 }
 
 LOGICAL
 NTAPI
-UI_RestoreDPIAwareContext(
-    _In_ PVOID Cookie)
+UI_CompareDPIAwareContext(
+    _In_ DPI_AWARENESS_CONTEXT Context1,
+    _In_ DPI_AWARENESS_CONTEXT Context2)
 {
-    if (Cookie == NULL)
+    /* AreDpiAwarenessContextsEqual since Win10 1607 (Redstone, 10.0.14393) */
+    if (SharedUserData->NtMajorVersion < 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
     {
         return FALSE;
     }
-    return g_pfnSetThreadDpiAwarenessContext((DPI_AWARENESS_CONTEXT)Cookie) != NULL;
+    if (g_pfnAreDpiAwarenessContextsEqual == NULL)
+    {
+        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
+                                           &g_asAreDpiAwarenessContextsEqual,
+                                           (PVOID*)&g_pfnAreDpiAwarenessContextsEqual)))
+        {
+            return FALSE;
+        }
+    }
+    return g_pfnAreDpiAwarenessContextsEqual(Context1, Context2);
 }
+
+#pragma endregion
