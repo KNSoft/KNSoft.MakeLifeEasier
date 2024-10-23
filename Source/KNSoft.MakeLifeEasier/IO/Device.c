@@ -101,7 +101,8 @@ IO_GetFirmwareTable(
                _Maybenull_
                _Readable_bytes_(*FirmwareInformationLength)
                _Writable_bytes_(*FirmwareInformationLength)
-               _Post_readable_byte_size_(*FirmwareInformationLength)) PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
+               _Post_readable_byte_size_(*FirmwareInformationLength))
+    PSYSTEM_FIRMWARE_TABLE_INFORMATION* FirmwareInformation,
     _Out_opt_ PULONG FirmwareInformationLength)
 {
     NTSTATUS Status;

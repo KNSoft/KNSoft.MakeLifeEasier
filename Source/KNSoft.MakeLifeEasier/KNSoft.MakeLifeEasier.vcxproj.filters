@@ -114,6 +114,9 @@
     <ClCompile Include="Process\Token.c">
       <Filter>Process</Filter>
     </ClCompile>
+    <ClCompile Include="Process\Sync.c">
+      <Filter>Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -198,6 +201,9 @@
       <Filter>Process</Filter>
     </ClInclude>
     <ClInclude Include="Process\Token.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Sync.h">
       <Filter>Process</Filter>
     </ClInclude>
   </ItemGroup>

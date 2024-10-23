@@ -2,6 +2,8 @@
 
 static PVOID g_apSysLib[SysLibMax] = { NULL };
 
+C_ASSERT(SysLibNtDll == 0);
+
 static const UNICODE_STRING g_ausSysDllNames[] = {
     // RTL_CONSTANT_STRING(L"ntdll.dll"), // NtDll.dll always is the first module initialized
     RTL_CONSTANT_STRING(L"kernel32.dll"),
@@ -14,8 +16,6 @@ static const UNICODE_STRING g_ausSysDllNames[] = {
     RTL_CONSTANT_STRING(L"Ws2_32.dll"),
     RTL_CONSTANT_STRING(L"Winmm.dll")
 };
-
-C_ASSERT(SysLibNtDll == 0);
 
 NTSTATUS
 NTAPI

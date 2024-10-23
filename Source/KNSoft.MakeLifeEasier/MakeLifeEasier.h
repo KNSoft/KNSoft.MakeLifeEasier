@@ -25,6 +25,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Memory/Memory.h"
 #include "PE/PE.h"
 #include "Process/Loader.h"
+#include "Process/Sync.h"
 #include "Process/Token.h"
 #include "String/Basic.h"
 #include "String/Convert.h"

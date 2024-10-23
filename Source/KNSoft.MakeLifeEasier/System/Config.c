@@ -8,13 +8,9 @@ Sys_EnumPreferredLanguages(
     NTSTATUS Status;
     ULONG Count, Length = 0, Flags;
     PZZWSTR Languages, Language;
-    WCHAR wcName[LOCALE_NAME_MAX_LENGTH];
     PCWSTR pszLangName;
-    UNICODE_STRING usLocaleName = {
-        .Length = 0,
-        .MaximumLength = sizeof(wcName),
-        .Buffer = wcName
-    };
+    WCHAR wcName[LOCALE_NAME_MAX_LENGTH];
+    UNICODE_STRING usLocaleName;
 
     Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, NULL, &Length);
     if (!NT_SUCCESS(Status))
@@ -31,6 +27,9 @@ Sys_EnumPreferredLanguages(
     Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, Languages, &Length);
     if (NT_SUCCESS(Status))
     {
+        usLocaleName.Length = 0;
+        usLocaleName.MaximumLength = sizeof(wcName);
+        usLocaleName.Buffer = wcName;
         Flags = 0;
         Language = Languages;
         while (Language[0] != UNICODE_NULL)

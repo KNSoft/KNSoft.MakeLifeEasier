@@ -168,6 +168,7 @@
     <ClCompile Include="Memory\Memory.c" />
     <ClCompile Include="PE\PE.c" />
     <ClCompile Include="Process\Loader.c" />
+    <ClCompile Include="Process\Sync.c" />
     <ClCompile Include="Process\Token.c" />
     <ClCompile Include="Resource.Embedded.rc.g.c" />
     <ClCompile Include="Shell\Shell.c" />
@@ -202,6 +203,7 @@
     <ClInclude Include="Memory\Memory.h" />
     <ClInclude Include="PE\PE.h" />
     <ClInclude Include="Process\Loader.h" />
+    <ClInclude Include="Process\Sync.h" />
     <ClInclude Include="Process\Token.h" />
     <ClInclude Include="Resource.Embedded.h" />
     <ClInclude Include="Resource.Embedded.rc.g.h" />
