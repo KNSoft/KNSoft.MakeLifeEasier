@@ -8,19 +8,54 @@ EXTERN_C_START
 /// Generate hardware or software random
 /// </summary>
 
+/* See also Microsoft SymCrypt */
+
 #if defined(_AMD64_) || defined(_X86_)
 
-MLE_API
+FORCEINLINE
 LOGICAL
-NTAPI
 Math_GetHWRandom32(
-    _Out_ PULONG Random);
+    _Out_ PULONG Random)
+{
+    ULONG i, p;
 
-MLE_API
+    for (i = 0; i < 1000000; i++)
+    {
+        if (_rdrand32_step(&p) != 0)
+        {
+            *Random = p;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+FORCEINLINE
 LOGICAL
-NTAPI
 Math_GetHWRandom64(
-    _Out_ PULONGLONG Random);
+    _Out_ PULONGLONG Random)
+{
+    ULONG i;
+    ULONGLONG p;
+
+    for (i = 0; i < 1000000; i++)
+    {
+        if (
+#if defined(_AMD64_)
+            _rdrand64_step(&p) != 0
+#else
+            _rdrand32_step((PULONG)&p) != 0 && _rdrand32_step((PULONG)Add2Ptr(&p, sizeof(ULONG))) != 0
+#endif
+            )
+        {
+            *Random = p;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
 
 #endif
 
@@ -39,15 +74,29 @@ Math_GetSWRandom64(VOID);
 /// </summary>
 /// <returns>All bits of return value are randomized and always success</returns>
 
-MLE_API
+FORCEINLINE
 ULONG
-NTAPI
-Math_Random32(VOID);
+Math_Random32(VOID)
+{
+    ULONG p;
+    return
+#if defined(_AMD64_) || defined(_X86_)
+        Math_GetHWRandom32(&p) ? p :
+#endif
+        Math_GetSWRandom32();
+}
 
-MLE_API
+FORCEINLINE
 ULONGLONG
-NTAPI
-Math_Random64(VOID);
+Math_Random64(VOID)
+{
+    ULONGLONG p;
+    return
+#if defined(_AMD64_) || defined(_X86_)
+        Math_GetHWRandom64(&p) ? p :
+#endif
+        Math_GetSWRandom64();
+}
 
 /// <summary>
 /// Generates a random within specified range
@@ -56,18 +105,22 @@ Math_Random64(VOID);
 /// <param name="Max">Maximum</param>
 /// <returns>A random number within [Min, Max]</returns>
 
-MLE_API
+FORCEINLINE
 ULONG
-NTAPI
 Math_RangedRandom32(
     _In_ ULONG Min,
-    _In_range_(Min, MAXULONG) ULONG Max);
+    _In_range_(Min, MAXULONG) ULONG Max)
+{
+    return Min + Math_Random32() % (Max - Min + 1);
+}
 
-MLE_API
+FORCEINLINE
 ULONGLONG
-NTAPI
 Math_RangedRandom64(
     _In_ ULONGLONG Min,
-    _In_range_(Min, MAXULONGLONG) ULONGLONG Max);
+    _In_range_(Min, MAXULONGLONG) ULONGLONG Max)
+{
+    return Min + Math_Random64() % (Max - Min + 1);
+}
 
 EXTERN_C_END

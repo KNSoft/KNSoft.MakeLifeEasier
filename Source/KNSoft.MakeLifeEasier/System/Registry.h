@@ -4,14 +4,24 @@
 
 EXTERN_C_START
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
 Sys_RegOpenKeyEx(
     _Out_ PHANDLE KeyHandle,
     _In_opt_ HANDLE RootKey,
     _In_ ACCESS_MASK DesiredAccess,
-    _In_ PCUNICODE_STRING Path);
+    _In_ PCUNICODE_STRING Path)
+{
+    OBJECT_ATTRIBUTES ObjectAttributes;
+
+    InitializeObjectAttributes(&ObjectAttributes,
+                               (PUNICODE_STRING)Path,
+                               OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+                               RootKey,
+                               NULL);
+
+    return NtOpenKey(KeyHandle, DesiredAccess, &ObjectAttributes);
+}
 
 FORCEINLINE
 NTSTATUS

@@ -26,12 +26,22 @@ Sys_LoadDll(
     _In_ SYS_LIB_INDEX SysLib,
     _Out_ PVOID* DllBase);
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
 Sys_LoadProcByName(
     _In_ SYS_LIB_INDEX SysLib,
     _In_ CONST ANSI_STRING* Name,
-    _Out_ PVOID* Address);
+    _Out_ PVOID* Address)
+{
+    NTSTATUS Status;
+    PVOID DllBase;
+
+    Status = Sys_LoadDll(SysLib, &DllBase);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    return LdrGetProcedureAddress(DllBase, (PANSI_STRING)Name, 0, Address);
+}
 
 EXTERN_C_END
