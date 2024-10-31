@@ -4,6 +4,17 @@
 
 EXTERN_C_START
 
+FORCEINLINE
+INT
+UI_MsgBox(
+    _In_opt_ HWND Owner,
+    _In_opt_ LPCWSTR Text,
+    _In_opt_ LPCWSTR Title,
+    _In_ UINT Type)
+{
+    return MessageBoxTimeoutW(Owner, Text, Title, Type, 0, -1);
+}
+
 MLE_API
 W32ERROR
 NTAPI

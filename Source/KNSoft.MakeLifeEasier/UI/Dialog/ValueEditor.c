@@ -234,6 +234,11 @@ static INT g_aColPsz[] = {
 };
 C_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
 
+/*
+ * @remarks
+ * iColumn >= 0 means ascend, value is the column index.
+ * iColumn < 0 means descend, -value is the column index, INT_MIN means 0.
+ */
 static
 int
 CALLBACK

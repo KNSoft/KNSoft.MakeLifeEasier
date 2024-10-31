@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Crypt\Cert.c" />
     <ClCompile Include="Error\Message.c" />
     <ClCompile Include="I18N.xml.g.c" />
     <ClCompile Include="IO\Device.c" />
@@ -193,6 +194,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Crypt\Cert.h" />
     <ClInclude Include="Error\Message.h" />
     <ClInclude Include="I18N.xml.g.h" />
     <ClInclude Include="IO\Device.h" />

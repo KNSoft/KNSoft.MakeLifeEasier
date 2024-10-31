@@ -15,6 +15,8 @@ IO_OpenDirectory(
     _In_ ACCESS_MASK DesiredAccess,
     _In_ ULONG ShareAccess);
 
+#pragma endregion
+
 #pragma region Find File
 
 typedef struct _FILE_FIND
@@ -62,8 +64,6 @@ LOGICAL
 NTAPI
 IO_EndFindFile(
     _In_ PFILE_FIND FindData);
-
-#pragma endregion
 
 #pragma endregion
 

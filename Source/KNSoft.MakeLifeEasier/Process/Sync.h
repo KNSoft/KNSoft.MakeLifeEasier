@@ -8,11 +8,10 @@ EXTERN_C_START
 
 /* Similar to RtlRunOnce* but sync only and inline */
 
-typedef struct _PS_RUNONCE PS_RUNONCE, *PPS_RUNONCE;
-DECLSPEC_ALIGN(SIZE_OF_POINTER) struct _PS_RUNONCE
+typedef DECLSPEC_ALIGN(SIZE_OF_POINTER) struct _PS_RUNONCE
 {
-    DECLSPEC_ALIGN(SIZE_OF_POINTER) _Interlocked_operand_ PPS_RUNONCE volatile Ptr;
-};
+    DECLSPEC_ALIGN(SIZE_OF_POINTER) _Interlocked_operand_ PVOID volatile Ptr;
+} PS_RUNONCE, *PPS_RUNONCE;
 
 #define PS_RUNONCE_INIT { NULL }
 
@@ -28,7 +27,7 @@ LOGICAL
 PS_RunOnceBegin(
     _Inout_ PPS_RUNONCE RunOnce)
 {
-    PPS_RUNONCE Value;
+    PVOID Value;
     ULONG_PTR Next, State;
 
 _Start:
@@ -67,7 +66,7 @@ PS_RunOnceEnd(
     _Inout_ PPS_RUNONCE RunOnce,
     _In_ LOGICAL Complete)
 {
-    PPS_RUNONCE Next, Value;
+    PVOID Next, Value;
 
 _Start:
     Value = RunOnce->Ptr;
@@ -80,7 +79,7 @@ _Start:
             Value = (PPS_RUNONCE)((ULONG_PTR)Value & ~PS_RUNONCE_STATE_MASK);
             while (Value != NULL)
             {
-                Next = Value->Ptr;
+                Next = ((PPS_RUNONCE)Value)->Ptr;
                 NtReleaseKeyedEvent(NULL, Value, FALSE, NULL);
                 Value = Next;
             }

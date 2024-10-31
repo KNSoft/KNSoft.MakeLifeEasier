@@ -37,6 +37,9 @@
     <Filter Include="Process">
       <UniqueIdentifier>{eaaf15c6-cd44-4910-ba55-056be3466ea0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Crypt">
+      <UniqueIdentifier>{27556378-0429-42f1-be56-5f89e5e2f014}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory\Memory.c">
@@ -116,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="Process\Sync.c">
       <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypt\Cert.c">
+      <Filter>Crypt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="Process\Sync.h">
       <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypt\Cert.h">
+      <Filter>Crypt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

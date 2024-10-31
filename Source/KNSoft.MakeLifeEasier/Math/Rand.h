@@ -17,7 +17,7 @@ LOGICAL
 Math_GetHWRandom32(
     _Out_ PULONG Random)
 {
-    ULONG i, p;
+    UINT i, p;
 
     for (i = 0; i < 1000000; i++)
     {
@@ -45,7 +45,7 @@ Math_GetHWRandom64(
 #if defined(_AMD64_)
             _rdrand64_step(&p) != 0
 #else
-            _rdrand32_step((PULONG)&p) != 0 && _rdrand32_step((PULONG)Add2Ptr(&p, sizeof(ULONG))) != 0
+            _rdrand32_step((PUINT)&p) != 0 && _rdrand32_step((PUINT)Add2Ptr(&p, sizeof(ULONG))) != 0
 #endif
             )
         {

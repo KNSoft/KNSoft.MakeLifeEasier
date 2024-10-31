@@ -4,9 +4,7 @@
 
 EXTERN_C_START
 
-/// <summary>
-/// Buffered paint
-/// </summary>
+#pragma region Buffered Paint
 
 typedef struct _UI_BUFFEREDPAINT
 {
@@ -29,5 +27,7 @@ NTAPI
 UI_EndBufferedPaint(
     _In_ HWND Window,
     _In_ PUI_BUFFEREDPAINT Paint);
+
+#pragma endregion
 
 EXTERN_C_END
