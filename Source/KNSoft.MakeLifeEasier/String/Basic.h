@@ -8,16 +8,46 @@ EXTERN_C_START
 
 #pragma region CRT Alias
 
-#define Str_LenW wcslen
-#define Str_LenA strlen
+FORCEINLINE
+SIZE_T
+Str_LenW(
+    _In_ PCWSTR String)
+{
+    return wcslen(String);
+}
+
+FORCEINLINE
+SIZE_T
+Str_LenA(
+    _In_ PCSTR String)
+{
+    return strlen(String);
+}
+
 #ifdef UNICODE
 #define Str_Len Str_LenW
 #else
 #define Str_Len Str_LenA
 #endif
 
-#define Str_StrW wcsstr
-#define Str_StrA strstr
+FORCEINLINE
+PCWSTR
+Str_StrW(
+    _In_ PCWSTR String,
+    _In_ PCWSTR SubString)
+{
+    return wcsstr(String, SubString);
+}
+
+FORCEINLINE
+PCSTR
+Str_StrA(
+    _In_ PCSTR String,
+    _In_ PCSTR SubString)
+{
+    return strstr(String, SubString);
+}
+
 #ifdef UNICODE
 #define Str_Str Str_StrW
 #else
@@ -28,8 +58,34 @@ EXTERN_C_START
 
 #pragma region String PrintF
 
-#define Str_VPrintfExW StrSafe_CchVPrintfW
-#define Str_VPrintfExA StrSafe_CchVPrintfA
+_Success_(
+    return > 0 && return < BufferCount
+)
+FORCEINLINE
+ULONG
+Str_VPrintfExW(
+    _Out_writes_opt_(BufferCount) _Always_(_Post_z_) wchar_t* const Buffer,
+    _In_ size_t const BufferCount,
+    _In_z_ _Printf_format_string_ const wchar_t* Format,
+    va_list ArgList)
+{
+    return StrSafe_CchVPrintfW(Buffer, BufferCount, Format, ArgList);
+}
+
+_Success_(
+    return > 0 && return < BufferCount
+)
+FORCEINLINE
+ULONG
+Str_VPrintfExA(
+    _Out_writes_opt_(BufferCount) _Always_(_Post_z_) char* const Buffer,
+    _In_ size_t const BufferCount,
+    _In_z_ _Printf_format_string_ const char* Format,
+    va_list ArgList)
+{
+    return StrSafe_CchVPrintfA(Buffer, BufferCount, Format, ArgList);
+}
+
 #define Str_PrintfExW StrSafe_CchPrintfW
 #define Str_PrintfExA StrSafe_CchPrintfA
 #ifdef UNICODE
@@ -51,8 +107,32 @@ EXTERN_C_START
 
 #pragma region String Copy
 
-#define Str_CopyExW StrSafe_CchCopyW
-#define Str_CopyExA StrSafe_CchCopyA
+_Success_(
+    return > 0 && return < BufferCount
+)
+FORCEINLINE
+SIZE_T
+Str_CopyExW(
+    _Out_writes_opt_(BufferCount) _When_(BufferCount > 0, _Notnull_) _Always_(_Post_z_) wchar_t* const Buffer,
+    _In_ size_t const BufferCount,
+    _In_z_ const wchar_t* Source)
+{
+    return StrSafe_CchCopyW(Buffer, BufferCount, Source);
+}
+
+_Success_(
+    return > 0 && return < BufferCount
+)
+FORCEINLINE
+SIZE_T
+Str_CopyExA(
+    _Out_writes_opt_(BufferCount) _When_(BufferCount > 0, _Notnull_) _Always_(_Post_z_) char* const Buffer,
+    _In_ size_t const BufferCount,
+    _In_z_ const char* Source)
+{
+    return StrSafe_CchCopyA(Buffer, BufferCount, Source);
+}
+
 #ifdef UNICODE
 #define Str_CopyEx Str_CopyExW
 #else
@@ -66,8 +146,23 @@ EXTERN_C_START
 #pragma endregion Str_Copy[Ex][A/W]
 
 /* Str_Size */
-#define Str_SizeW(String) (Str_LenW(String) * sizeof(WCHAR))
-#define Str_SizeA Str_LenA
+
+FORCEINLINE
+SIZE_T
+Str_SizeW(
+    _In_ PCWSTR String)
+{
+    return Str_LenW(String) * sizeof(WCHAR);
+}
+
+FORCEINLINE
+SIZE_T
+Str_SizeA(
+    _In_ PCSTR String)
+{
+    return Str_LenA(String) * sizeof(CHAR);
+}
+
 #ifdef UNICODE
 #define Str_Size Str_SizeW
 #else

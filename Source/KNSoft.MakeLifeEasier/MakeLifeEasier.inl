@@ -25,7 +25,8 @@
 #include "Resource.Embedded.rc.g.h"
 #include "I18N.xml.g.h"
 
-EXTERN_C
+EXTERN_C_START
+
 PCWSTR
 Mlep_GetString(
     _In_ INT Index);
@@ -37,3 +38,5 @@ Mlep_DlgBox(
     _In_opt_ DLGPROC DlgProc,
     _In_opt_ LPARAM InitParam,
     _Out_opt_ PINT_PTR Result);
+
+EXTERN_C_END

@@ -35,7 +35,7 @@ TEST_FUNC(RegistryNT)
     Status = Sys_RegOpenKey(&hKey, KEY_QUERY_VALUE, &g_LsaKeyPath);
     if (!NT_SUCCESS(Status))
     {
-        TEST_SKIP("NtOpenKey failed with 0x%08lX\n", Status);
+        TEST_SKIP("Sys_RegOpenKey failed with 0x%08lX\n", Status);
         return;
     }
 

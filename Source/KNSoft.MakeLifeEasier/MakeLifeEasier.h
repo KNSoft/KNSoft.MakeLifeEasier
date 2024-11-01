@@ -2,7 +2,7 @@
  * KNSoft.MakeLifeEasier (https://github.com/KNSoft/KNSoft.MakeLifeEasier)
  * Copyright (c) KNSoft.org (https://github.com/KNSoft). All rights reserved.
  * Licensed under the MIT license.
- * 
+ *
  * A fast, stable and convenient C/C++ library
  * to "Make Life Easier" when suffering from Windows NT development.
  */

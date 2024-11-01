@@ -2,7 +2,7 @@
 
 #pragma region I18N Support
 
-static _Interlocked_operand_ LONG volatile g_I18N_Init = FALSE;
+static PS_RUNONCE g_I18N_Init = PS_RUNONCE_INIT;
 
 static
 _Function_class_(SYS_ENUM_PREFERRED_LANGUAGES_FN)
@@ -16,19 +16,19 @@ Mlep_EnumPreferredLang(
 }
 
 static
+FORCEINLINE
 VOID
 Mlep_InitializeI18N(VOID)
 {
-    /* Initialize once */
-    if (_InterlockedCompareExchange(&g_I18N_Init, TRUE, FALSE) != FALSE)
+    if (PS_RunOnceBegin(&g_I18N_Init))
     {
-        return;
-    }
-
-    /* Select preferred language */
-    if (Sys_EnumPreferredLanguages(Mlep_EnumPreferredLang) != STATUS_SUCCESS)
-    {
-        Precomp4C_I18N_SetCurrentLocale(&Precomp4C_I18N_Table_All, NULL);
+        /* Choose system preferred language */
+        if (Sys_EnumPreferredLanguages(Mlep_EnumPreferredLang) != STATUS_SUCCESS)
+        {
+            /* Fallback to the default */
+            Precomp4C_I18N_SetCurrentLocale(&Precomp4C_I18N_Table_All, NULL);
+        }
+        PS_RunOnceEnd(&g_I18N_Init, TRUE);
     }
 }
 
@@ -58,6 +58,7 @@ Mlep_DlgBox(
     INT_PTR DlgRet;
     DPI_AWARENESS_CONTEXT DPIContext;
 
+    /* Access resource embedded by KNSoft.Precomp4C */
     if (!Precomp4C_Res2C_AccessResource(Precomp4C_Res2C_Resource_Embedded,
                                         ARRAYSIZE(Precomp4C_Res2C_Resource_Embedded),
                                         MAKEINTRESOURCEW(RT_DIALOG),
@@ -68,9 +69,13 @@ Mlep_DlgBox(
     {
         return ERROR_RESOURCE_DATA_NOT_FOUND;
     }
+
+    /* All dialog boxes are DPI awared */
     DPIContext = UI_EnableDPIAwareContext();
     DlgRet = DialogBoxIndirectParamW((HINSTANCE)&__ImageBase, Res, Owner, DlgProc, InitParam);
     UI_RestoreDPIAwareContext(DPIContext);
+
+    /* Handle return code */
     if (DlgRet == -1)
     {
         Ret = NtGetLastError();
@@ -82,7 +87,6 @@ Mlep_DlgBox(
         }
         Ret = ERROR_SUCCESS;
     }
-
     return Ret;
 }
 
