@@ -23,4 +23,20 @@ NTAPI
 Sys_EnumPreferredLanguages(
     _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback);
 
+/* *Info should be freed by Sys_FreeInfo */
+NTSTATUS
+NTAPI
+Sys_QueryInfo(
+    _In_ SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    _Out_ PVOID* Info);
+
+FORCEINLINE
+LOGICAL
+NTAPI
+Sys_FreeInfo(
+    _In_ PVOID Info)
+{
+    return RtlFreeHeap(NtGetProcessHeap(), 0, Info);
+}
+
 EXTERN_C_END

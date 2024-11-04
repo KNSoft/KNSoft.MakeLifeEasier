@@ -5,6 +5,13 @@
 EXTERN_C_START
 
 MLE_API
+VOID
+NTAPI
+UI_SetDialogFont(
+    _In_ HWND Dialog,
+    _In_opt_ HFONT Font);
+
+MLE_API
 LOGICAL
 NTAPI
 UI_ListViewSort(

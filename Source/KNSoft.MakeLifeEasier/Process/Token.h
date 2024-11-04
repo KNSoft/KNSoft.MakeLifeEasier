@@ -29,4 +29,16 @@ NTSTATUS
 NTAPI
 PS_IsCurrentAdminToken(VOID);
 
+/// <summary>
+/// Set impersonate token to current thread
+/// </summary>
+/// <param name="TokenHandle">Handle to the impersonate token, or NULL to revert the impersonation</param>
+FORCEINLINE
+NTSTATUS
+PS_Impersonate(
+    _In_opt_ HANDLE TokenHandle)
+{
+    return NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &TokenHandle, sizeof(TokenHandle));
+}
+
 EXTERN_C_END

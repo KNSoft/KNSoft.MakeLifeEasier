@@ -7,11 +7,15 @@ EXTERN_C_START
 /// <summary>
 /// Allow WM_DROPFILES and WM_COPYGLOBALDATA message, especially in an elevated application
 /// </summary>
-MLE_API
+FORCEINLINE
 W32ERROR
-NTAPI
 UI_AllowDrop(
-    _In_ HWND Window);
+    _In_ HWND Window)
+{
+    return (ChangeWindowMessageFilterEx(Window, WM_DROPFILES, MSGFLT_ADD, NULL) &&
+            ChangeWindowMessageFilterEx(Window, WM_COPYGLOBALDATA, MSGFLT_ADD, NULL)) ?
+        ERROR_SUCCESS : NtGetLastError();
+}
 
 MLE_API
 _Success_(return > 0)

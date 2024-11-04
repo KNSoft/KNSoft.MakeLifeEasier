@@ -7,20 +7,20 @@ LOGICAL
 NTAPI
 PE_ResolveOnline(
     _Out_ PPE_STRUCT PEStruct,
-    _In_reads_bytes_(ImageSize) PVOID ImageBase,
-    _In_ ULONG ImageSize)
+    _In_reads_bytes_(Size) PVOID Image,
+    _In_ ULONG Size)
 {
-    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)ImageBase;
+    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)Image;
     PIMAGE_NT_HEADERS pNtHeader = Add2Ptr(pDosHeader, pDosHeader->e_lfanew);
     PIMAGE_FILE_HEADER pFileHeader = &pNtHeader->FileHeader;
     PIMAGE_OPTIONAL_HEADER pOptHeader = &pNtHeader->OptionalHeader;
     PIMAGE_SECTION_HEADER pSectionHeader = Add2Ptr(pOptHeader, pFileHeader->SizeOfOptionalHeader);
 
-    if (pOptHeader->SizeOfImage > ImageSize)
+    if (pOptHeader->SizeOfImage > Size)
     {
         return FALSE;
     }
-    PEStruct->Image = (PBYTE)ImageBase;
+    PEStruct->Image = (PBYTE)Image;
     PEStruct->Size = pOptHeader->SizeOfImage;
     PEStruct->FileHeader = pFileHeader;
     PEStruct->Bits = IS_WIN64 ? 64 : 32;
@@ -38,18 +38,18 @@ LOGICAL
 NTAPI
 PE_ResolveOffline(
     _Out_ PPE_STRUCT PEStruct,
-    _In_reads_bytes_(BufferSize) PVOID Buffer,
-    _In_ ULONG BufferSize)
+    _In_reads_bytes_(Size) PVOID Buffer,
+    _In_ ULONG Size)
 {
     /* Boundary check */
-    PVOID pEndOfMap = Add2Ptr(Buffer, BufferSize);
+    PVOID pEndOfMap = Add2Ptr(Buffer, Size);
 
     /* DOS Header */
     PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)Buffer;
-    if (BufferSize < sizeof(IMAGE_DOS_HEADER) ||
+    if (Size < sizeof(IMAGE_DOS_HEADER) ||
         pDosHeader->e_magic != IMAGE_DOS_SIGNATURE ||
         pDosHeader->e_lfanew < sizeof(IMAGE_DOS_HEADER) ||
-        BufferSize < pDosHeader->e_lfanew + RTL_SIZEOF_THROUGH_FIELD(IMAGE_NT_HEADERS, FileHeader))
+        Size < pDosHeader->e_lfanew + RTL_SIZEOF_THROUGH_FIELD(IMAGE_NT_HEADERS, FileHeader))
     {
         return FALSE;
     }
@@ -103,7 +103,7 @@ PE_ResolveOffline(
     for (u = 0; u < pFileHeader->NumberOfSections; u++)
     {
         ulEndOfSec = pSection->PointerToRawData + pSection->SizeOfRawData;
-        if (ulEndOfSec > BufferSize)
+        if (ulEndOfSec > Size)
         {
             return FALSE;
         } else if (ulEndOfSec > ulFileSize)
@@ -114,17 +114,17 @@ PE_ResolveOffline(
     }
 
     /* Fill Structure */
-    if (BufferSize > ulFileSize)
+    if (Size > ulFileSize)
     {
         PEStruct->OverlayData = Add2Ptr(Buffer, ulFileSize);
-        PEStruct->OverlayDataSize = BufferSize - ulFileSize;
+        PEStruct->OverlayDataSize = Size - ulFileSize;
     } else
     {
         PEStruct->OverlayData = NULL;
         PEStruct->OverlayDataSize = 0;
     }
     PEStruct->Image = Buffer;
-    PEStruct->Size = BufferSize;
+    PEStruct->Size = Size;
     PEStruct->OfflineMap = TRUE;
     PEStruct->FileHeader = pFileHeader;
     PEStruct->Bits = ulBits;

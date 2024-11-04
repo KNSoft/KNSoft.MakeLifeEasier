@@ -80,23 +80,35 @@ PE_ProbeForRead(
         Add2Ptr(Pointer, Size) <= Add2Ptr(PEStruct->Image, + PEStruct->Size);
 }
 
+/// <summary>
+/// Resolve a online PE image to PE_STRUCT structure
+/// </summary>
+/// <param name="PEStruct">Pointer to a PE_STRUCT structure</param>
+/// <param name="Image">Pointer to the image</param>
+/// <param name="Size">Readable size of Image parameter</param>
 MLE_API
 _Success_(return != FALSE)
 LOGICAL
 NTAPI
 PE_ResolveOnline(
     _Out_ PPE_STRUCT PEStruct,
-    _In_reads_bytes_(ImageSize) PVOID ImageBase,
-    _In_ ULONG ImageSize);
+    _In_reads_bytes_(Size) PVOID Image,
+    _In_ ULONG Size);
 
+/// <summary>
+/// Resolve a offline PE image to PE_STRUCT structure
+/// </summary>
+/// <param name="PEStruct">Pointer to a PE_STRUCT structure</param>
+/// <param name="Buffer">Pointer to the buffer</param>
+/// <param name="Size">Size of buffer</param>
 MLE_API
 _Success_(return != FALSE)
 LOGICAL
 NTAPI
 PE_ResolveOffline(
     _Out_ PPE_STRUCT PEStruct,
-    _In_reads_bytes_(BufferSize) PVOID Buffer,
-    _In_ ULONG BufferSize);
+    _In_reads_bytes_(Size) PVOID Buffer,
+    _In_ ULONG Size);
 
 #define PE_GetOptionalHeaderValue(pe, m) (\
     (pe)->Bits == 64 ? (pe)->OptionalHeader64->m : (\
@@ -107,6 +119,12 @@ PE_ResolveOffline(
          )\
     )
 
+/// <summary>
+/// Get data directory entry of PE image
+/// </summary>
+/// <param name="PEStruct">Pointer to the PE_STRUCT structure</param>
+/// <param name="Index">IMAGE_DIRECTORY_ENTRY_XXX</param>
+/// <returns>Pointer to the IMAGE_DATA_DIRECTORY structure, or NULL if failed</returns>
 FORCEINLINE
 _Success_(return != NULL)
 _Ret_maybenull_
@@ -127,6 +145,9 @@ PE_GetDataDirectory(
     }
 }
 
+/// <summary>
+/// Get section pointer by RVA
+/// </summary>
 MLE_API
 _Success_(return != NULL)
 _Ret_maybenull_
@@ -136,6 +157,9 @@ PE_GetSectionByRVA(
     _In_ PPE_STRUCT PEStruct,
     _In_ DWORD RVA);
 
+/// <summary>
+/// Get section pointer by Offset
+/// </summary>
 MLE_API
 _Success_(return != NULL)
 _Ret_maybenull_
@@ -145,6 +169,9 @@ PE_GetSectionByOffset(
     _In_ PPE_STRUCT PEStruct,
     _In_ DWORD Offset);
 
+/// <summary>
+/// Convert RVA to pointer
+/// </summary>
 MLE_API
 _Success_(return != NULL)
 _Ret_maybenull_
@@ -154,6 +181,9 @@ PE_RVA2Ptr(
     _In_ PPE_STRUCT PEStruct,
     _In_ DWORD RVA);
 
+/// <summary>
+/// Convert pointer to RVA
+/// </summary>
 MLE_API
 _Success_(return != FALSE)
 LOGICAL
@@ -163,6 +193,9 @@ PE_Ptr2RVA(
     _In_ PVOID Ptr,
     _Out_ PDWORD RVA);
 
+/// <summary>
+/// Convert pointer to offset
+/// </summary>
 MLE_API
 _Success_(return != FALSE)
 LOGICAL
@@ -172,6 +205,12 @@ PE_Ptr2Offset(
     _In_ PVOID Ptr,
     _Out_ PDWORD Offset);
 
+/// <summary>
+/// Get exported name of specified function
+/// </summary>
+/// <param name="PEStruct">Pointer to the PE_STRUCT structure</param>
+/// <param name="Function">Address of function</param>
+/// <param name="Name">Pointer to a PCSTR variable to receive the exported name of the function</param>
 MLE_API
 _Success_(return != FALSE)
 LOGICAL
@@ -181,6 +220,9 @@ PE_GetExportedName(
     _In_ PVOID Function,
     _Out_ PZPCSTR Name);
 
+/// <summary>
+/// Get PE certificate if exists
+/// </summary>
 MLE_API
 _Success_(return != NULL)
 _Ret_maybenull_

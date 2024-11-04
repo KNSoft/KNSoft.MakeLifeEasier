@@ -42,7 +42,7 @@ Sys_EnumPreferredLanguages(
                     Status = STATUS_SUCCESS;
                     goto _Exit;
                 }
-                Status = RtlGetParentLocaleName(pszLangName, &usLocaleName, 6, FALSE); // FIXME: 6
+                Status = RtlGetParentLocaleName(pszLangName, &usLocaleName, 6, FALSE); // FIXME: Hard-coded flag 6
                 pszLangName = wcName;
                 Flags &= SYS_ENUM_PREFERRED_LOCALE_FALLBACK_PARENT;
             } while (NT_SUCCESS(Status) && wcName[0] != UNICODE_NULL);
@@ -55,4 +55,40 @@ Sys_EnumPreferredLanguages(
 _Exit:
     Mem_Free(Languages);
     return Status;
+}
+
+NTSTATUS
+NTAPI
+Sys_QueryInfo(
+    _In_ SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    _Out_ PVOID* Info)
+{
+    PVOID Buffer;
+    ULONG Length;
+    NTSTATUS Status;
+
+    Status = NtQuerySystemInformation(SystemInformationClass, NULL, 0, &Length);
+    if (!NT_SUCCESS(Status) && Status != STATUS_INFO_LENGTH_MISMATCH)
+    {
+        return Status;
+    }
+
+_Try_Alloc:
+    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, Length);
+    if (Buffer == NULL)
+    {
+        return STATUS_NO_MEMORY;
+    }
+    Status = NtQuerySystemInformation(SystemInformationClass, Buffer, Length, &Length);
+    if (NT_SUCCESS(Status))
+    {
+        *Info = Buffer;
+        return STATUS_SUCCESS;
+    }
+    Mem_Free(Buffer);
+    if (Status != STATUS_INFO_LENGTH_MISMATCH)
+    {
+        return Status;
+    }
+    goto _Try_Alloc;
 }

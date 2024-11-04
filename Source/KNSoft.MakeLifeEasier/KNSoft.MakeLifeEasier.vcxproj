@@ -162,11 +162,13 @@
     <ClCompile Include="Crypt\Cert.c" />
     <ClCompile Include="Error\Message.c" />
     <ClCompile Include="I18N.xml.g.c" />
-    <ClCompile Include="IO\Device.c" />
+    <ClCompile Include="IO\Hardware.c" />
     <ClCompile Include="IO\File.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math\Rand.c" />
     <ClCompile Include="Memory\Memory.c" />
+    <ClCompile Include="NT\Object.c" />
+    <ClCompile Include="NT\Security.c" />
     <ClCompile Include="PE\PE.c" />
     <ClCompile Include="Process\Loader.c" />
     <ClCompile Include="Process\Sync.c" />
@@ -180,7 +182,6 @@
     <ClCompile Include="System\Registry.cpp" />
     <ClCompile Include="Time\Time.c" />
     <ClCompile Include="UI\Control.c" />
-    <ClCompile Include="UI\Dialog.c" />
     <ClCompile Include="UI\Dialog\RectEditor.c" />
     <ClCompile Include="UI\Dialog\ValueEditor.c" />
     <ClCompile Include="UI\DPI.c" />
@@ -197,12 +198,15 @@
     <ClInclude Include="Crypt\Cert.h" />
     <ClInclude Include="Error\Message.h" />
     <ClInclude Include="I18N.xml.g.h" />
-    <ClInclude Include="IO\Device.h" />
+    <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
     <ClInclude Include="MakeLifeEasier.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Rand.h" />
+    <ClInclude Include="Memory\Core.h" />
     <ClInclude Include="Memory\Memory.h" />
+    <ClInclude Include="NT\Object.h" />
+    <ClInclude Include="NT\Security.h" />
     <ClInclude Include="PE\PE.h" />
     <ClInclude Include="Process\Loader.h" />
     <ClInclude Include="Process\Sync.h" />
@@ -211,7 +215,7 @@
     <ClInclude Include="Resource.Embedded.rc.g.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Shell\Shell.h" />
-    <ClInclude Include="String\Basic.h" />
+    <ClInclude Include="String\Core.h" />
     <ClInclude Include="String\Convert.h" />
     <ClInclude Include="String\Hash.h" />
     <ClInclude Include="System\Config.h" />
@@ -219,7 +223,6 @@
     <ClInclude Include="System\Registry.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="UI\Control.h" />
-    <ClInclude Include="UI\Dialog.h" />
     <ClInclude Include="UI\Dialog\Dialog.h" />
     <ClInclude Include="UI\DPI.h" />
     <ClInclude Include="UI\GDI.h" />

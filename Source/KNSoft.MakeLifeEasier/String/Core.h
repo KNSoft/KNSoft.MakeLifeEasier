@@ -1,10 +1,7 @@
 ﻿#pragma once
 
 #include <KNSoft/NDK/Package/StrSafe.h>
-
-#include "../MakeLifeEasier.h"
-
-EXTERN_C_START
+#include <KNSoft/NDK/NDK.h>
 
 #pragma region CRT Alias
 
@@ -168,5 +165,3 @@ Str_SizeA(
 #else
 #define Str_Size Str_SizeA
 #endif
-
-EXTERN_C_END

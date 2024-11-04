@@ -40,6 +40,9 @@
     <Filter Include="Crypt">
       <UniqueIdentifier>{27556378-0429-42f1-be56-5f89e5e2f014}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NT">
+      <UniqueIdentifier>{3cdf7cf2-740b-4617-896f-a36f9ed5757c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory\Memory.c">
@@ -48,7 +51,7 @@
     <ClCompile Include="Math\Rand.c">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="IO\Device.c">
+    <ClCompile Include="IO\Hardware.c">
       <Filter>IO</Filter>
     </ClCompile>
     <ClCompile Include="UI\Message.c">
@@ -95,9 +98,6 @@
     <ClCompile Include="UI\DPI.c">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\Dialog.c">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="UI\Dialog\RectEditor.c">
       <Filter>UI\Dialog</Filter>
     </ClCompile>
@@ -123,6 +123,12 @@
     <ClCompile Include="Crypt\Cert.c">
       <Filter>Crypt</Filter>
     </ClCompile>
+    <ClCompile Include="NT\Object.c">
+      <Filter>NT</Filter>
+    </ClCompile>
+    <ClCompile Include="NT\Security.c">
+      <Filter>NT</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -136,7 +142,7 @@
     <ClInclude Include="Math\Rand.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="IO\Device.h">
+    <ClInclude Include="IO\Hardware.h">
       <Filter>IO</Filter>
     </ClInclude>
     <ClInclude Include="UI\Message.h">
@@ -157,7 +163,7 @@
     <ClInclude Include="Shell\Shell.h">
       <Filter>Shell</Filter>
     </ClInclude>
-    <ClInclude Include="String\Basic.h">
+    <ClInclude Include="String\Core.h">
       <Filter>String</Filter>
     </ClInclude>
     <ClInclude Include="Time\Time.h">
@@ -189,9 +195,6 @@
     <ClInclude Include="UI\DPI.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="UI\Dialog.h">
-      <Filter>UI</Filter>
-    </ClInclude>
     <ClInclude Include="UI\Dialog\Dialog.h">
       <Filter>UI\Dialog</Filter>
     </ClInclude>
@@ -214,6 +217,15 @@
     </ClInclude>
     <ClInclude Include="Crypt\Cert.h">
       <Filter>Crypt</Filter>
+    </ClInclude>
+    <ClInclude Include="NT\Object.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="NT\Security.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Core.h">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

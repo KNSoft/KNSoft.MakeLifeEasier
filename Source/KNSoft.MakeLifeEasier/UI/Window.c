@@ -1,53 +1,5 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-VOID
-NTAPI
-UI_GetScreenPos(
-    _Out_opt_ PPOINT Point,
-    _Out_opt_ PSIZE Size)
-{
-    if (Point)
-    {
-        Point->x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-        Point->y = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    }
-    if (Size)
-    {
-        Size->cx = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-        Size->cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    }
-}
-
-VOID
-NTAPI
-UI_EnumChildWindows(
-    _In_ HWND ParentWindow,
-    _In_ WNDENUMPROC WindowEnumProc,
-    _In_opt_ LPARAM Param)
-{
-    HWND hWndChild = GetWindow(ParentWindow, GW_CHILD);
-    while (hWndChild != NULL && WindowEnumProc(hWndChild, Param))
-    {
-        hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);
-    }
-}
-
-W32ERROR
-NTAPI
-UI_SetWindowRect(
-    _In_ HWND Window,
-    _In_ PRECT Rect,
-    _In_ BOOL Redraw)
-{
-    return SetWindowPos(Window,
-                        NULL,
-                        Rect->left,
-                        Rect->top,
-                        Rect->right - Rect->left,
-                        Rect->bottom - Rect->top,
-                        SWP_NOZORDER | SWP_NOACTIVATE | (Redraw ? 0 : SWP_NOREDRAW)) ? ERROR_SUCCESS : NtGetLastError();
-}
-
 #define UI_WINDOW_RESIZE_PROP L"KNSoft.MakeLifeEasier.UI.WindowResize"
 
 typedef struct _UI_WINDOW_RESIZE_INFO

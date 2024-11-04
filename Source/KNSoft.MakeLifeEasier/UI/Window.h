@@ -7,22 +7,39 @@ EXTERN_C_START
 /// <summary>
 /// Gets position and size of virtual screen (multiple monitors support)
 /// </summary>
-MLE_API
+FORCEINLINE
 VOID
-NTAPI
 UI_GetScreenPos(
     _Out_opt_ PPOINT Point,
-    _Out_opt_ PSIZE Size);
+    _Out_opt_ PSIZE Size)
+{
+    if (Point)
+    {
+        Point->x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        Point->y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    }
+    if (Size)
+    {
+        Size->cx = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        Size->cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    }
+}
 
 /// <seealso cref="EnumChildWindows"/>
 /// <remarks>Implemented by <c>GetWindow</c></remarks>
-MLE_API
+FORCEINLINE
 VOID
-NTAPI
 UI_EnumChildWindows(
     _In_ HWND ParentWindow,
     _In_ WNDENUMPROC WindowEnumProc,
-    _In_opt_ LPARAM Param);
+    _In_opt_ LPARAM Param)
+{
+    HWND hWndChild = GetWindow(ParentWindow, GW_CHILD);
+    while (hWndChild != NULL && WindowEnumProc(hWndChild, Param))
+    {
+        hWndChild = GetWindow(hWndChild, GW_HWNDNEXT);
+    }
+}
 
 /// <summary>
 /// Invalidates and updates the whole window immediately
@@ -36,13 +53,21 @@ UI_Redraw(
     return RedrawWindow(Window, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW);
 }
 
-MLE_API
+FORCEINLINE
 W32ERROR
-NTAPI
 UI_SetWindowRect(
     _In_ HWND Window,
     _In_ PRECT Rect,
-    _In_ BOOL Redraw);
+    _In_ BOOL Redraw)
+{
+    return SetWindowPos(Window,
+                        NULL,
+                        Rect->left,
+                        Rect->top,
+                        Rect->right - Rect->left,
+                        Rect->bottom - Rect->top,
+                        SWP_NOZORDER | SWP_NOACTIVATE | (Redraw ? 0 : SWP_NOREDRAW)) ? ERROR_SUCCESS : NtGetLastError();
+}
 
 #pragma region Window Resize Subclass
 
