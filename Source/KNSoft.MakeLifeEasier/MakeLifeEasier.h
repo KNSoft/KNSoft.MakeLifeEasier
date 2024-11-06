@@ -18,7 +18,7 @@
 typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 
 /*
- * L0 Header
+ * Core Header
  * - Provides core functions
  * - Depends on NDK only
  * - Header only
@@ -31,27 +31,29 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
  * - Provides basic and low-level utilities
  * - Depends on NDK and L0 header only
  */
+#include "Error/Code.h"
 #include "Math/Math.h"
 #include "Math/Rand.h"
 #include "Memory/Memory.h"
 #include "NT/Object.h"
-#include "PE/PE.h"
 #include "Process/Sync.h"
 #include "Time/Time.h"
 #include "String/Convert.h"
 #include "String/Hash.h"
 #include "System/Library.h"
+#include "System/Registry.h"
 #include "UI/GDI.h"
 
 /* L2 Header: No dependencies yet */
 #include "Crypt/Cert.h"
 #include "IO/Hardware.h"
 #include "NT/Security.h"
+#include "PE/Resolve.h"
+#include "PE/Resource.h"
 #include "Process/Loader.h"
 #include "Process/Token.h"
 #include "Shell/Shell.h"
-#include "System/Config.h"
-#include "System/Registry.h"
+#include "System/Info.h"
 #include "UI/Control.h"
 #include "UI/Dialog/Dialog.h"
 #include "UI/DPI.h"

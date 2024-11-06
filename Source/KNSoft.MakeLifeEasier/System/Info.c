@@ -92,3 +92,33 @@ _Try_Alloc:
     }
     goto _Try_Alloc;
 }
+
+static UNICODE_STRING g_LsaKeyPath = RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
+static UNICODE_STRING g_LsaPidKeyName = RTL_CONSTANT_STRING(L"LsaPid");
+
+NTSTATUS
+NTAPI
+Sys_LsaGetProcessId(
+    _Out_ PULONG LsaProcessId)
+{
+    NTSTATUS Status;
+    DWORD Pid;
+    HANDLE KeyHandle;
+    OBJECT_ATTRIBUTES ObjectAttributes = RTL_CONSTANT_OBJECT_ATTRIBUTES(&g_LsaKeyPath, 0);
+
+    Status = NtOpenKey(&KeyHandle, KEY_QUERY_VALUE, &ObjectAttributes);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    Status = Sys_RegQueryDword(KeyHandle, &g_LsaPidKeyName, &Pid);
+    NtClose(KeyHandle);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    *LsaProcessId = Pid;
+    return STATUS_SUCCESS;
+}

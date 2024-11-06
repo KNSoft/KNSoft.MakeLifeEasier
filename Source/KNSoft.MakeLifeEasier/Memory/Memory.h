@@ -6,8 +6,8 @@ EXTERN_C_START
 
 #pragma region Heap
 
-#if !defined(__cplusplus) && _MSC_FULL_VER >= 193933428
-#define Mem_AllocPtr(p) ((p = (__typeof__(p))Mem_Alloc(sizeof(*(p)))) != NULL)
+#if defined(TYPE_OF)
+#define Mem_AllocPtr(p) ((LOGICAL)((p = (TYPE_OF(p))Mem_Alloc(sizeof(*(p)))) != NULL))
 #endif
 
 #pragma endregion

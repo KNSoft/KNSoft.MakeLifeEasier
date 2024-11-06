@@ -3,7 +3,8 @@
 #include <KNSoft/NDK/NDK.h>
 
 /*
- * If failed, the caller could use STATUS_NO_MEMORY, ERROR_NOT_ENOUGH_MEMORY, ... as error code
+ * If failed, the caller could use
+ * STATUS_NO_MEMORY, ERROR_OUTOFMEMORY, ERROR_NOT_ENOUGH_MEMORY, E_OUTOFMEMORY, ... as error code
  */
 FORCEINLINE
 _Success_(return != NULL)

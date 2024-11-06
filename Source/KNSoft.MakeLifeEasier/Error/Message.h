@@ -2,19 +2,11 @@
 
 #include "../MakeLifeEasier.h"
 
-#include "../PE/PE.h"
+#include "../PE/Resource.h"
 #include "../System/Library.h"
 #include "../UI/Dialog/Dialog.h"
 
 EXTERN_C_START
-
-FORCEINLINE
-ULONG
-Err_NtStatusToWin32Error(
-    _In_ NTSTATUS Status)
-{
-    return NT_FACILITY(Status) == FACILITY_NTWIN32 ? NT_CODE(Status) : RtlNtStatusToDosErrorNoTeb(Status);
-}
 
 #pragma region Error Message
 
@@ -48,20 +40,20 @@ Err_GetNtStatusInfo(
 FORCEINLINE
 _Success_(return != NULL)
 PCWSTR
-Err_GetHResultInfo(
-    _In_ HRESULT HResult)
+Err_GetHrInfo(
+    _In_ HRESULT Hr)
 {
     ULONG Facility, Code;
 
-    Facility = HRESULT_FACILITY(HResult);
-    Code = HRESULT_CODE(HResult);
+    Facility = HRESULT_FACILITY(Hr);
+    Code = HRESULT_CODE(Hr);
 
     if (Facility == FACILITY_WIN32)
     {
         return Err_GetWin32ErrorInfo(Code);
-    } else if ((ULONG)HResult & FACILITY_NT_BIT)
+    } else if ((ULONG)Hr & FACILITY_NT_BIT)
     {
-        return Err_GetNtStatusInfo(HResult & ~FACILITY_NT_BIT);
+        return Err_GetNtStatusInfo(Hr & ~FACILITY_NT_BIT);
     }
 
     return NULL;
@@ -108,15 +100,15 @@ Error_NtStatusMessageBox(
 
 FORCEINLINE
 VOID
-Error_HResultMessageBox(
+Error_HrMessageBox(
     _In_opt_ HWND Owner,
     _In_opt_ PCWSTR Title,
-    _In_ HRESULT HResult)
+    _In_ HRESULT Hr)
 {
     UI_MsgBox(Owner,
-              Err_GetHResultInfo(HResult),
+              Err_GetHrInfo(Hr),
               Title,
-              (HRESULT_SEVERITY(HResult) == SEVERITY_ERROR ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
+              (HRESULT_SEVERITY(Hr) == SEVERITY_ERROR ? MB_ICONERROR : MB_ICONINFORMATION) | MB_OK);
 }
 
 #pragma endregion

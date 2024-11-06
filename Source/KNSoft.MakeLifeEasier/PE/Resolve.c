@@ -1,7 +1,5 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-#pragma region PE Resolve
-
 _Success_(return != FALSE)
 LOGICAL
 NTAPI
@@ -372,5 +370,3 @@ PE_GetCertificate(
 
     return pCertificate;
 }
-
-#pragma endregion

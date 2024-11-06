@@ -81,7 +81,7 @@
     <ClCompile Include="System\Library.c">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="PE\PE.c">
+    <ClCompile Include="PE\Resolve.c">
       <Filter>PE</Filter>
     </ClCompile>
     <ClCompile Include="Main.c" />
@@ -92,7 +92,7 @@
     <ClCompile Include="UI\GDI.c">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="System\Config.c">
+    <ClCompile Include="System\Info.c">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="UI\DPI.c">
@@ -128,6 +128,12 @@
     </ClCompile>
     <ClCompile Include="NT\Security.c">
       <Filter>NT</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\Code.c">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\Resource.c">
+      <Filter>PE</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,7 +184,7 @@
     <ClInclude Include="System\Library.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="PE\PE.h">
+    <ClInclude Include="PE\Resolve.h">
       <Filter>PE</Filter>
     </ClInclude>
     <ClInclude Include="Resource.Embedded.h" />
@@ -189,7 +195,7 @@
     <ClInclude Include="UI\GDI.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="System\Config.h">
+    <ClInclude Include="System\Info.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="UI\DPI.h">
@@ -226,6 +232,12 @@
     </ClInclude>
     <ClInclude Include="Memory\Core.h">
       <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\Code.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Resource.h">
+      <Filter>PE</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

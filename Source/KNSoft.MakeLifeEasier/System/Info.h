@@ -24,6 +24,7 @@ Sys_EnumPreferredLanguages(
     _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback);
 
 /* *Info should be freed by Sys_FreeInfo */
+MLE_API
 NTSTATUS
 NTAPI
 Sys_QueryInfo(
@@ -38,5 +39,11 @@ Sys_FreeInfo(
 {
     return RtlFreeHeap(NtGetProcessHeap(), 0, Info);
 }
+
+MLE_API
+NTSTATUS
+NTAPI
+Sys_LsaGetProcessId(
+    _Out_ PULONG LsaProcessId);
 
 EXTERN_C_END

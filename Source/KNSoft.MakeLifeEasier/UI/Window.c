@@ -26,7 +26,7 @@ UI_InitializeWindowResize(
 
     if (!Mem_AllocPtr(ResizeInfo))
     {
-        return ERROR_NOT_ENOUGH_MEMORY;
+        return ERROR_OUTOFMEMORY;
     }
     ResizeInfo->MinWidth = MinWidth;
     ResizeInfo->MinHeight = MinHeight;
