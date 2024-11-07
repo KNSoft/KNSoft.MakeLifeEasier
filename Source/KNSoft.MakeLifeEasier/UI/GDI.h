@@ -50,4 +50,42 @@ UI_GetFontInfo(
 
 #pragma endregion
 
+#pragma region Paint
+
+FORCEINLINE
+LOGICAL
+GDI_FillSolidRect(
+    _In_ HDC DC,
+    _In_ PRECT Rect,
+    _In_ COLORREF Color)
+{
+    COLORREF OldColor = SetBkColor(DC, Color);
+    LOGICAL Ret = ExtTextOutW(DC, 0, 0, ETO_OPAQUE, Rect, NULL, 0, NULL);
+    SetBkColor(DC, OldColor);
+    return Ret;
+}
+
+FORCEINLINE
+LOGICAL
+GDI_FrameRect(
+    _In_ HDC DC,
+    _In_ PRECT Rect,
+    _In_ INT Width,
+    _In_ DWORD ROP)
+{
+    return Width >= 0
+        ?
+        PatBlt(DC, Rect->left - Width, Rect->top - Width, Width, Rect->bottom - Rect->top + Width * 2, ROP) &&
+        PatBlt(DC, Rect->right, Rect->top - Width, Width, Rect->bottom - Rect->top + Width * 2, ROP) &&
+        PatBlt(DC, Rect->left, Rect->top - Width, Rect->right - Rect->left, Width, ROP) &&
+        PatBlt(DC, Rect->left, Rect->bottom, Rect->right - Rect->left, Width, ROP)
+        :
+        PatBlt(DC, Rect->left, Rect->top, -Width, Rect->bottom - Rect->top, ROP) &&
+        PatBlt(DC, Rect->right + Width, Rect->top, -Width, Rect->bottom - Rect->top, ROP) &&
+        PatBlt(DC, Rect->left - Width, Rect->top, Rect->right - Rect->left + Width * 2, -Width, ROP) &&
+        PatBlt(DC, Rect->left - Width, Rect->bottom + Width, Rect->right - Rect->left + Width * 2, -Width, ROP);
+}
+
+#pragma endregion
+
 EXTERN_C_END

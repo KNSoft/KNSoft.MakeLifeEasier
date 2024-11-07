@@ -135,6 +135,9 @@
     <ClCompile Include="PE\Resource.c">
       <Filter>PE</Filter>
     </ClCompile>
+    <ClCompile Include="String\Encoding.c">
+      <Filter>String</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -238,6 +241,9 @@
     </ClInclude>
     <ClInclude Include="PE\Resource.h">
       <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Encoding.h">
+      <Filter>String</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
