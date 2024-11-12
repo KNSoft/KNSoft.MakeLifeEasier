@@ -64,10 +64,9 @@ NT_InitStringA(
 
 #pragma endregion
 
-#pragma region Path
+#pragma region Object Attributes
 
 /* See also InitializeObjectAttributes */
-
 FORCEINLINE
 VOID
 NT_InitObject(
@@ -78,6 +77,18 @@ NT_InitObject(
 {
     InitializeObjectAttributes(Object, ObjectName, Attributes, RootDirectory, NULL);
 }
+
+FORCEINLINE
+VOID
+NT_InitEmptyObject(
+    _Out_ POBJECT_ATTRIBUTES Object)
+{
+    InitializeObjectAttributes(Object, NULL, 0, NULL, NULL);
+}
+
+#pragma endregion
+
+#pragma region Path
 
 /* NtPath should be freed by NT_FreeNtPath */
 FORCEINLINE

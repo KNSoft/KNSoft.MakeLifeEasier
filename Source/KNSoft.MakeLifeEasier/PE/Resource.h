@@ -26,14 +26,17 @@ FORCEINLINE
 NTSTATUS
 PE_AccessResource(
     _In_ PVOID Base,
-    _In_ PLDR_RESOURCE_INFO Info,
+    _In_ LPCWSTR Type,
+    _In_ LPCWSTR Name,
+    _In_ WORD Language,
     _Out_ PVOID* Resource,
-    _Out_ PULONG Length)
+    _Out_opt_ PULONG Length)
 {
     NTSTATUS Status;
     PIMAGE_RESOURCE_DATA_ENTRY DataEntry;
+    LDR_RESOURCE_INFO Info = { (ULONG_PTR)Type, (ULONG_PTR)Name, (ULONG_PTR)Language };
 
-    Status = LdrFindResource_U(Base, Info, RESOURCE_DATA_LEVEL, &DataEntry);
+    Status = LdrFindResource_U(Base, &Info, RESOURCE_DATA_LEVEL, &DataEntry);
     if (!NT_SUCCESS(Status))
     {
         return Status;

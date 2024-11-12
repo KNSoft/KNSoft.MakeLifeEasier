@@ -88,4 +88,18 @@ GDI_FrameRect(
 
 #pragma endregion
 
+#pragma region Bitmap
+
+MLE_API
+W32ERROR
+NTAPI
+UI_WriteBitmapFileData(
+    _In_ HDC DC,
+    _In_ HBITMAP Bitmap,
+    _Out_writes_bytes_opt_(BufferSize) PVOID Buffer,
+    _In_ ULONG BufferSize,
+    _Out_opt_ PULONG ReturnLength);
+
+#pragma endregion
+
 EXTERN_C_END

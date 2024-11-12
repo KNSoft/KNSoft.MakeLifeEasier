@@ -138,6 +138,9 @@
     <ClCompile Include="String\Encoding.c">
       <Filter>String</Filter>
     </ClCompile>
+    <ClCompile Include="Process\Process.c">
+      <Filter>Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -244,6 +247,9 @@
     </ClInclude>
     <ClInclude Include="String\Encoding.h">
       <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Process.h">
+      <Filter>Process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -126,3 +126,105 @@ UI_GetFontInfo(
 }
 
 #pragma endregion
+
+#pragma region Bitmap
+
+W32ERROR
+NTAPI
+UI_WriteBitmapFileData(
+    _In_ HDC DC,
+    _In_ HBITMAP Bitmap,
+    _Out_writes_bytes_opt_(BufferSize) PVOID Buffer,
+    _In_ ULONG BufferSize,
+    _Out_opt_ PULONG ReturnLength)
+{
+    W32ERROR ret;
+    BITMAP bmp;
+    ULONG cClrBits;
+    PBITMAPFILEHEADER pbmfh;
+    PBITMAPINFO pbmi;
+    DWORD dwClrItem, dwClrSize;
+    UINT uHeadersSize, uFileSize, uImageSize;
+    PVOID pBits;
+
+    // Get BITMAP structure
+    if (GetObjectW(Bitmap, sizeof(BITMAP), &bmp) != sizeof(BITMAP))
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    // Calculate count of bits and color table items
+    cClrBits = bmp.bmPlanes * bmp.bmBitsPixel;
+    if (cClrBits == 1)
+    {
+        cClrBits = 1;
+    } else if (cClrBits <= 4)
+    {
+        cClrBits = 4;
+    } else if (cClrBits <= 8)
+    {
+        cClrBits = 8;
+    } else if (cClrBits <= 16)
+    {
+        cClrBits = 16;
+    } else if (cClrBits <= 24)
+    {
+        cClrBits = 24;
+    } else
+    {
+        cClrBits = 32;
+    }
+    if (cClrBits < 24)
+    {
+        dwClrItem = 1 << cClrBits;
+        dwClrSize = dwClrItem * sizeof(RGBQUAD);
+    } else
+    {
+        dwClrItem = dwClrSize = 0;
+    }
+
+    // Calculate size of image and file
+    uHeadersSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + dwClrSize;
+    uImageSize = ROUND_TO_SIZE(bmp.bmWidth * cClrBits, 32) / 8 * bmp.bmHeight;
+    uFileSize = uHeadersSize + uImageSize;
+
+    // Write bitmap
+    if (Buffer != NULL)
+    {
+        if (BufferSize < uFileSize)
+        {
+            ret = ERROR_INSUFFICIENT_BUFFER;
+            goto _Exit;
+        }
+        pbmfh = (PBITMAPFILEHEADER)Buffer;
+        pbmfh->bfType = 'MB';
+        pbmfh->bfOffBits = uHeadersSize;
+        pbmfh->bfSize = uFileSize;
+        pbmfh->bfReserved1 = pbmfh->bfReserved2 = 0;
+        pbmi = Add2Ptr(pbmfh, sizeof(*pbmfh));
+        pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        pbmi->bmiHeader.biWidth = bmp.bmWidth;
+        pbmi->bmiHeader.biHeight = bmp.bmHeight;
+        pbmi->bmiHeader.biPlanes = bmp.bmPlanes;
+        pbmi->bmiHeader.biBitCount = bmp.bmBitsPixel;
+        pbmi->bmiHeader.biSizeImage = uImageSize;
+        pbmi->bmiHeader.biClrUsed = dwClrItem;
+        pbmi->bmiHeader.biCompression = BI_RGB;
+        pbmi->bmiHeader.biXPelsPerMeter = pbmi->bmiHeader.biYPelsPerMeter = pbmi->bmiHeader.biClrImportant = 0;
+        pBits = Add2Ptr(pbmi, pbmi->bmiHeader.biSize + (DWORD_PTR)dwClrSize);
+        if (!GetDIBits(DC, Bitmap, 0, bmp.bmHeight, pBits, pbmi, DIB_RGB_COLORS))
+        {
+            return ERROR_INVALID_PARAMETER;
+        }
+    }
+    ret = ERROR_SUCCESS;
+
+_Exit:
+    if (ReturnLength != NULL)
+    {
+        *ReturnLength = uFileSize;
+    }
+    return ret;
+}
+
+#pragma endregion

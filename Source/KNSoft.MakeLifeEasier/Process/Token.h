@@ -41,4 +41,25 @@ PS_Impersonate(
     return NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &TokenHandle, sizeof(TokenHandle));
 }
 
+FORCEINLINE
+NTSTATUS
+PS_AdjustPrivilege(
+    _In_ HANDLE ProcessHandle,
+    _In_ ULONG Privilege,
+    _In_ DWORD Attributes)
+{
+    NTSTATUS Status;
+    HANDLE TokenHandle;
+
+    Status = NtOpenProcessToken(ProcessHandle, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &TokenHandle);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    Status = NT_AdjustTokenPrivilege(TokenHandle, Privilege, Attributes);
+    NtClose(TokenHandle);
+
+    return Status;
+}
+
 EXTERN_C_END

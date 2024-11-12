@@ -94,4 +94,35 @@ _Start:
 
 #pragma endregion
 
+FORCEINLINE
+NTSTATUS
+PS_WaitForObject(
+    _In_ HANDLE Object,
+    _In_ ULONG Milliseconds)
+{
+    LARGE_INTEGER LI, *Timeout;
+
+    if (Milliseconds == INFINITE)
+    {
+        Timeout = NULL;
+    } else
+    {
+        LI.QuadPart = Milliseconds * -10000LL;
+        Timeout = &LI;
+    }
+
+    return NtWaitForSingleObject(Object, FALSE, Timeout);
+}
+
+FORCEINLINE
+NTSTATUS
+PS_DelayExec(
+    _In_ ULONG Milliseconds)
+{
+    LARGE_INTEGER LI;
+    
+    LI.QuadPart = Milliseconds == INFINITE ? MINLONGLONG : Milliseconds * -10000LL;
+    return NtDelayExecution(FALSE, &LI);
+}
+
 EXTERN_C_END

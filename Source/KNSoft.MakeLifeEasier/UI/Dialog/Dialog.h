@@ -4,6 +4,8 @@
 
 EXTERN_C_START
 
+/* Common dialog box */
+
 FORCEINLINE
 INT
 UI_MsgBox(
@@ -14,6 +16,8 @@ UI_MsgBox(
 {
     return MessageBoxTimeoutW(Owner, Text, Title, Type, 0, -1);
 }
+
+/* MakeLifeEasier dialog box */
 
 MLE_API
 W32ERROR
@@ -32,7 +36,7 @@ typedef struct _UI_VALUEEDITOR_CONSTANT
 typedef enum _UI_VALUEEDITOR_TYPE
 {
     UIValueEditorCombine,
-    UIValueEditorEnum,
+    UIValueEditorEnum, // TODO: Unimplemented
     UIValueEditorMax
 } UI_VALUEEDITOR_TYPE, *PUI_VALUEEDITOR_TYPE;
 
