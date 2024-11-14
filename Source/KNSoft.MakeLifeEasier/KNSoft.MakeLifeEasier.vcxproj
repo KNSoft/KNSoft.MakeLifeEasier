@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.props')" />
+  <Import Project="..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
@@ -165,6 +165,8 @@
     <ClCompile Include="I18N.xml.g.c" />
     <ClCompile Include="IO\Hardware.c" />
     <ClCompile Include="IO\File.c" />
+    <ClCompile Include="KNSoft\DialogBox.c" />
+    <ClCompile Include="KNSoft\I18N.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math\Rand.c" />
     <ClCompile Include="Memory\Memory.c" />
@@ -186,8 +188,8 @@
     <ClCompile Include="System\Registry.cpp" />
     <ClCompile Include="Time\Time.c" />
     <ClCompile Include="UI\Control.c" />
-    <ClCompile Include="UI\Dialog\RectEditor.c" />
-    <ClCompile Include="UI\Dialog\ValueEditor.c" />
+    <ClCompile Include="UI\DialogBox\RectEditor.c" />
+    <ClCompile Include="UI\DialogBox\ValueEditor.c" />
     <ClCompile Include="UI\DPI.c" />
     <ClCompile Include="UI\GDI.c" />
     <ClCompile Include="UI\Message.c" />
@@ -205,6 +207,8 @@
     <ClInclude Include="I18N.xml.g.h" />
     <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
+    <ClInclude Include="KNSoft\DialogBox.h" />
+    <ClInclude Include="KNSoft\I18N.h" />
     <ClInclude Include="MakeLifeEasier.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Rand.h" />
@@ -231,7 +235,7 @@
     <ClInclude Include="System\Registry.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="UI\Control.h" />
-    <ClInclude Include="UI\Dialog\Dialog.h" />
+    <ClInclude Include="UI\DialogBox\DialogBox.h" />
     <ClInclude Include="UI\DPI.h" />
     <ClInclude Include="UI\GDI.h" />
     <ClInclude Include="UI\Message.h" />
@@ -254,15 +258,15 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.targets')" />
     <Import Project="..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets')" />
+    <Import Project="..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.props'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.13-alpha\build\KNSoft.Precomp4C.targets'))" />
     <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets'))" />
   </Target>
 </Project>

@@ -2,60 +2,28 @@
 
 #pragma region I18N Support
 
-static PS_RUNONCE g_I18N_Init = PS_RUNONCE_INIT;
-
-static
-_Function_class_(SYS_ENUM_PREFERRED_LANGUAGES_FN)
-LOGICAL
-CALLBACK
-Mlep_EnumPreferredLang(
-    _In_ PCWSTR LanguageName,
-    _In_ ULONG FallbackFlags)
-{
-    return Precomp4C_I18N_SetCurrentLocale(&Precomp4C_I18N_Table_All, LanguageName) < 0;
-}
-
-static
-FORCEINLINE
-VOID
-Mlep_InitializeI18N(VOID)
-{
-    if (PS_RunOnceBegin(&g_I18N_Init))
-    {
-        /* Choose system preferred language */
-        if (Sys_EnumPreferredLanguages(Mlep_EnumPreferredLang) != STATUS_SUCCESS)
-        {
-            /* Fallback to the default */
-            Precomp4C_I18N_SetCurrentLocale(&Precomp4C_I18N_Table_All, NULL);
-        }
-        PS_RunOnceEnd(&g_I18N_Init, TRUE);
-    }
-}
+static KNS_I18N_TABLE g_I18NTable = { PS_RUNONCE_INIT, &Precomp4C_I18N_Table_All };
 
 PCWSTR
-Mlep_GetString(
+Mlep_GetStringEx(
     _In_ INT Index)
 {
-    Mlep_InitializeI18N();
-    return Precomp4C_I18N_GetString(&Precomp4C_I18N_Table_All, Index);
+    return KNS_I18NGetString(&g_I18NTable, Index);
 }
 
 #pragma endregion
 
 #pragma region Dialog Box Support
 
-W32ERROR
+HRESULT
 Mlep_DlgBox(
     _In_ PCWSTR DlgResName,
     _In_opt_ HWND Owner,
     _In_opt_ DLGPROC DlgProc,
-    _In_opt_ LPARAM InitParam,
-    _Out_opt_ PINT_PTR Result)
+    _In_opt_ LPARAM InitParam)
 {
-    W32ERROR Ret;
-    PVOID Res;
-    ULONG Len;
-    INT_PTR DlgRet;
+    HRESULT hr;
+    PVOID DlgRes;
     DPI_AWARENESS_CONTEXT DPIContext;
 
     /* Access resource embedded by KNSoft.Precomp4C */
@@ -64,30 +32,17 @@ Mlep_DlgBox(
                                         MAKEINTRESOURCEW(RT_DIALOG),
                                         DlgResName,
                                         LANG_USER_DEFAULT,
-                                        &Res,
-                                        &Len))
+                                        &DlgRes,
+                                        NULL))
     {
         return ERROR_RESOURCE_DATA_NOT_FOUND;
     }
 
-    /* All dialog boxes are DPI awared */
+    /* All KNSoft dialog boxes are DPI awared */
     DPIContext = UI_EnableDPIAwareContext();
-    DlgRet = DialogBoxIndirectParamW((HINSTANCE)&__ImageBase, Res, Owner, DlgProc, InitParam);
+    hr = KNS_DlgBox((HINSTANCE)&__ImageBase, DlgRes, Owner, DlgProc, InitParam);
     UI_RestoreDPIAwareContext(DPIContext);
-
-    /* Handle return code */
-    if (DlgRet == -1)
-    {
-        Ret = NtGetLastError();
-    } else
-    {
-        if (Result != NULL)
-        {
-            *Result = DlgRet;
-        }
-        Ret = ERROR_SUCCESS;
-    }
-    return Ret;
+    return hr;
 }
 
 #pragma endregion

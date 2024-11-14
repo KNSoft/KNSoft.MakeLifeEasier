@@ -9,7 +9,11 @@ PVOID
 UI_TruncateHandle(
     _In_ PVOID Handle)
 {
+#if _WIN64
     return (PVOID)(ULONG_PTR)(ULONG)(ULONG_PTR)Handle;
+#else
+    return Handle;
+#endif
 }
 
 /// <summary>

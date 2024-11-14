@@ -11,6 +11,10 @@
 
 #include <stdint.h>
 
+#include "Resource.Embedded.h"
+#include "Resource.Embedded.rc.g.h"
+#include "I18N.xml.g.h"
+
 #ifdef _WINDLL
 #define MLE_API DECLSPEC_EXPORT
 #else
@@ -21,22 +25,19 @@
 
 #pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
 
-#include "Resource.Embedded.h"
-#include "Resource.Embedded.rc.g.h"
-#include "I18N.xml.g.h"
-
 EXTERN_C_START
 
 PCWSTR
-Mlep_GetString(
+Mlep_GetStringEx(
     _In_ INT Index);
 
-W32ERROR
+#define Mlep_GetString(x) Mlep_GetStringEx(Precomp4C_I18N_All_##x)
+
+HRESULT
 Mlep_DlgBox(
     _In_ PCWSTR DlgResName,
     _In_opt_ HWND Owner,
     _In_opt_ DLGPROC DlgProc,
-    _In_opt_ LPARAM InitParam,
-    _Out_opt_ PINT_PTR Result);
+    _In_opt_ LPARAM InitParam);
 
 EXTERN_C_END

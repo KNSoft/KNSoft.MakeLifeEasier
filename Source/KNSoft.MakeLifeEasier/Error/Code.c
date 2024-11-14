@@ -70,7 +70,7 @@ Err_HrToNtStatus(
         return STATUS_NONCONTINUABLE_EXCEPTION;
     }
 
-    if (Hr & FACILITY_NT_BIT)
+    if ((ULONG)Hr & FACILITY_NT_BIT)
     {
         return Hr & ~FACILITY_NT_BIT;
     } else if (HRESULT_FACILITY(Hr) == FACILITY_WIN32)

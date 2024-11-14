@@ -14,7 +14,7 @@ NT_InitStringW(
     _In_ PWSTR String)
 {
     SIZE_T Size;
- 
+
     if (String != NULL)
     {
         Size = wcslen(String) * sizeof(WCHAR);
@@ -24,8 +24,7 @@ NT_InitStringW(
         }
         NTString->Length = (USHORT)Size;
         NTString->MaximumLength = (USHORT)Size + sizeof(WCHAR);
-    }
-    else
+    } else
     {
         NTString->Length = NTString->MaximumLength = 0;
     }
@@ -42,7 +41,7 @@ NT_InitStringA(
     _In_ PSTR String)
 {
     SIZE_T Size;
- 
+
     if (String != NULL)
     {
         Size = strlen(String);
@@ -52,12 +51,11 @@ NT_InitStringA(
         }
         NTString->Length = (USHORT)Size;
         NTString->MaximumLength = (USHORT)Size + sizeof(CHAR);
-    }
-    else
+    } else
     {
         NTString->Length = NTString->MaximumLength = 0;
     }
- 
+
     NTString->Buffer = (PCHAR)String;
     return STATUS_SUCCESS;
 }

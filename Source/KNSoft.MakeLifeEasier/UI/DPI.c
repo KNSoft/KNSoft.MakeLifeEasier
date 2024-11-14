@@ -178,7 +178,7 @@ UI_DPIScaleDialog(
         hWnd = GetWindow(hWnd, GW_HWNDNEXT);
     }
 
-    /* Send size changed notify to dialog */
+    /* Send size changed notify to dialog so that it could re-layout child windows */
     GetClientRect(Dialog, &rcDlg);
     SendMessageW(Dialog, WM_SIZE, SIZE_RESTORED, MAKELPARAM(rcDlg.right, rcDlg.bottom));
     if (Redraw)

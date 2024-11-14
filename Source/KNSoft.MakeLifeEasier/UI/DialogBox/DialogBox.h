@@ -20,7 +20,7 @@ UI_MsgBox(
 /* MakeLifeEasier dialog box */
 
 MLE_API
-W32ERROR
+HRESULT
 NTAPI
 UI_RectEditorDlg(
     _In_opt_ HWND Owner,
@@ -41,7 +41,7 @@ typedef enum _UI_VALUEEDITOR_TYPE
 } UI_VALUEEDITOR_TYPE, *PUI_VALUEEDITOR_TYPE;
 
 MLE_API
-W32ERROR
+HRESULT
 NTAPI
 UI_ValueEditorDlg(
     _In_opt_ HWND Owner,

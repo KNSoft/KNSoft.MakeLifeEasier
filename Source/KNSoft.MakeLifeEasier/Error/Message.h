@@ -4,7 +4,7 @@
 
 #include "../PE/Resource.h"
 #include "../System/Library.h"
-#include "../UI/Dialog/Dialog.h"
+#include "../UI/DialogBox/DialogBox.h"
 
 EXTERN_C_START
 
@@ -53,7 +53,7 @@ Err_GetHrInfo(
         return Err_GetWin32ErrorInfo(Code);
     } else if ((ULONG)Hr & FACILITY_NT_BIT)
     {
-        return Err_GetNtStatusInfo(Hr & ~FACILITY_NT_BIT);
+        return Err_GetNtStatusInfo((NTSTATUS)((ULONG)Hr & ~FACILITY_NT_BIT));
     }
 
     return NULL;
@@ -65,7 +65,7 @@ Err_GetHrInfo(
 
 FORCEINLINE
 VOID
-Error_Win32ErrorMessageBox(
+Err_Win32ErrorMessageBox(
     _In_opt_ HWND Owner,
     _In_opt_ PCWSTR Title,
     _In_ ULONG Win32Error)
@@ -78,7 +78,7 @@ Error_Win32ErrorMessageBox(
 
 FORCEINLINE
 VOID
-Error_NtStatusMessageBox(
+Err_NtStatusMessageBox(
     _In_opt_ HWND Owner,
     _In_opt_ PCWSTR Title,
     _In_ NTSTATUS Status)
@@ -100,7 +100,7 @@ Error_NtStatusMessageBox(
 
 FORCEINLINE
 VOID
-Error_HrMessageBox(
+Err_HrMessageBox(
     _In_opt_ HWND Owner,
     _In_opt_ PCWSTR Title,
     _In_ HRESULT Hr)

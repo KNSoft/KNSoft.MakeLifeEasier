@@ -66,3 +66,59 @@ UI_ListViewSort(
     }
     return ListView_SortItems(List, CompareFn, ColumnIndex);
 }
+
+W32ERROR
+NTAPI
+UI_CreateMenuItemsEx(
+    _In_ HMENU Parent,
+    _Inout_updates_(Count) PUI_MENU_ITEM Items,
+    _In_ UINT Count)
+{
+    W32ERROR eRet;
+    UINT i, j;
+    UINT_PTR uIDNewItem;
+
+    for (i = 0; i < Count; i++)
+    {
+        if (Items[i].SubMenusCount > 0)
+        {
+            Items[i].Handle = CreatePopupMenu();
+            if (Items[i].Handle == NULL)
+            {
+                break;
+            }
+            eRet = UI_CreateMenuItemsEx(Items[i].Handle, Items[i].SubMenus, Items[i].SubMenusCount);
+            if (eRet != ERROR_SUCCESS)
+            {
+                NtSetLastError(eRet);
+                break;
+            }
+            Items[i].Flags |= MF_POPUP;
+            uIDNewItem = (UINT_PTR)Items[i].Handle;
+        } else
+        {
+            Items[i].Handle = NULL;
+            uIDNewItem = Items[i].Id;
+        }
+        if (!AppendMenuW(Parent, Items[i].Flags, uIDNewItem, Items[i].Text))
+        {
+            break;
+        }
+    }
+
+    if (i < Count)
+    {
+        eRet = NtGetLastError();
+        for (j = 0; j <= i; j++)
+        {
+            if (Items[j].Handle != NULL)
+            {
+                DestroyMenu(Items[i].Handle);
+            }
+            UI_DestroyMenuItemsEx(Items[j].SubMenus, Items[j].SubMenusCount);
+        }
+        return eRet;
+    }
+
+    return ERROR_SUCCESS;
+}

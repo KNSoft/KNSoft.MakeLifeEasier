@@ -56,7 +56,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Shell/Shell.h"
 #include "System/Info.h"
 #include "UI/Control.h"
-#include "UI/Dialog/Dialog.h"
+#include "UI/DialogBox/DialogBox.h"
 #include "UI/DPI.h"
 #include "UI/Message.h"
 #include "UI/Paint.h"
@@ -66,3 +66,9 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Error/Message.h"
 #include "IO/File.h"
 #include "Process/Process.h"
+
+/* KNSoft specification, do not use */
+#if defined(_KNSOFT_)
+#include "KNSoft/I18N.h"
+#include "KNSoft/DialogBox.h"
+#endif

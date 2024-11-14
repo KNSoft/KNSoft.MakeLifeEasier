@@ -3,14 +3,15 @@
 NTSTATUS
 NTAPI
 Sys_EnumPreferredLanguages(
-    _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback)
+    _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback,
+    _In_opt_ PVOID Context)
 {
     NTSTATUS Status;
     ULONG Count, Length = 0, Flags;
     PZZWSTR Languages, Language;
     PCWSTR pszLangName;
-    WCHAR wcName[LOCALE_NAME_MAX_LENGTH];
-    UNICODE_STRING usLocaleName;
+    WCHAR wcLangName[LOCALE_NAME_MAX_LENGTH];
+    UNICODE_STRING usLangName;
 
     Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, NULL, &Length);
     if (!NT_SUCCESS(Status))
@@ -27,9 +28,9 @@ Sys_EnumPreferredLanguages(
     Status = RtlGetThreadPreferredUILanguages(MUI_LANGUAGE_NAME, &Count, Languages, &Length);
     if (NT_SUCCESS(Status))
     {
-        usLocaleName.Length = 0;
-        usLocaleName.MaximumLength = sizeof(wcName);
-        usLocaleName.Buffer = wcName;
+        usLangName.Length = 0;
+        usLangName.MaximumLength = sizeof(wcLangName);
+        usLangName.Buffer = wcLangName;
         Flags = 0;
         Language = Languages;
         while (Language[0] != UNICODE_NULL)
@@ -37,15 +38,15 @@ Sys_EnumPreferredLanguages(
             pszLangName = Language;
             do
             {
-                if (!Callback(pszLangName, Flags))
+                if (!Callback(pszLangName, Flags, Context))
                 {
                     Status = STATUS_SUCCESS;
                     goto _Exit;
                 }
-                Status = RtlGetParentLocaleName(pszLangName, &usLocaleName, 6, FALSE); // FIXME: Hard-coded flag 6
-                pszLangName = wcName;
+                Status = RtlGetParentLocaleName(pszLangName, &usLangName, 6, FALSE); // FIXME: Hard-coded flag 6
+                pszLangName = wcLangName;
                 Flags &= SYS_ENUM_PREFERRED_LOCALE_FALLBACK_PARENT;
-            } while (NT_SUCCESS(Status) && wcName[0] != UNICODE_NULL);
+            } while (NT_SUCCESS(Status) && wcLangName[0] != UNICODE_NULL);
             while (*(Language++) != UNICODE_NULL);
             Flags = SYS_ENUM_PREFERRED_LOCALE_FALLBACK_LIST;
         }

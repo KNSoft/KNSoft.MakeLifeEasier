@@ -9,7 +9,6 @@ typedef struct _UI_VALUEEDITOR_DATA
     ULONG                       ValueSize;
     PUI_VALUEEDITOR_CONSTANT    Constants;
     ULONG                       ConstantCount;
-    W32ERROR                    Ret;
 
     /* Internal use */
     UINT64                      CurrentValue;
@@ -130,7 +129,7 @@ UI_ValueEditor_AppendUnidentifiedMember(
     stLVI.mask = LVIF_TEXT | LVIF_PARAM;
     stLVI.iSubItem = 0;
     stLVI.lParam = 0;
-    stLVI.pszText = (PWSTR)Mlep_GetString(Precomp4C_I18N_All_Unidentified_Parentheses);
+    stLVI.pszText = (PWSTR)Mlep_GetString(Unidentified_Parentheses);
     stLVI.iItem = ListView_InsertItem(List, &stLVI);
     if (stLVI.iItem != -1)
     {
@@ -322,9 +321,9 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         WCHAR String[MAX_UINT64_IN_HEX_WITH_PREFIX_CCH];
 
         SetWindowLongPtrW(hDlg, DWLP_USER, lParam);
-        UI_SetWindowTextW(hDlg, Mlep_GetString(pData->Type == UIValueEditorCombine ?
-                                               Precomp4C_I18N_All_ValueEditorCombine :
-                                               Precomp4C_I18N_All_EnumEditorCombine));
+        UI_SetWindowTextW(hDlg, Mlep_GetStringEx(pData->Type == UIValueEditorCombine ?
+                                                 Precomp4C_I18N_All_ValueEditorCombine :
+                                                 Precomp4C_I18N_All_EnumEditorCombine));
 
         pData->CurrentValue = UI_ValueEditor_GetValue(pData->Value, pData->ValueSize);
         UI_ValueEditor_SetValueText(hDlg, pData->Value, pData->ValueSize);
@@ -339,7 +338,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         for (i = 0; i < ARRAYSIZE(g_aColCx); i++)
         {
             stLVCol.cx = g_aColCx[i];
-            stLVCol.pszText = (PWSTR)Mlep_GetString(g_aColPsz[i]);
+            stLVCol.pszText = (PWSTR)Mlep_GetStringEx(g_aColPsz[i]);
             ListView_InsertColumn(hList, i, &stLVCol);
         }
 
@@ -378,8 +377,8 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         UI_SetNoNotifyFlag(hList, FALSE);
 
-        UI_SetDlgItemTextW(hDlg, IDOK, Mlep_GetString(Precomp4C_I18N_All_OK));
-        UI_SetDlgItemTextW(hDlg, IDRETRY, Mlep_GetString(Precomp4C_I18N_All_Reset));
+        UI_SetDlgItemTextW(hDlg, IDOK, Mlep_GetString(OK));
+        UI_SetDlgItemTextW(hDlg, IDRETRY, Mlep_GetString(Reset));
 
         return TRUE;
     } else if (uMsg == WM_NOTIFY)
@@ -422,7 +421,7 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         } else if (wParam == MAKEWPARAM(IDOK, 0))
         {
             UI_ValueEditor_SetValue(pData->Value, pData->ValueSize, pData->CurrentValue);
-            EndDialog(hDlg, TRUE);
+            EndDialog(hDlg, S_OK);
         }
 
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
@@ -430,14 +429,13 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         PUI_VALUEEDITOR_DATA pData = (PUI_VALUEEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
 
-        pData->Ret = ERROR_CANCELLED;
-        EndDialog(hDlg, 0);
+        EndDialog(hDlg, S_FALSE);
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
     }
     return 0;
 }
 
-W32ERROR
+HRESULT
 NTAPI
 UI_ValueEditorDlg(
     _In_opt_ HWND Owner,
@@ -447,14 +445,12 @@ UI_ValueEditorDlg(
     _In_reads_(ConstantCount) UI_VALUEEDITOR_CONSTANT Constants[],
     _In_ ULONG ConstantCount)
 {
-    W32ERROR Ret;
-
     if (Type == UIValueEditorEnum)
     {
-        return ERROR_NOT_SUPPORTED;
+        return E_NOTIMPL;
     } else if (Type >= UIValueEditorMax)
     {
-        return ERROR_INVALID_PARAMETER;
+        return E_INVALIDARG;
     }
 
     UI_VALUEEDITOR_DATA Data = {
@@ -462,10 +458,8 @@ UI_ValueEditorDlg(
         .Value = Value,
         .ValueSize = ValueSize,
         .Constants = Constants,
-        .ConstantCount = ConstantCount,
-        .Ret = ERROR_INTERNAL_ERROR
+        .ConstantCount = ConstantCount
     };
 
-    Ret = Mlep_DlgBox(MAKEINTRESOURCEW(IDD_VALUEEDITOR), Owner, DlgProc, (LPARAM)&Data, NULL);
-    return Ret == ERROR_SUCCESS ? Data.Ret : Ret;
+    return Mlep_DlgBox(MAKEINTRESOURCEW(IDD_VALUEEDITOR), Owner, DlgProc, (LPARAM)&Data);
 }

@@ -14,14 +14,16 @@ LOGICAL
 CALLBACK
 SYS_ENUM_PREFERRED_LANGUAGES_FN(
     _In_ PCWSTR LanguageName,
-    _In_ ULONG FallbackFlags);
+    _In_ ULONG FallbackFlags,
+    _In_opt_ PVOID Context);
 typedef SYS_ENUM_PREFERRED_LANGUAGES_FN *PSYS_ENUM_PREFERRED_LANGUAGES_FN;
 
 MLE_API
 NTSTATUS
 NTAPI
 Sys_EnumPreferredLanguages(
-    _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback);
+    _In_ PSYS_ENUM_PREFERRED_LANGUAGES_FN Callback,
+    _In_opt_ PVOID Context);
 
 /* *Info should be freed by Sys_FreeInfo */
 MLE_API
