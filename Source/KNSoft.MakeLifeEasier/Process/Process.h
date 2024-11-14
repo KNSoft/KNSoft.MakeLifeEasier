@@ -2,6 +2,8 @@
 
 #include "../MakeLifeEasier.h"
 
+#include "../NT/Object.h"
+
 EXTERN_C_START
 
 W32ERROR
@@ -31,7 +33,7 @@ PS_CreateThread(
     pClientId = ThreadId == NULL ? NULL : &ClientId;
     Status = RtlCreateUserThread(ProcessHandle,
                                  NULL,
-                                 CreateSuspended,
+                                 !!CreateSuspended,
                                  0,
                                  0,
                                  0,

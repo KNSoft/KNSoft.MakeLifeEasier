@@ -3,7 +3,7 @@
  * Copyright (c) KNSoft.org (https://github.com/KNSoft). All rights reserved.
  * Licensed under the MIT license.
  *
- * A fast, stable and convenient C/C++ library
+ * A fast, low-level and convenient C/C++ library
  * to "Make Life Easier" when suffering from Windows NT development.
  */
 
@@ -65,3 +65,4 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 /* L3 Header: Depends on above headers */
 #include "Error/Message.h"
 #include "IO/File.h"
+#include "Process/Process.h"

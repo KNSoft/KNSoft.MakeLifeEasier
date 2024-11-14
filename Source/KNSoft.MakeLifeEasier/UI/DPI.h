@@ -64,6 +64,13 @@ UI_DPIScaleFont(
     _In_ UINT OldDPIY,
     _In_ UINT NewDPIY);
 
+W32ERROR
+NTAPI
+UI_DPIAdjustWindowRect(
+    _In_ HWND Window,
+    _Inout_ PRECT Rect,
+    _In_ UINT DPI);
+
 #pragma endregion
 
 #pragma region Dialog Auto Scaling

@@ -49,19 +49,19 @@ FN_AdjustWindowRectExForDpi(
 static FN_AdjustWindowRectExForDpi* g_pfnAdjustWindowRectExForDpi = NULL;
 static CONST ANSI_STRING g_asAdjustWindowRectExForDpi = RTL_CONSTANT_STRING("AdjustWindowRectExForDpi");
 
-static
 W32ERROR
-UI_DPIScaleDialogRect_AdjustRect(
-    _In_ HWND Dialog,
+NTAPI
+UI_DPIAdjustWindowRect(
+    _In_ HWND Window,
     _Inout_ PRECT Rect,
     _In_ UINT DPI)
 {
     DWORD Style, ExStyle;
     BOOL HasMenu;
 
-    Style = (DWORD)GetWindowLongPtrW(Dialog, GWL_STYLE);
-    ExStyle = (DWORD)GetWindowLongPtrW(Dialog, GWL_EXSTYLE);
-    HasMenu = GetMenu(Dialog) != NULL;
+    Style = (DWORD)GetWindowLongPtrW(Window, GWL_STYLE);
+    ExStyle = (DWORD)GetWindowLongPtrW(Window, GWL_EXSTYLE);
+    HasMenu = GetMenu(Window) != NULL;
 
     /* AdjustWindowRectExForDpi since Win10 1607 (Redstone, 10.0.14393) */
     if (SharedUserData->NtMajorVersion < 10 ||
@@ -102,7 +102,7 @@ UI_DPIScaleDialog(
     _In_ LOGICAL Redraw)
 {
     W32ERROR eRet;
-    RECT rc;
+    RECT rcDlg, rc, *prcDlg;
     LONG lDelta;
     POINT ptOrigin = { 0, 0 };
     HFONT hFont;
@@ -111,31 +111,29 @@ UI_DPIScaleDialog(
     /* Adjust dialog rect */
     if (SuggestRect == NULL)
     {
-        if (!GetClientRect(Dialog, &rc) || !ClientToScreen(Dialog, &ptOrigin))
+        if (!GetClientRect(Dialog, &rcDlg) || !ClientToScreen(Dialog, &ptOrigin))
         {
             return NtGetLastError();
         }
-        rc.left += ptOrigin.x;
-        rc.right += ptOrigin.x;
-        rc.top += ptOrigin.y;
-        rc.bottom += ptOrigin.y;
+        rcDlg.left += ptOrigin.x;
+        rcDlg.right += ptOrigin.x;
+        rcDlg.top += ptOrigin.y;
+        rcDlg.bottom += ptOrigin.y;
 
-        lDelta = Math_RoundInt((rc.right - rc.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
-        rc.left -= lDelta;
-        rc.right += lDelta;
-        lDelta = Math_RoundInt((rc.bottom - rc.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
-        rc.top -= lDelta;
-        rc.bottom += lDelta;
+        lDelta = Math_RoundInt((rcDlg.right - rcDlg.left) * (((FLOAT)NewDPIX / OldDPIX) - 1) / 2);
+        rcDlg.left -= lDelta;
+        rcDlg.right += lDelta;
+        lDelta = Math_RoundInt((rcDlg.bottom - rcDlg.top) * (((FLOAT)NewDPIY / OldDPIY) - 1) / 2);
+        rcDlg.top -= lDelta;
+        rcDlg.bottom += lDelta;
 
-        eRet = UI_DPIScaleDialogRect_AdjustRect(Dialog, &rc, NewDPIX);
-        if (eRet == ERROR_SUCCESS)
-        {
-            eRet = UI_SetWindowRect(Dialog, &rc, FALSE);
-        }
+        UI_DPIAdjustWindowRect(Dialog, &rcDlg, NewDPIX);
+        prcDlg = &rcDlg;
     } else
     {
-        eRet = UI_SetWindowRect(Dialog, SuggestRect, FALSE);
+        prcDlg = SuggestRect;
     }
+    eRet = UI_SetWindowRect(Dialog, prcDlg, FALSE);
     if (eRet != ERROR_SUCCESS)
     {
         return eRet;
@@ -180,6 +178,9 @@ UI_DPIScaleDialog(
         hWnd = GetWindow(hWnd, GW_HWNDNEXT);
     }
 
+    /* Send size changed notify to dialog */
+    GetClientRect(Dialog, &rcDlg);
+    SendMessageW(Dialog, WM_SIZE, SIZE_RESTORED, MAKELPARAM(rcDlg.right, rcDlg.bottom));
     if (Redraw)
     {
         UI_Redraw(Dialog);

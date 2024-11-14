@@ -4,6 +4,14 @@
 
 EXTERN_C_START
 
+FORCEINLINE
+PVOID
+UI_TruncateHandle(
+    _In_ PVOID Handle)
+{
+    return (PVOID)(ULONG_PTR)(ULONG)(ULONG_PTR)Handle;
+}
+
 /// <summary>
 /// Gets position and size of virtual screen (multiple monitors support)
 /// </summary>
@@ -82,25 +90,25 @@ UI_WINDOW_RESIZE_FN(
     _In_opt_ PWINDOWPOS MgmtWinPos);
 typedef UI_WINDOW_RESIZE_FN *PUI_WINDOW_RESIZE_FN;
 
-MLE_API
-W32ERROR
-NTAPI
-UI_InitializeWindowResize(
-    _In_ HWND Window,
-    _In_opt_ LONG MinWidth,
-    _In_opt_ LONG MinHeight,
-    _In_opt_ PUI_WINDOW_RESIZE_FN Callback);
+typedef struct _UI_WINDOW_RESIZE_INFO
+{
+    DWORD DPIX;
+    DWORD DPIY;
+    RECT Rect;
+} UI_WINDOW_RESIZE_INFO, *PUI_WINDOW_RESIZE_INFO;
 
-MLE_API
-VOID
-NTAPI
-UI_UninitializeWindowResize(
-    _In_ HWND Window);
-
+/* *prcMin should be initialized with zero */
 MLE_API
 INT_PTR
 CALLBACK
-UI_ResizeWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+UI_ResizeWndProc(
+    HWND hWnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam,
+    _In_ LOGICAL bDialog,
+    _In_opt_ __callback PUI_WINDOW_RESIZE_FN pfnResizeCallback,
+    _Inout_ PUI_WINDOW_RESIZE_INFO pInfo);
 
 #pragma endregion
 
