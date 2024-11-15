@@ -130,4 +130,15 @@ UI_SetWndTextNoNotifyA(
     _In_ HWND Window,
     _In_opt_ PCSTR Text);
 
+/* Message Loop */
+
+MLE_API
+W32ERROR
+NTAPI
+UI_DlgMessageLoop(
+    _In_opt_ HWND Window,
+    _In_ HWND Dialog,
+    _In_opt_ HACCEL Accelerator,
+    _Out_opt_ PINT_PTR ExitCode);
+
 EXTERN_C_END

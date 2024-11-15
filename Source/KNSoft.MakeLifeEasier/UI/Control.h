@@ -106,4 +106,25 @@ UI_DestroyWindowMenuEx(
 
 #define UI_DestroyWindowMenu(Menu, Items) UI_DestroyWindowMenuEx(Menu, Items, ARRAYSIZE(Items))
 
+// Return FALSE to stop enumeration, UI_EnumTreeViewItems will returns S_FALSE
+typedef
+_Function_class_(UI_ENUMTREEVIEWITEM_FN)
+LOGICAL
+CALLBACK
+UI_ENUMTREEVIEWITEM_FN(
+    _In_ HWND TreeView,
+    _In_ HTREEITEM TreeItem,
+    _In_ UINT Level,
+    _In_opt_ PVOID Context);
+typedef UI_ENUMTREEVIEWITEM_FN *PUI_ENUMTREEVIEWITEM_FN;
+
+MLE_API
+HRESULT
+NTAPI
+UI_EnumTreeViewItems(
+    _In_ HWND TreeView,
+    _In_ LOGICAL BFS,
+    _In_ __callback PUI_ENUMTREEVIEWITEM_FN TreeItemEnumProc,
+    _In_opt_ PVOID Context);
+
 EXTERN_C_END

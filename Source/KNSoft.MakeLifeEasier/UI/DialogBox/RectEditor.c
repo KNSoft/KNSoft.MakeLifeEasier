@@ -114,5 +114,5 @@ UI_RectEditorDlg(
     _In_opt_ HWND Owner,
     _Inout_ PRECT Rect)
 {
-    return Mlep_DlgBox(MAKEINTRESOURCEW(IDD_RECTEDITOR), Owner, DlgProc, (LPARAM)Rect);
+    return Mlep_DlgBox(Owner, MAKEINTRESOURCEW(IDD_RECTEDITOR), DlgProc, (LPARAM)Rect);
 }

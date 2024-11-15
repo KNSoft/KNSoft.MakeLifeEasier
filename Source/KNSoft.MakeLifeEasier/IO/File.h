@@ -279,7 +279,7 @@ FORCEINLINE
 NTSTATUS
 IO_ReadFile(
     _In_ HANDLE FileHandle,
-    _In_ PLARGE_INTEGER Offset,
+    _In_opt_ PLARGE_INTEGER Offset,
     _Out_writes_bytes_(Length) PVOID Buffer,
     _In_ ULONG Length)
 {
@@ -292,7 +292,7 @@ FORCEINLINE
 NTSTATUS
 IO_WriteFile(
     _In_ HANDLE FileHandle,
-    _In_ PLARGE_INTEGER Offset,
+    _In_opt_ PLARGE_INTEGER Offset,
     _In_reads_bytes_(Length) PVOID Buffer,
     _In_ ULONG Length)
 {

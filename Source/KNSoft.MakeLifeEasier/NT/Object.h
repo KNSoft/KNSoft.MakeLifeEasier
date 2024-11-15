@@ -116,6 +116,7 @@ NT_InitWin32PathObject(
         return Status;
     }
     NT_InitObject(Object, NtPath, OBJ_CASE_INSENSITIVE, RootDirectory);
+    return STATUS_SUCCESS;
 }
 
 FORCEINLINE

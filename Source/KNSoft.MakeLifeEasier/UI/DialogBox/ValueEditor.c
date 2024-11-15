@@ -461,5 +461,5 @@ UI_ValueEditorDlg(
         .ConstantCount = ConstantCount
     };
 
-    return Mlep_DlgBox(MAKEINTRESOURCEW(IDD_VALUEEDITOR), Owner, DlgProc, (LPARAM)&Data);
+    return Mlep_DlgBox(Owner, MAKEINTRESOURCEW(IDD_VALUEEDITOR), DlgProc, (LPARAM)&Data);
 }

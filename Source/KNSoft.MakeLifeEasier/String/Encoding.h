@@ -109,4 +109,8 @@ Str_Utf8ToUnicode(
 #define Str_W2U(UDest, WSrc) Str_UnicodeToUtf8(UDest, ARRAYSIZE(UDest), WSrc)
 #define Str_U2W(WDest, USrc) Str_Utf8ToUnicode(WDest, ARRAYSIZE(WDest), USrc)
 
+MLE_API
+extern
+BYTE Str_Utf8_BOM[3];
+
 EXTERN_C_END

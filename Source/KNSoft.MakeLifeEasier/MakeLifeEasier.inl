@@ -35,8 +35,8 @@ Mlep_GetStringEx(
 
 HRESULT
 Mlep_DlgBox(
-    _In_ PCWSTR DlgResName,
     _In_opt_ HWND Owner,
+    _In_ PCWSTR DlgResName,
     _In_opt_ DLGPROC DlgProc,
     _In_opt_ LPARAM InitParam);
 

@@ -17,8 +17,8 @@ Mlep_GetStringEx(
 
 HRESULT
 Mlep_DlgBox(
-    _In_ PCWSTR DlgResName,
     _In_opt_ HWND Owner,
+    _In_ PCWSTR DlgResName,
     _In_opt_ DLGPROC DlgProc,
     _In_opt_ LPARAM InitParam)
 {
@@ -40,7 +40,7 @@ Mlep_DlgBox(
 
     /* All KNSoft dialog boxes are DPI awared */
     DPIContext = UI_EnableDPIAwareContext();
-    hr = KNS_DlgBox((HINSTANCE)&__ImageBase, DlgRes, Owner, DlgProc, InitParam);
+    hr = KNS_ModelDlgBox((HINSTANCE)&__ImageBase, Owner, DlgRes, DlgProc, InitParam);
     UI_RestoreDPIAwareContext(DPIContext);
     return hr;
 }
