@@ -28,6 +28,30 @@ Str_LenA(
 #endif
 
 FORCEINLINE
+INT
+Str_CmpA(
+    _In_ PCSTR String1,
+    _In_ PCSTR String2)
+{
+    return strcmp(String1, String2);
+}
+
+FORCEINLINE
+INT
+Str_CmpW(
+    _In_ PCWSTR String1,
+    _In_ PCWSTR String2)
+{
+    return wcscmp(String1, String2);
+}
+
+#ifdef UNICODE
+#define Str_Cmp Str_CmpW
+#else
+#define Str_Cmp Str_CmpA
+#endif
+
+FORCEINLINE
 PCWSTR
 Str_StrW(
     _In_ PCWSTR String,
@@ -141,27 +165,3 @@ Str_CopyExA(
 #define Str_Copy(Dest, Source) Str_CopyEx(Dest, ARRAYSIZE(Dest), Source)
 
 #pragma endregion Str_Copy[Ex][A/W]
-
-/* Str_Size */
-
-FORCEINLINE
-SIZE_T
-Str_SizeW(
-    _In_ PCWSTR String)
-{
-    return Str_LenW(String) * sizeof(WCHAR);
-}
-
-FORCEINLINE
-SIZE_T
-Str_SizeA(
-    _In_ PCSTR String)
-{
-    return Str_LenA(String) * sizeof(CHAR);
-}
-
-#ifdef UNICODE
-#define Str_Size Str_SizeW
-#else
-#define Str_Size Str_SizeA
-#endif

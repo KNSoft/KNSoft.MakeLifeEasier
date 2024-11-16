@@ -266,6 +266,9 @@
     <ClInclude Include="UI\DialogBox\DialogBox.h">
       <Filter>UI\DialogBox</Filter>
     </ClInclude>
+    <ClInclude Include="String\Operation.h">
+      <Filter>String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.Embedded.rc" />
