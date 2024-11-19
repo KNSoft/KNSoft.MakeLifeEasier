@@ -15,6 +15,14 @@ PS_DuplicateToken(
 MLE_API
 NTSTATUS
 NTAPI
+PS_DuplicateSystemToken(
+    _In_ ULONG ProcessId,
+    _In_ TOKEN_TYPE TokenType,
+    _Out_ PHANDLE NewTokenHandle);
+
+MLE_API
+NTSTATUS
+NTAPI
 PS_OpenCurrentThreadToken(
     _Out_ PHANDLE TokenHandle);
 
@@ -24,10 +32,23 @@ NTAPI
 PS_IsAdminToken(
     _In_ HANDLE TokenHandle);
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
-PS_IsCurrentAdminToken(VOID);
+PS_IsCurrentAdminToken(VOID)
+{
+    NTSTATUS Status;
+    HANDLE Token;
+
+    Status = PS_OpenCurrentThreadToken(&Token);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    Status = PS_IsAdminToken(Token);
+    NtClose(Token);
+    return Status;
+}
 
 /// <summary>
 /// Set impersonate token to current thread
@@ -46,7 +67,7 @@ NTSTATUS
 PS_AdjustPrivilege(
     _In_ HANDLE ProcessHandle,
     _In_ ULONG Privilege,
-    _In_ DWORD Attributes)
+    _In_ LOGICAL Enable)
 {
     NTSTATUS Status;
     HANDLE TokenHandle;
@@ -56,7 +77,7 @@ PS_AdjustPrivilege(
     {
         return Status;
     }
-    Status = NT_AdjustTokenPrivilege(TokenHandle, Privilege, Attributes);
+    Status = NT_AdjustTokenPrivilege(TokenHandle, Privilege, Enable ? SE_PRIVILEGE_ENABLED : 0);
     NtClose(TokenHandle);
 
     return Status;

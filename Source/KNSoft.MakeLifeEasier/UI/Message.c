@@ -88,36 +88,3 @@ UI_SetWndTextNoNotifyA(
 
     return Ret;
 };
-
-W32ERROR
-NTAPI
-UI_DlgMessageLoop(
-    _In_opt_ HWND Window,
-    _In_ HWND Dialog,
-    _In_opt_ HACCEL Accelerator,
-    _Out_opt_ PINT_PTR ExitCode)
-{
-    BOOL bRet;
-    MSG stMsg;
-
-    while (TRUE)
-    {
-        bRet = GetMessageW(&stMsg, Window, 0, 0);
-        if (bRet == 0)
-        {
-            if (ExitCode != NULL)
-            {
-                *ExitCode = (INT_PTR)stMsg.wParam;
-            }
-            return ERROR_SUCCESS;
-        } else if (bRet == -1)
-        {
-            return NtGetLastError();
-        } else if ((Accelerator == NULL || !TranslateAcceleratorW(Dialog, Accelerator, &stMsg)) &&
-                   !IsDialogMessageW(Dialog, &stMsg))
-        {
-            TranslateMessage(&stMsg);
-            DispatchMessageW(&stMsg);
-        }
-    }
-}

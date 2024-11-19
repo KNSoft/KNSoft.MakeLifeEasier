@@ -49,6 +49,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "NT/Security.h"
 #include "PE/Resolve.h"
 #include "PE/Resource.h"
+#include "Process/Environment.h"
 #include "Process/Loader.h"
 #include "Process/Token.h"
 #include "Shell/Shell.h"
@@ -70,6 +71,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 
 /* KNSoft specification, do not use */
 #if defined(_KNSOFT_)
+#include "KNSoft/AppInfo.h"
 #include "KNSoft/I18N.h"
 #include "KNSoft/DialogBox.h"
 #endif

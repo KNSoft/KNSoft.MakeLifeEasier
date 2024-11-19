@@ -132,13 +132,37 @@ UI_SetWndTextNoNotifyA(
 
 /* Message Loop */
 
-MLE_API
+FORCEINLINE
 W32ERROR
-NTAPI
-UI_DlgMessageLoop(
+UI_MessageLoop(
     _In_opt_ HWND Window,
-    _In_ HWND Dialog,
+    _In_ LOGICAL Dialog,
     _In_opt_ HACCEL Accelerator,
-    _Out_opt_ PINT_PTR ExitCode);
+    _Out_opt_ PINT ExitCode)
+{
+    BOOL Ret;
+    MSG Msg;
+
+    while (TRUE)
+    {
+        Ret = GetMessageW(&Msg, Window, 0, 0);
+        if (Ret == 0)
+        {
+            if (ExitCode != NULL)
+            {
+                *ExitCode = (INT)Msg.wParam;
+            }
+            return ERROR_SUCCESS;
+        } else if (Ret == -1)
+        {
+            return NtGetLastError();
+        } else if ((Accelerator == NULL || !TranslateAcceleratorW(Msg.hwnd, Accelerator, &Msg)) &&
+                   (!Dialog || !IsDialogMessageW(Msg.hwnd, &Msg)))
+        {
+            TranslateMessage(&Msg);
+            DispatchMessageW(&Msg);
+        }
+    }
+}
 
 EXTERN_C_END

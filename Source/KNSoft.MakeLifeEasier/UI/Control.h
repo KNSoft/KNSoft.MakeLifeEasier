@@ -71,7 +71,6 @@ UI_DestroyMenuItemsEx(
 FORCEINLINE
 HMENU
 UI_CreateWindowMenuEx(
-    _In_ HWND Window,
     _In_reads_(Count) PUI_MENU_ITEM Items,
     _In_ UINT Count)
 {
@@ -82,8 +81,7 @@ UI_CreateWindowMenuEx(
     {
         return NULL;
     }
-    if (UI_CreateMenuItemsEx(hMenu, Items, Count) != ERROR_SUCCESS ||
-        !SetMenu(Window, hMenu))
+    if (UI_CreateMenuItemsEx(hMenu, Items, Count) != ERROR_SUCCESS)
     {
         DestroyMenu(hMenu);
         return NULL;
@@ -91,7 +89,7 @@ UI_CreateWindowMenuEx(
     return hMenu;
 }
 
-#define UI_CreateWindowMenu(Window, Items) UI_CreateWindowMenuEx(Window, Items, ARRAYSIZE(Items))
+#define UI_CreateWindowMenu(Items) UI_CreateWindowMenuEx(Items, ARRAYSIZE(Items))
 
 FORCEINLINE
 VOID

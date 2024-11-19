@@ -116,4 +116,49 @@ UI_ResizeWndProc(
 
 #pragma endregion
 
+#pragma region Theme
+
+MLE_API
+LOGICAL
+NTAPI
+UI_SetWindowThemeProperty(
+    _In_ ATOM AtomTable,
+    _In_ HWND Window,
+    _In_opt_ PCWSTR Property);
+
+FORCEINLINE
+LOGICAL
+UI_SetWindowTheme(
+    _In_ HWND Window,
+    _In_opt_ PCWSTR SubAppName,
+    _In_opt_ PCWSTR SubIdList)
+{
+    LOGICAL Ret;
+
+    Ret = UI_SetWindowThemeProperty(UXTHEME_ATOM_SUBAPPNAME, Window, SubAppName);
+    Ret &= UI_SetWindowThemeProperty(UXTHEME_ATOM_SUBIDLIST, Window, SubIdList);
+    SendMessageW(Window, WM_THEMECHANGED, 0, 0);
+
+    return Ret;
+}
+
+/* Windows Explorer visual style can be applied to Tree-View, List-View, ... controls */
+FORCEINLINE
+LOGICAL
+UI_SetWindowExplorerVisualStyle(
+    _In_ HWND Window)
+{
+    return UI_SetWindowTheme(Window, L"Explorer", NULL);
+}
+
+FORCEINLINE
+LOGICAL
+UI_DisableWindowVisualStyle(
+    _In_ HWND Window)
+{
+    return UI_SetWindowTheme(Window, L"", NULL);
+}
+
+#pragma endregion
+
 EXTERN_C_END

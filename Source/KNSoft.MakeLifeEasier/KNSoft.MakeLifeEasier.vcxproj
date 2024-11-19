@@ -174,6 +174,7 @@
     <ClCompile Include="NT\Security.c" />
     <ClCompile Include="PE\Resolve.c" />
     <ClCompile Include="PE\Resource.c" />
+    <ClCompile Include="Process\Environment.cpp" />
     <ClCompile Include="Process\Loader.c" />
     <ClCompile Include="Process\Process.c" />
     <ClCompile Include="Process\Sync.c" />
@@ -207,6 +208,7 @@
     <ClInclude Include="I18N.xml.g.h" />
     <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
+    <ClInclude Include="KNSoft\AppInfo.h" />
     <ClInclude Include="KNSoft\DialogBox.h" />
     <ClInclude Include="KNSoft\I18N.h" />
     <ClInclude Include="MakeLifeEasier.h" />
@@ -218,6 +220,7 @@
     <ClInclude Include="NT\Security.h" />
     <ClInclude Include="PE\Resolve.h" />
     <ClInclude Include="PE\Resource.h" />
+    <ClInclude Include="Process\Environment.h" />
     <ClInclude Include="Process\Loader.h" />
     <ClInclude Include="Process\Process.h" />
     <ClInclude Include="Process\Sync.h" />
@@ -259,15 +262,15 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets')" />
     <Import Project="..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets')" />
+    <Import Project="..\packages\KNSoft.NDK.1.2.9-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.9-beta\build\KNSoft.NDK.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.8-beta\build\KNSoft.NDK.targets'))" />
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.props'))" />
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.14-alpha\build\KNSoft.Precomp4C.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.9-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.9-beta\build\KNSoft.NDK.targets'))" />
   </Target>
 </Project>

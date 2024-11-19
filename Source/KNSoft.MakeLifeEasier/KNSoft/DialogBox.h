@@ -16,13 +16,12 @@ KNS_DlgBox(
     _In_opt_ DLGPROC DlgProc,
     _In_opt_ LPARAM InitParam)
 {
-    INT_PTR DlgRet;
+    INT DlgRet;
     W32ERROR Ret;
 
-    Ret = UI_DlgMessageLoop(NULL,
-                            CreateDialogIndirectParamW(Instance, DialogTemplate, Owner, DlgProc, InitParam),
-                            Accelerator,
-                            &DlgRet);
+    CreateDialogIndirectParamW(Instance, DialogTemplate, Owner, DlgProc, InitParam);
+
+    Ret = UI_MessageLoop(NULL, TRUE, Accelerator, &DlgRet);
     return Ret == ERROR_SUCCESS ? (HRESULT)DlgRet : HRESULT_FROM_WIN32(Ret);
 }
 

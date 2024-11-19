@@ -26,7 +26,7 @@ FORCEINLINE
 _Success_(return != FALSE)
 LOGICAL
 Mem_Free(
-    __drv_freesMem(Mem) _Frees_ptr_ PVOID BaseAddress)
+    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PVOID BaseAddress)
 {
     return RtlFreeHeap(NtGetProcessHeap(), 0, BaseAddress);
 }

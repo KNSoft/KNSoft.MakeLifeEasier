@@ -150,6 +150,9 @@
     <ClCompile Include="UI\DialogBox\ValueEditor.c">
       <Filter>UI\DialogBox</Filter>
     </ClCompile>
+    <ClCompile Include="Process\Environment.cpp">
+      <Filter>Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -268,6 +271,12 @@
     </ClInclude>
     <ClInclude Include="String\Operation.h">
       <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="KNSoft\AppInfo.h">
+      <Filter>KNSoft</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Environment.h">
+      <Filter>Process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

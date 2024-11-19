@@ -81,3 +81,38 @@ UI_ResizeWndProc(
     }
     return 0;
 }
+
+LOGICAL
+NTAPI
+UI_SetWindowThemeProperty(
+    _In_ ATOM AtomTable,
+    _In_ HWND Window,
+    _In_opt_ PCWSTR Property)
+{
+    ATOM Prop;
+    LOGICAL Ret;
+
+    /* Remove the previously applied associations if Property is NULL */
+    if (Property == NULL)
+    {
+        Prop = (ATOM)RemovePropW(Window, (PCWSTR)AtomTable);
+        if (Prop != INVALID_ATOM)
+        {
+            DeleteAtom(Prop);
+        }
+        return TRUE;
+    }
+
+    /* Disable visual style if Property is an empty string */
+    Prop = AddAtomW(Property[0] != UNICODE_NULL ? Property : L"$");
+    if (Prop == INVALID_ATOM)
+    {
+        return FALSE;
+    }
+    Ret = SetPropW(Window, (PCWSTR)AtomTable, (HANDLE)Prop);
+    if (!Ret)
+    {
+        DeleteAtom(Prop);
+    }
+    return Ret;
+}
