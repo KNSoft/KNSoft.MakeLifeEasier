@@ -216,6 +216,7 @@
     <ClInclude Include="Math\Rand.h" />
     <ClInclude Include="Memory\Core.h" />
     <ClInclude Include="Memory\Memory.h" />
+    <ClInclude Include="NT\Core.h" />
     <ClInclude Include="NT\Object.h" />
     <ClInclude Include="NT\Security.h" />
     <ClInclude Include="PE\Resolve.h" />

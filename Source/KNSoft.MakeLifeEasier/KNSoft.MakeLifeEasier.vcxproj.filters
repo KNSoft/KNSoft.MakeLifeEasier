@@ -278,6 +278,9 @@
     <ClInclude Include="Process\Environment.h">
       <Filter>Process</Filter>
     </ClInclude>
+    <ClInclude Include="NT\Core.h">
+      <Filter>NT</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.Embedded.rc" />

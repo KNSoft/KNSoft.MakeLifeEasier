@@ -37,7 +37,7 @@ FORCEINLINE
 LOGICAL
 NTAPI
 Sys_FreeInfo(
-    _In_ PVOID Info)
+    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PVOID Info)
 {
     return RtlFreeHeap(NtGetProcessHeap(), 0, Info);
 }

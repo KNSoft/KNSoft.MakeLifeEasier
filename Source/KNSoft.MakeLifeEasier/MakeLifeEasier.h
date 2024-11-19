@@ -23,8 +23,9 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
  * - Depends on NDK only
  * - Header only
  */
-#include "Memory/Core.h"
+#include "NT/Core.h"
 #include "String/Core.h"
+#include "Memory/Core.h"
 
 /*
  * L1 Header
