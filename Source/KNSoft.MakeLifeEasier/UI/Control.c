@@ -75,11 +75,16 @@ UI_CreateMenuItemsEx(
     _In_ UINT Count)
 {
     W32ERROR eRet;
-    UINT i, j;
+    UINT i, j, Index;
     UINT_PTR uIDNewItem;
 
+    Index = 0;
     for (i = 0; i < Count; i++)
     {
+        if (Items[i].Invalid)
+        {
+            continue;
+        }
         if (Items[i].SubMenusCount > 0)
         {
             Items[i].Handle = CreatePopupMenu();
@@ -104,6 +109,11 @@ UI_CreateMenuItemsEx(
         {
             break;
         }
+        if (Items[i].Icon != NULL)
+        {
+            SetMenuItemBitmaps(Parent, Index, MF_BYPOSITION, Items[i].Icon, Items[i].Icon);
+        }
+        Index++;
     }
 
     if (i < Count)

@@ -1,5 +1,7 @@
 ﻿#include "../MakeLifeEasier.inl"
 
+#pragma comment(lib, "Crypt32.lib")
+
 W32ERROR
 NTAPI
 Crypt_EnumBlobCertificates(

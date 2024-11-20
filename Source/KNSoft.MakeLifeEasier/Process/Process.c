@@ -2,6 +2,8 @@
 
 #include <UserEnv.h>
 
+#pragma comment(lib, "UserEnv.lib")
+
 W32ERROR
 NTAPI
 PS_CreateProcess(

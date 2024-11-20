@@ -54,7 +54,7 @@ UI_GetFontInfo(
 
 FORCEINLINE
 LOGICAL
-GDI_FillSolidRect(
+UI_FillSolidRect(
     _In_ HDC DC,
     _In_ PRECT Rect,
     _In_ COLORREF Color)
@@ -67,7 +67,7 @@ GDI_FillSolidRect(
 
 FORCEINLINE
 LOGICAL
-GDI_FrameRect(
+UI_FrameRect(
     _In_ HDC DC,
     _In_ PRECT Rect,
     _In_ INT Width,
@@ -88,7 +88,7 @@ GDI_FrameRect(
 
 #pragma endregion
 
-#pragma region Bitmap
+#pragma region Bitmap and Icon
 
 MLE_API
 W32ERROR
@@ -99,6 +99,15 @@ UI_WriteBitmapFileData(
     _Out_writes_bytes_opt_(BufferSize) PVOID Buffer,
     _In_ ULONG BufferSize,
     _Out_opt_ PULONG ReturnLength);
+
+MLE_API
+_Success_(return != NULL)
+HBITMAP
+NTAPI
+UI_CreateBitmapFromIcon(
+    _In_ HICON Icon,
+    _In_opt_ INT CX,
+    _In_opt_ INT CY);
 
 #pragma endregion
 

@@ -127,7 +127,7 @@ UI_GetFontInfo(
 
 #pragma endregion
 
-#pragma region Bitmap
+#pragma region Bitmap and Icon
 
 W32ERROR
 NTAPI
@@ -225,6 +225,86 @@ _Exit:
         *ReturnLength = uFileSize;
     }
     return ret;
+}
+
+_Success_(return != NULL)
+HBITMAP
+NTAPI
+UI_CreateBitmapFromIcon(
+    _In_ HICON Icon,
+    _In_opt_ INT CX,
+    _In_opt_ INT CY)
+{
+    ICONINFO Info;
+    BITMAP MaskBitmapInfo;
+    INT RealHeight;
+    HDC ScreenDC, MemDC;
+    HBITMAP Ret, Bitmap, OldBitmap;
+    RECT Rect;
+
+    if (!GetIconInfo(Icon, &Info))
+    {
+        return NULL;
+    }
+    Ret = NULL;
+    if (GetObjectW(Info.hbmMask, sizeof(MaskBitmapInfo), &MaskBitmapInfo) == 0)
+    {
+        goto _Exit_0;
+    }
+    RealHeight = MaskBitmapInfo.bmHeight;
+    if (Info.hbmColor == NULL)
+    {
+        RealHeight /= 2;
+    }
+    Rect.right = CX != 0 ? CX : MaskBitmapInfo.bmWidth;
+    Rect.bottom = CY != 0 ? CY : RealHeight;
+
+    ScreenDC = GetDC(NULL);
+    if (ScreenDC == NULL)
+    {
+        goto _Exit_0;
+    }
+    MemDC = CreateCompatibleDC(ScreenDC);
+    if (MemDC == NULL)
+    {
+        goto _Exit_1;
+    }
+    Bitmap = CreateCompatibleBitmap(ScreenDC, Rect.right, Rect.bottom);
+    if (Bitmap == NULL)
+    {
+        goto _Exit_2;
+    }
+    OldBitmap = SelectObject(MemDC, Bitmap);
+    if (OldBitmap == NULL)
+    {
+        goto _Exit_3;
+    }
+    Rect.left = Rect.top = 0;
+    SetBkColor(MemDC, RGB(255, 255, 255));
+    ExtTextOutW(MemDC, 0, 0, ETO_OPAQUE, &Rect, NULL, 0, NULL);
+    if (DrawIconEx(MemDC, 0, 0, Icon, Rect.right, Rect.bottom, 0, NULL, DI_NORMAL))
+    {
+        Ret = Bitmap;
+    }
+    SelectObject(MemDC, OldBitmap);
+    if (Ret != NULL)
+    {
+        goto _Exit_2;
+    }
+
+_Exit_3:
+    DeleteObject(Bitmap);
+_Exit_2:
+    DeleteDC(MemDC);
+_Exit_1:
+    ReleaseDC(NULL, ScreenDC);
+_Exit_0:
+    DeleteObject(Info.hbmMask);
+    if (Info.hbmColor != NULL)
+    {
+        DeleteObject(Info.hbmColor);
+    }
+    return Ret;
 }
 
 #pragma endregion

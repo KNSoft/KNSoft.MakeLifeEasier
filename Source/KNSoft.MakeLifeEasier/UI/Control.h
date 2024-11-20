@@ -22,8 +22,10 @@ UI_ListViewSort(
 typedef struct _UI_MENU_ITEM UI_MENU_ITEM, *PUI_MENU_ITEM;
 struct _UI_MENU_ITEM
 {
-    UINT        Flags;
+    BOOL        Invalid;
+    UINT        Flags;      // MF_*
     UINT_PTR    Id;
+    HBITMAP     Icon;
     union
     {
         LPARAM      Param;  // MF_OWNERDRAW
