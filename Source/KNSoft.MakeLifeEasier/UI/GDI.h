@@ -90,6 +90,43 @@ UI_FrameRect(
 
 #pragma region Bitmap and Icon
 
+FORCEINLINE
+VOID
+UI_InitBitmapInfo(
+    _Out_ PBITMAPINFOHEADER InfoHeader,
+    _In_ LONG Width,
+    _In_ LONG Height,
+    _In_ USHORT BitsPerPixel)
+{
+    InfoHeader->biSize = sizeof(BITMAPINFOHEADER);
+    InfoHeader->biWidth = Width;
+    InfoHeader->biHeight = Height;
+    InfoHeader->biPlanes = 1;
+    InfoHeader->biBitCount = BitsPerPixel;
+    InfoHeader->biCompression = BI_RGB;
+    InfoHeader->biSizeImage = Width * Height;
+    InfoHeader->biXPelsPerMeter =
+        InfoHeader->biYPelsPerMeter =
+        InfoHeader->biClrUsed =
+        InfoHeader->biClrImportant = 0;
+}
+
+/* Create a RGB DIB */
+FORCEINLINE
+_Success_(return != NULL)
+HBITMAP
+UI_CreateBitmap(
+    _In_ LONG Width,
+    _In_ LONG Height,
+    _In_ USHORT BitsPerPixel,
+    _Outptr_result_bytebuffer_(_Inexpressible_(GDI_WIDTHBYTES(Width * BitsPerPixel) * Height)) PVOID * Bits)
+{
+    BITMAPINFO Info;
+
+    UI_InitBitmapInfo(&Info.bmiHeader, Width, Height, BitsPerPixel);
+    return CreateDIBSection(NULL, &Info, DIB_RGB_COLORS, Bits, NULL, 0);
+}
+
 MLE_API
 W32ERROR
 NTAPI
@@ -108,6 +145,24 @@ UI_CreateBitmapFromIcon(
     _In_ HICON Icon,
     _In_opt_ INT CX,
     _In_opt_ INT CY);
+
+FORCEINLINE
+VOID
+UI_SetBitmapBitsAlpha(
+    _Inout_updates_(BitCount) RGBQUAD* Bits,
+    _In_ ULONG BitCount,
+    _In_ BYTE Alpha)
+{
+    ULONG i;
+
+    for (i = 0; i < BitCount; i++)
+    {
+        if (Bits[i].rgbBlue != 0 || Bits[i].rgbGreen != 0 || Bits[i].rgbRed != 0)
+        {
+            Bits[i].rgbReserved = Alpha;
+        }
+    }
+}
 
 #pragma endregion
 

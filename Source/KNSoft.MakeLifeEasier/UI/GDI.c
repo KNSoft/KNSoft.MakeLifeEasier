@@ -1,5 +1,9 @@
 ﻿#include "../MakeLifeEasier.inl"
 
+#include <Uxtheme.h>
+
+#pragma comment(lib, "UxTheme.lib")
+
 #pragma region Font
 
 /* ENUMLOGFONTEXDVW->elfEnumLogfontEx.elfLogFont should be filled by the caller */
@@ -227,6 +231,7 @@ _Exit:
     return ret;
 }
 
+/* See also https://learn.microsoft.com/en-us/previous-versions/bb757020(v=msdn.10) */
 _Success_(return != NULL)
 HBITMAP
 NTAPI
@@ -235,74 +240,181 @@ UI_CreateBitmapFromIcon(
     _In_opt_ INT CX,
     _In_opt_ INT CY)
 {
-    ICONINFO Info;
+    ICONINFO IconInfo;
     BITMAP MaskBitmapInfo;
+    BITMAPINFO MaskBitmapInfo2;
     INT RealHeight;
-    HDC ScreenDC, MemDC;
+    HDC MemDC, BufferDC;
+    PVOID BitmapBits, MaskBitmapBits;
     HBITMAP Ret, Bitmap, OldBitmap;
     RECT Rect;
+    HPAINTBUFFER PaintBuffer;
+    BLENDFUNCTION AlphaBlendFunc;
+    BP_PAINTPARAMS PaintParam;
+    RGBQUAD *RGBQuad, *ARGB;
+    INT CXRow, RowNum, ColNum;
+    LOGICAL HasAlphaChannel;
+    PUINT32 ARGBMask;
 
-    if (!GetIconInfo(Icon, &Info))
+    /* Get icon bitmap and size */
+
+    if (!GetIconInfo(Icon, &IconInfo))
     {
         return NULL;
     }
     Ret = NULL;
-    if (GetObjectW(Info.hbmMask, sizeof(MaskBitmapInfo), &MaskBitmapInfo) == 0)
+    if (GetObjectW(IconInfo.hbmMask, sizeof(MaskBitmapInfo), &MaskBitmapInfo) == 0)
     {
         goto _Exit_0;
     }
     RealHeight = MaskBitmapInfo.bmHeight;
-    if (Info.hbmColor == NULL)
+    if (IconInfo.hbmColor == NULL)
     {
         RealHeight /= 2;
     }
     Rect.right = CX != 0 ? CX : MaskBitmapInfo.bmWidth;
     Rect.bottom = CY != 0 ? CY : RealHeight;
 
-    ScreenDC = GetDC(NULL);
-    if (ScreenDC == NULL)
+    /* Create 32-bit DIB and prepare memory DC */
+
+    MemDC = CreateCompatibleDC(NULL);
+    if (MemDC == NULL)
     {
         goto _Exit_0;
     }
-    MemDC = CreateCompatibleDC(ScreenDC);
-    if (MemDC == NULL)
-    {
-        goto _Exit_1;
-    }
-    Bitmap = CreateCompatibleBitmap(ScreenDC, Rect.right, Rect.bottom);
+    Bitmap = UI_CreateBitmap(Rect.right, Rect.bottom, 32, &BitmapBits);
     if (Bitmap == NULL)
     {
-        goto _Exit_2;
+        goto _Exit_1;
     }
     OldBitmap = SelectObject(MemDC, Bitmap);
     if (OldBitmap == NULL)
     {
-        goto _Exit_3;
+        goto _Exit_2;
     }
-    Rect.left = Rect.top = 0;
+
+    /* Draw icon to memory DC with alpha blend */
+
+    Rect.top = Rect.left = 0;
+    AlphaBlendFunc.BlendOp = AC_SRC_OVER;
+    AlphaBlendFunc.BlendFlags = 0;
+    AlphaBlendFunc.SourceConstantAlpha = 255;
+    AlphaBlendFunc.AlphaFormat = AC_SRC_ALPHA;
+    PaintParam.cbSize = sizeof(PaintParam);
+    PaintParam.dwFlags = BPPF_ERASE;
+    PaintParam.prcExclude = NULL;
+    PaintParam.pBlendFunction = &AlphaBlendFunc;
+
+    PaintBuffer = BeginBufferedPaint(MemDC, &Rect, BPBF_DIB, &PaintParam, &BufferDC);
+    if (PaintBuffer == NULL)
+    {
+        goto _Fallback_Opaque_Draw_0;
+    }
+    if (!DrawIconEx(BufferDC, 0, 0, Icon, Rect.right, Rect.bottom, 0, NULL, DI_NORMAL))
+    {
+        goto _Fallback_Opaque_Draw_1;
+    }
+    if (FAILED(GetBufferedPaintBits(PaintBuffer, &RGBQuad, &CXRow)))
+    {
+        goto _Fallback_Opaque_Draw_1;
+    }
+
+    /* Find alpha channel in the icon */
+    HasAlphaChannel = FALSE;
+    CXRow -= Rect.bottom;
+    ARGB = RGBQuad;
+    for (ColNum = Rect.right; ColNum > 0; ColNum--)
+    {
+        for (RowNum = Rect.bottom; RowNum > 0; RowNum--)
+        {
+            if (ARGB->rgbReserved != 0)
+            {
+                HasAlphaChannel = TRUE;
+                goto _End_Find_Alpha;
+            }
+            ARGB++;
+        }
+        ARGB += CXRow;
+    }
+_End_Find_Alpha:
+
+    /* Mix alpha if the icon has no alpha channel */
+    if (HasAlphaChannel)
+    {
+        goto _Skip_Alpha_Mix;
+    }
+    MaskBitmapBits = Mem_Alloc(Rect.right * sizeof(RGBQUAD) * Rect.bottom);
+    if (MaskBitmapBits == NULL)
+    {
+        goto _Fallback_Opaque_Draw_1;
+    }
+    MaskBitmapInfo2.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    MaskBitmapInfo2.bmiHeader.biWidth = Rect.right;
+    MaskBitmapInfo2.bmiHeader.biHeight = Rect.bottom;
+    MaskBitmapInfo2.bmiHeader.biPlanes = MaskBitmapInfo.bmPlanes;
+    MaskBitmapInfo2.bmiHeader.biBitCount = 32;
+    MaskBitmapInfo2.bmiHeader.biCompression = BI_RGB;
+    MaskBitmapInfo2.bmiHeader.biSizeImage = Rect.right * Rect.bottom;
+    if (GetDIBits(MemDC, IconInfo.hbmMask, 0, Rect.bottom, MaskBitmapBits, &MaskBitmapInfo2, DIB_RGB_COLORS) != Rect.bottom)
+    {
+        goto _Fallback_Opaque_Draw_2;
+    }
+
+    ARGBMask = (PUINT32)MaskBitmapBits;
+    for (ColNum = Rect.right; ColNum > 0; ColNum--)
+    {
+        for (RowNum = Rect.bottom; RowNum > 0; RowNum--)
+        {
+            if (*ARGBMask++)
+            {
+                ARGB->rgbBlue = ARGB->rgbGreen = ARGB->rgbRed = ARGB->rgbReserved = 0;
+            } else
+            {
+                ARGB->rgbReserved = 255;
+            }
+            ARGB++;
+        }
+        ARGB += CXRow;
+    }
+    Mem_Free(MaskBitmapBits);
+
+_Skip_Alpha_Mix:
+    if (FAILED(EndBufferedPaint(PaintBuffer, TRUE)))
+    {
+        goto _Fallback_Opaque_Draw_0;
+    }
+    Ret = Bitmap;
+    goto _End_Draw;
+
+    /* Fallback to draw icon without alpha */
+_Fallback_Opaque_Draw_2:
+    Mem_Free(MaskBitmapBits);
+_Fallback_Opaque_Draw_1:
+    EndBufferedPaint(PaintBuffer, TRUE);
+_Fallback_Opaque_Draw_0:
     SetBkColor(MemDC, RGB(255, 255, 255));
     ExtTextOutW(MemDC, 0, 0, ETO_OPAQUE, &Rect, NULL, 0, NULL);
     if (DrawIconEx(MemDC, 0, 0, Icon, Rect.right, Rect.bottom, 0, NULL, DI_NORMAL))
     {
         Ret = Bitmap;
     }
+
+_End_Draw:
     SelectObject(MemDC, OldBitmap);
     if (Ret != NULL)
     {
-        goto _Exit_2;
+        goto _Exit_1;
     }
 
-_Exit_3:
-    DeleteObject(Bitmap);
 _Exit_2:
-    DeleteDC(MemDC);
+    DeleteObject(Bitmap);
 _Exit_1:
-    ReleaseDC(NULL, ScreenDC);
+    DeleteDC(MemDC);
 _Exit_0:
-    DeleteObject(Info.hbmMask);
-    if (Info.hbmColor != NULL)
+    DeleteObject(IconInfo.hbmMask);
+    if (IconInfo.hbmColor != NULL)
     {
-        DeleteObject(Info.hbmColor);
+        DeleteObject(IconInfo.hbmColor);
     }
     return Ret;
 }
