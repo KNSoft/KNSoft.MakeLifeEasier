@@ -67,7 +67,7 @@ UI_FillSolidRect(
 
 FORCEINLINE
 LOGICAL
-UI_FrameRect(
+UI_DrawFrameRect(
     _In_ HDC DC,
     _In_ PRECT Rect,
     _In_ INT Width,

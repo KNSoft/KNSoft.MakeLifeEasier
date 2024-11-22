@@ -1,9 +1,5 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-#include <Uxtheme.h>
-
-#pragma comment(lib, "UxTheme.lib")
-
 #pragma region Font
 
 /* ENUMLOGFONTEXDVW->elfEnumLogfontEx.elfLogFont should be filled by the caller */

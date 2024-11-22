@@ -116,3 +116,82 @@ UI_SetWindowThemeProperty(
     }
     return Ret;
 }
+
+static
+_Function_class_(USER_THREAD_START_ROUTINE)
+NTSTATUS
+NTAPI
+UI_FlashWindow_Thread(
+    _In_ PVOID ThreadParameter)
+{
+    NTSTATUS Status;
+    HWND hWnd;
+    HDC hDC;
+    RECT rc;
+    UINT uTimes = 4 * 2;
+
+    hWnd = (HWND)ThreadParameter;
+    hDC = GetDCEx(hWnd, NULL, DCX_WINDOW);
+    if (hDC == NULL)
+    {
+        return STATUS_INVALID_HANDLE;
+    }
+    if (SUCCEEDED(UI_GetWindowRect(hWnd, &rc)))
+    //if (GetWindowRect(hWnd, &rc))
+    {
+        rc.right -= rc.left;
+        rc.bottom -= rc.top;
+        rc.left = rc.top = 0;
+        do
+        {
+            UI_DrawFrameRect(hDC, &rc, -3, PATINVERT);
+            PS_DelayExec(100);
+            uTimes--;
+        } while (uTimes != 0);
+        Status = STATUS_SUCCESS;
+    } else
+    {
+        Status = NTSTATUS_FROM_WIN32(NtGetLastError());
+    }
+    ReleaseDC(hWnd, hDC);
+
+    return Status;
+}
+
+LOGICAL
+NTAPI
+UI_FlashWindow(
+    _In_ HWND Window)
+{
+    return NT_SUCCESS(PS_CreateThread(NtCurrentProcess(),
+                                      FALSE,
+                                      UI_FlashWindow_Thread,
+                                      (PVOID)Window,
+                                      NULL,
+                                      NULL));
+}
+
+LOGICAL
+NTAPI
+UI_FlashWindowSync(
+    _In_ HWND Window,
+    _In_ ULONG Milliseconds)
+{
+    NTSTATUS Status;
+    HANDLE ThreadHandle;
+
+    Status = PS_CreateThread(NtCurrentProcess(),
+                             FALSE,
+                             UI_FlashWindow_Thread,
+                             (PVOID)Window,
+                             &ThreadHandle,
+                             NULL);
+    if (!NT_SUCCESS(Status))
+    {
+        return FALSE;
+    }
+    Status = PS_WaitForObject(ThreadHandle, Milliseconds);
+    NtClose(ThreadHandle);
+
+    return NT_SUCCESS(Status);
+}

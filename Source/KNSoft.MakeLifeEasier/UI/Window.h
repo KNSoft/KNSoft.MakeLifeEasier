@@ -161,4 +161,34 @@ UI_DisableWindowVisualStyle(
 
 #pragma endregion
 
+FORCEINLINE
+HRESULT
+UI_GetWindowRect(
+    _In_ HWND Window,
+    _Out_ PRECT Rect)
+{
+    HRESULT hr;
+
+    hr = DwmGetWindowAttribute(Window, DWMWA_EXTENDED_FRAME_BOUNDS, Rect, sizeof(*Rect));
+    if (hr != S_OK)
+    {
+        hr = GetWindowRect(Window, Rect) ? S_FALSE : HRESULT_FROM_WIN32(NtGetLastError());
+    }
+
+    return hr;
+}
+
+MLE_API
+LOGICAL
+NTAPI
+UI_FlashWindow(
+    _In_ HWND Window);
+
+MLE_API
+LOGICAL
+NTAPI
+UI_FlashWindowSync(
+    _In_ HWND Window,
+    _In_ ULONG Milliseconds);
+
 EXTERN_C_END

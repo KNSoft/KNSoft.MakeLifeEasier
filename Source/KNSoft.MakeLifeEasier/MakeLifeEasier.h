@@ -11,6 +11,10 @@
 
 #include <KNSoft/NDK/NDK.h>
 
+#include <WinTrust.h>
+#include <Uxtheme.h>
+#include <dwmapi.h>
+
 #ifndef MLE_API
 #define MLE_API DECLSPEC_IMPORT
 #endif

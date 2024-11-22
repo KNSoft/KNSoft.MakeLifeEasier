@@ -25,6 +25,10 @@
 
 #pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
 
+#pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "UxTheme.lib")
+#pragma comment(lib, "Dwmapi.lib")
+
 EXTERN_C_START
 
 PCWSTR

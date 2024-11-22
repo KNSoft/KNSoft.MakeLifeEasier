@@ -43,12 +43,13 @@ PCWSTR
 Err_GetHrInfo(
     _In_ HRESULT Hr)
 {
-    ULONG Facility, Code;
+    ULONG Facility, Severity, Code;
 
     Facility = HRESULT_FACILITY(Hr);
+    Severity = HRESULT_SEVERITY(Hr);
     Code = HRESULT_CODE(Hr);
 
-    if (Facility == FACILITY_WIN32)
+    if (Facility == FACILITY_WIN32 && Severity == SEVERITY_ERROR)
     {
         return Err_GetWin32ErrorInfo(Code);
     } else if ((ULONG)Hr & FACILITY_NT_BIT)
@@ -56,7 +57,7 @@ Err_GetHrInfo(
         return Err_GetNtStatusInfo((NTSTATUS)((ULONG)Hr & ~FACILITY_NT_BIT));
     }
 
-    return NULL;
+    return Err_GetWin32ErrorInfo((ULONG)Hr);
 }
 
 #pragma endregion

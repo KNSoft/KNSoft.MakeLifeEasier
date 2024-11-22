@@ -2,8 +2,6 @@
 
 #include "../MakeLifeEasier.h"
 
-#include <WinTrust.h>
-
 EXTERN_C_START
 
 typedef struct _PE_STRUCT

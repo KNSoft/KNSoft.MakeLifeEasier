@@ -113,6 +113,10 @@ UI_CreateMenuItemsEx(
         {
             SetMenuItemBitmaps(Parent, Index, MF_BYPOSITION, Items[i].Icon, Items[i].Icon);
         }
+        if (Items[i].Flags & MF_DEFAULT)
+        {
+            SetMenuDefaultItem(Parent, Index, MF_BYPOSITION);
+        }
         Index++;
     }
 
