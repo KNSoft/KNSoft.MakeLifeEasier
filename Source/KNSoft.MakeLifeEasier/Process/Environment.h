@@ -26,7 +26,7 @@ LOGICAL
 PS_FreeCommandLineArgv(
     __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PVOID ArgV)
 {
-    Mem_Free(ArgV);
+    return Mem_Free(ArgV);
 }
 
 EXTERN_C_END

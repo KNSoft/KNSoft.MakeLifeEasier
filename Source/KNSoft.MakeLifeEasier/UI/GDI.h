@@ -157,10 +157,7 @@ UI_SetBitmapBitsAlpha(
 
     for (i = 0; i < BitCount; i++)
     {
-        if (Bits[i].rgbBlue != 0 || Bits[i].rgbGreen != 0 || Bits[i].rgbRed != 0)
-        {
-            Bits[i].rgbReserved = Alpha;
-        }
+        Bits[i].rgbReserved = Alpha;
     }
 }
 

@@ -133,6 +133,7 @@ UI_GetFontInfo(
 
 #pragma region Bitmap and Icon
 
+/* See also: https://learn.microsoft.com/en-us/windows/win32/gdi/storing-an-image */
 W32ERROR
 NTAPI
 UI_WriteBitmapFileData(
@@ -231,7 +232,7 @@ _Exit:
     return ret;
 }
 
-/* See also https://learn.microsoft.com/en-us/previous-versions/bb757020(v=msdn.10) */
+/* See also: https://learn.microsoft.com/en-us/previous-versions/bb757020(v=msdn.10) */
 _Success_(return != NULL)
 HBITMAP
 NTAPI
@@ -348,18 +349,19 @@ _End_Find_Alpha:
     {
         goto _Fallback_Opaque_Draw_1;
     }
-    MaskBitmapInfo2.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    MaskBitmapInfo2.bmiHeader.biWidth = Rect.right;
-    MaskBitmapInfo2.bmiHeader.biHeight = Rect.bottom;
-    MaskBitmapInfo2.bmiHeader.biPlanes = MaskBitmapInfo.bmPlanes;
-    MaskBitmapInfo2.bmiHeader.biBitCount = 32;
-    MaskBitmapInfo2.bmiHeader.biCompression = BI_RGB;
-    MaskBitmapInfo2.bmiHeader.biSizeImage = Rect.right * Rect.bottom;
-    if (GetDIBits(MemDC, IconInfo.hbmMask, 0, Rect.bottom, MaskBitmapBits, &MaskBitmapInfo2, DIB_RGB_COLORS) != Rect.bottom)
+    UI_InitBitmapInfo(&MaskBitmapInfo2.bmiHeader, Rect.right, Rect.bottom, 32);
+    if (GetDIBits(MemDC,
+                  IconInfo.hbmMask,
+                  0,
+                  Rect.bottom,
+                  MaskBitmapBits,
+                  &MaskBitmapInfo2,
+                  DIB_RGB_COLORS) != Rect.bottom)
     {
         goto _Fallback_Opaque_Draw_2;
     }
 
+    ARGB = RGBQuad;
     ARGBMask = (PUINT32)MaskBitmapBits;
     for (ColNum = Rect.right; ColNum > 0; ColNum--)
     {

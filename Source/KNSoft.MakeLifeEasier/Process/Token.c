@@ -24,7 +24,7 @@ PS_DuplicateToken(
     _Out_ PHANDLE NewTokenHandle)
 {
     return NtDuplicateToken(TokenHandle,
-                            TOKEN_QUERY | TOKEN_IMPERSONATE,
+                            MAXIMUM_ALLOWED,
                             (POBJECT_ATTRIBUTES)(&g_ImpersonationObjectAttribute),
                             FALSE,
                             TokenType,
@@ -65,7 +65,7 @@ PS_DuplicateSystemToken(
     {
         pObjectAttributes = NULL;
     }
-    Status = NtDuplicateToken(TokenHandle, TOKEN_ALL_ACCESS, pObjectAttributes, FALSE, TokenType, NewTokenHandle);
+    Status = NtDuplicateToken(TokenHandle, MAXIMUM_ALLOWED, pObjectAttributes, FALSE, TokenType, NewTokenHandle);
     NtClose(TokenHandle);
 
 _Exit:
@@ -90,7 +90,7 @@ PS_OpenCurrentThreadToken(
         }
     }
 
-    Status = NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hPrimaryToken);
+    Status = NtOpenProcessToken(NtCurrentProcess(), MAXIMUM_ALLOWED, &hPrimaryToken);
     if (!NT_SUCCESS(Status))
     {
         return Status;

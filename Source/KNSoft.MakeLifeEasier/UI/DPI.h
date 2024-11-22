@@ -7,7 +7,7 @@ EXTERN_C_START
 FORCEINLINE
 VOID
 UI_GetWindowDPI(
-    _In_ HWND Window,
+    _In_opt_ HWND Window,
     _Out_ PUINT DPIX,
     _Out_ PUINT DPIY)
 {
