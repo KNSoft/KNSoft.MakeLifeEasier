@@ -66,13 +66,17 @@ KNS_I18NInitArray(
     _In_ ULONG FieldOffset)
 {
     PBYTE pStruct = (PBYTE)Array;
-    PLONG_PTR pIndex;
+    LONG_PTR Index, *pIndex;
     ULONG i;
 
     for (i = 0; i < Count; i++)
     {
         pIndex = (PLONG_PTR)Add2Ptr(pStruct, FieldOffset);
-        *pIndex = (LONG_PTR)KNS_I18NGetString(I18NTable, (INT)*pIndex);
+        Index = *pIndex;
+        if (Index >= 0 && Index < I18NTable->Table->StringCount)
+        {
+            *pIndex = (LONG_PTR)KNS_I18NGetString(I18NTable, (INT)Index);
+        }
         pStruct = (PBYTE)Add2Ptr(pStruct, Size);
     }
 }

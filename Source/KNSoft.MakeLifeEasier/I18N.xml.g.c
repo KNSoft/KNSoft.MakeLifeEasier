@@ -13,6 +13,7 @@ PRECOMP4C_I18N_TABLE Precomp4C_I18N_Table_All = {
     (void*)0,
     0,
     2,
+    15,
     {
         &(PRECOMP4C_I18N_LOCALE)
         {

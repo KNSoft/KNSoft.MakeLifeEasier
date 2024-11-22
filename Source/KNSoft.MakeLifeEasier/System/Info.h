@@ -29,7 +29,7 @@ Sys_EnumPreferredLanguages(
 MLE_API
 NTSTATUS
 NTAPI
-Sys_QueryInfo(
+Sys_QueryDynamicInfo(
     _In_ SYSTEM_INFORMATION_CLASS SystemInformationClass,
     _Out_ PVOID* Info);
 

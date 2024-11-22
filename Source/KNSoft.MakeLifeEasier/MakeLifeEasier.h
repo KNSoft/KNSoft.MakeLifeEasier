@@ -39,7 +39,6 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "NT/Object.h"
 #include "Process/Sync.h"
 #include "Time/Time.h"
-#include "String/Operation.h"
 #include "System/Library.h"
 #include "System/Registry.h"
 #include "UI/GDI.h"

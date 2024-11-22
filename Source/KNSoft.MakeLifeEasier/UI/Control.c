@@ -135,10 +135,10 @@ UI_CreateMenuItemsEx(
 
 HRESULT
 NTAPI
-UI_EnumTreeViewItems(
+UI_TreeViewEnumItems(
     _In_ HWND TreeView,
     _In_ LOGICAL BFS,
-    _In_ __callback PUI_ENUMTREEVIEWITEM_FN TreeItemEnumProc,
+    _In_ __callback PUI_TREEVIEW_ENUMITEM_FN TreeItemEnumProc,
     _In_opt_ PVOID Context)
 {
     UINT uDepth;
