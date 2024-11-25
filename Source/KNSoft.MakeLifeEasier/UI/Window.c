@@ -125,35 +125,33 @@ UI_FlashWindow_Thread(
     _In_ PVOID ThreadParameter)
 {
     NTSTATUS Status;
-    HWND hWnd;
-    HDC hDC;
-    RECT rc;
-    UINT uTimes = 4 * 2;
+    HWND Window;
+    HDC ScreenDC;
+    RECT Rect;
+    UINT Times;
 
-    hWnd = (HWND)ThreadParameter;
-    hDC = GetDCEx(hWnd, NULL, DCX_WINDOW);
-    if (hDC == NULL)
+    Window = (HWND)ThreadParameter;
+    Times = 4 * 2;
+    ScreenDC = GetDC(NULL);
+    if (ScreenDC == NULL)
     {
         return STATUS_INVALID_HANDLE;
     }
-    if (SUCCEEDED(UI_GetWindowRect(hWnd, &rc)))
-    //if (GetWindowRect(hWnd, &rc))
+    if (SUCCEEDED(UI_GetWindowRect(Window, &Rect)))
     {
-        rc.right -= rc.left;
-        rc.bottom -= rc.top;
-        rc.left = rc.top = 0;
         do
         {
-            UI_DrawFrameRect(hDC, &rc, -3, PATINVERT);
+            UI_DrawFrameRect(ScreenDC, &Rect, -3, PATINVERT);
             PS_DelayExec(100);
-            uTimes--;
-        } while (uTimes != 0);
+            Times--;
+        } while (Times != 0);
         Status = STATUS_SUCCESS;
     } else
     {
         Status = NTSTATUS_FROM_WIN32(NtGetLastError());
     }
-    ReleaseDC(hWnd, hDC);
+    ReleaseDC(NULL, ScreenDC);
+    UI_Redraw(Window);
 
     return Status;
 }
@@ -169,29 +167,4 @@ UI_FlashWindow(
                                       (PVOID)Window,
                                       NULL,
                                       NULL));
-}
-
-LOGICAL
-NTAPI
-UI_FlashWindowSync(
-    _In_ HWND Window,
-    _In_ ULONG Milliseconds)
-{
-    NTSTATUS Status;
-    HANDLE ThreadHandle;
-
-    Status = PS_CreateThread(NtCurrentProcess(),
-                             FALSE,
-                             UI_FlashWindow_Thread,
-                             (PVOID)Window,
-                             &ThreadHandle,
-                             NULL);
-    if (!NT_SUCCESS(Status))
-    {
-        return FALSE;
-    }
-    Status = PS_WaitForObject(ThreadHandle, Milliseconds);
-    NtClose(ThreadHandle);
-
-    return NT_SUCCESS(Status);
 }
