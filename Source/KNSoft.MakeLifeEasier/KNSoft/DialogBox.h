@@ -8,18 +8,11 @@ EXTERN_C_START
 
 FORCEINLINE
 HRESULT
-KNS_DlgBox(
-    _In_opt_ HINSTANCE Instance,
-    _In_opt_ HWND Owner,
-    _In_ LPCDLGTEMPLATEW DialogTemplate,
-    _In_opt_ HACCEL Accelerator,
-    _In_opt_ DLGPROC DlgProc,
-    _In_opt_ LPARAM InitParam)
+KNS_DlgMessageLoop(
+    _In_opt_ HACCEL Accelerator)
 {
     INT DlgRet;
     W32ERROR Ret;
-
-    CreateDialogIndirectParamW(Instance, DialogTemplate, Owner, DlgProc, InitParam);
 
     Ret = UI_MessageLoop(NULL, TRUE, Accelerator, &DlgRet);
     return Ret == ERROR_SUCCESS ? (HRESULT)DlgRet : HRESULT_FROM_WIN32(Ret);

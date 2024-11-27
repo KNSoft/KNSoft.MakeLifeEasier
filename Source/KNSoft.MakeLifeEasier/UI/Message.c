@@ -34,7 +34,7 @@ UI_GetWindowTextExA(
     return cCh;
 }
 
-#define UI_NONOTIFYPROP L"KNSoft.MakeLifeEasier.UI.NoNotify"
+#define UI_NONOTIFY_PROP L"KNSoft.MakeLifeEasier.UI.NoNotify"
 
 W32ERROR
 NTAPI
@@ -44,10 +44,10 @@ UI_SetNoNotifyFlag(
 {
     if (EnableState)
     {
-        return SetPropW(Window, UI_NONOTIFYPROP, (HANDLE)TRUE) ? ERROR_SUCCESS : NtGetLastError();
+        return SetPropW(Window, UI_NONOTIFY_PROP, (HANDLE)TRUE) ? ERROR_SUCCESS : NtGetLastError();
     } else
     {
-        return RemovePropW(Window, UI_NONOTIFYPROP) != NULL ? ERROR_SUCCESS : NtGetLastError();
+        return RemovePropW(Window, UI_NONOTIFY_PROP) != NULL ? ERROR_SUCCESS : NtGetLastError();
     }
 }
 
@@ -56,7 +56,7 @@ NTAPI
 UI_GetNoNotifyFlag(
     _In_ HWND Window)
 {
-    return GetPropW(Window, UI_NONOTIFYPROP) == (HANDLE)TRUE;
+    return GetPropW(Window, UI_NONOTIFY_PROP) == (HANDLE)TRUE;
 }
 
 LRESULT

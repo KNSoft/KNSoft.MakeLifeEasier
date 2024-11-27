@@ -46,6 +46,9 @@
     <Filter Include="UI\DialogBox">
       <UniqueIdentifier>{c33347fe-2000-4c97-bd09-132385981b94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\Control">
+      <UniqueIdentifier>{2aeeba04-9117-436c-ab83-36a0eed7434a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory\Memory.c">
@@ -101,9 +104,6 @@
     <ClCompile Include="UI\DPI.c">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UI\Control.c">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="System\Registry.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -152,6 +152,18 @@
     </ClCompile>
     <ClCompile Include="Process\Environment.cpp">
       <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\Menu.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\TreeView.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\ListView.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\PropSheet.c">
+      <Filter>UI\Control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -219,9 +231,6 @@
     <ClInclude Include="UI\DPI.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="UI\Control.h">
-      <Filter>UI</Filter>
-    </ClInclude>
     <ClInclude Include="System\Registry.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -277,6 +286,21 @@
     </ClInclude>
     <ClInclude Include="NT\Core.h">
       <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\Menu.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\TreeView.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\ListView.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\PropSheet.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\Dialog.h">
+      <Filter>UI\Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

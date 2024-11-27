@@ -46,6 +46,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "System/Library.h"
 #include "System/Registry.h"
 #include "UI/GDI.h"
+#include "UI/Message.h"
 
 /* L2 Header: No dependencies yet */
 #include "Crypt/Cert.h"
@@ -61,10 +62,12 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "String/Encoding.h"
 #include "String/Hash.h"
 #include "System/Info.h"
-#include "UI/Control.h"
+#include "UI/Control/ListView.h"
+#include "UI/Control/Menu.h"
+#include "UI/Control/PropSheet.h"
+#include "UI/Control/TreeView.h"
 #include "UI/DialogBox/DialogBox.h"
 #include "UI/DPI.h"
-#include "UI/Message.h"
 #include "UI/Paint.h"
 #include "UI/Window.h"
 
@@ -72,6 +75,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Error/Message.h"
 #include "IO/File.h"
 #include "Process/Process.h"
+#include "UI/Control/Dialog.h"
 
 /* KNSoft specification, do not use */
 #if defined(_KNSOFT_)

@@ -16,6 +16,14 @@ UI_TruncateHandle(
 #endif
 }
 
+FORCEINLINE
+ULONG
+UI_TruncateHandle32(
+    _In_ PVOID Handle32)
+{
+    return (ULONG)(ULONG_PTR)Handle32;
+}
+
 /// <seealso cref="PtInRect"/>
 FORCEINLINE
 LOGICAL
@@ -49,6 +57,14 @@ UI_GetScreenPos(
         Size->cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
     }
 }
+
+MLE_API
+HRESULT
+NTAPI
+UI_GetRelativeRect(
+    _In_ HWND Window,
+    _In_ HWND RefWindow,
+    _Out_ PRECT Rect);
 
 /// <seealso cref="EnumChildWindows"/>
 /// <remarks>Implemented by <c>GetWindow</c></remarks>
@@ -139,6 +155,7 @@ UI_SetWindowThemeProperty(
     _In_ HWND Window,
     _In_opt_ PCWSTR Property);
 
+/* See also SetWindowTheme */
 FORCEINLINE
 LOGICAL
 UI_SetWindowTheme(
@@ -153,6 +170,30 @@ UI_SetWindowTheme(
     SendMessageW(Window, WM_THEMECHANGED, 0, 0);
 
     return Ret;
+}
+
+/* See also EnableThemeDialogTexture */
+FORCEINLINE
+HRESULT
+UI_SetDialogTextureTheme(
+    _In_ HWND Dialog,
+    _In_ DWORD Flags)
+{
+    DWORD OldFlags;
+
+    if (Flags & ETDT_DISABLE)
+    {
+        RemovePropW(Dialog, (PCWSTR)UXTHEME_ATOM_DLGTEXTURE);
+        return S_OK;
+    }
+
+    OldFlags = (DWORD)(DWORD_PTR)GetPropW(Dialog, (PCWSTR)UXTHEME_ATOM_DLGTEXTURE);
+    if (!SetPropW(Dialog, (PCWSTR)UXTHEME_ATOM_DLGTEXTURE, (HANDLE)(DWORD_PTR)(OldFlags | (Flags & ETDT_VALIDBITS))))
+    {
+        return HRESULT_FROM_WIN32(NtGetLastError());
+    }
+
+    return S_OK;
 }
 
 /* Windows Explorer visual style can be applied to Tree-View, List-View, ... controls */

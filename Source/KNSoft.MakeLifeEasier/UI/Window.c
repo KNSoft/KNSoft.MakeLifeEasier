@@ -1,5 +1,39 @@
 ﻿#include "../MakeLifeEasier.inl"
 
+HRESULT
+NTAPI
+UI_GetRelativeRect(
+    _In_ HWND Window,
+    _In_ HWND RefWindow,
+    _Out_ PRECT Rect)
+{
+    POINT pt;
+    HANDLE hParent;
+    RECT rc;
+    HRESULT hr;
+
+    hr = UI_GetWindowRect(Window, &rc);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    pt.x = rc.left;
+    pt.y = rc.top;
+    hParent = RefWindow ? RefWindow : GetParent(Window);
+    if (!ScreenToClient(hParent ? hParent : GetDesktopWindow(), &pt))
+    {
+        return E_UNEXPECTED;
+    }
+
+    Rect->right = rc.right + pt.x - rc.left;
+    Rect->bottom = rc.bottom + pt.y - rc.top;
+    Rect->left = pt.x;
+    Rect->top = pt.y;
+
+    return S_OK;
+}
+
 static
 VOID
 UI_UpdateResizeWndDPI(

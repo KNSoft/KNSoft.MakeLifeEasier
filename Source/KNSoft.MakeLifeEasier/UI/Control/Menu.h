@@ -1,23 +1,8 @@
 ﻿#pragma once
 
-#include "../MakeLifeEasier.h"
+#include "../../MakeLifeEasier.h"
 
 EXTERN_C_START
-
-MLE_API
-VOID
-NTAPI
-UI_SetDialogFont(
-    _In_ HWND Dialog,
-    _In_opt_ HFONT Font);
-
-MLE_API
-LOGICAL
-NTAPI
-UI_ListViewSort(
-    _In_ HWND List,
-    _In_ PFNLVCOMPARE CompareFn,
-    _In_ INT ColumnIndex);
 
 typedef struct _UI_MENU_ITEM UI_MENU_ITEM, *PUI_MENU_ITEM;
 struct _UI_MENU_ITEM
@@ -42,7 +27,7 @@ W32ERROR
 NTAPI
 UI_CreateMenuItemsEx(
     _In_ HMENU Parent,
-    _Inout_updates_(Count) PUI_MENU_ITEM Items,
+    _Inout_updates_(Count) UI_MENU_ITEM Items[],
     _In_ UINT Count);
 
 #define UI_CreateMenuItems(Parent, Items) UI_CreateMenuItemsEx(Parent, Items, ARRAYSIZE(Items))
@@ -50,7 +35,7 @@ UI_CreateMenuItemsEx(
 FORCEINLINE
 VOID
 UI_DestroyMenuItemsEx(
-    _In_reads_(Count) PUI_MENU_ITEM Items,
+    _In_reads_(Count) UI_MENU_ITEM Items[],
     _In_ UINT Count)
 {
     UINT i;
@@ -110,26 +95,5 @@ UI_ToggleMenuCheckItem(
 
     return mii.fState & MFS_CHECKED ? S_OK : S_FALSE;
 }
-
-// Return FALSE to stop enumeration, UI_EnumTreeViewItems will returns S_FALSE
-typedef
-_Function_class_(UI_TREEVIEW_ENUMITEM_FN)
-LOGICAL
-CALLBACK
-UI_TREEVIEW_ENUMITEM_FN(
-    _In_ HWND TreeView,
-    _In_ HTREEITEM TreeItem,
-    _In_ UINT Level,
-    _In_opt_ PVOID Context);
-typedef UI_TREEVIEW_ENUMITEM_FN *PUI_TREEVIEW_ENUMITEM_FN;
-
-MLE_API
-HRESULT
-NTAPI
-UI_TreeViewEnumItems(
-    _In_ HWND TreeView,
-    _In_ LOGICAL BFS,
-    _In_ __callback PUI_TREEVIEW_ENUMITEM_FN TreeItemEnumProc,
-    _In_opt_ PVOID Context);
 
 EXTERN_C_END

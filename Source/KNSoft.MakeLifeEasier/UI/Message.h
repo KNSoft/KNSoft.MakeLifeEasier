@@ -70,8 +70,8 @@ UI_EnableDlgItem(
 #define UI_LocalSetDlgButtonCheck(Dialog, ButtonID, CheckState) DefWindowProcW(GetDlgItem(Dialog, ButtonID), BM_SETCHECK, (WPARAM)(CheckState), 0)
 
 /// <seealso cref="SetWindowText"/>
-#define UI_SetWindowTextW(Window, Text) SendMessageW(Window, WM_SETTEXT, 0, (LPARAM)(Text))
-#define UI_SetWindowTextA(Window, Text) SendMessageA(Window, WM_SETTEXT, 0, (LPARAM)(Text))
+#define UI_SetWindowTextW(Window, Text) SetWindowTextW(Window, Text)
+#define UI_SetWindowTextA(Window, Text) SetWindowTextA(Window, Text)
 #define UI_LocalSetWindowTextW(Window, Text) DefWindowProcW(Window, WM_SETTEXT, 0, (LPARAM)(Text))
 #define UI_LocalSetWindowTextA(Window, Text) DefWindowProcA(Window, WM_SETTEXT, 0, (LPARAM)(Text))
 
