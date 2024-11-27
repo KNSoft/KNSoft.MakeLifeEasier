@@ -85,6 +85,32 @@ UI_PopupMenu(
     return TrackPopupMenu(Menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, X, Y, 0, Window, NULL);
 }
 
+/* Return current check state*/
+FORCEINLINE
+HRESULT
+UI_ToggleMenuCheckItem(
+    _In_ HMENU Menu,
+    _In_ UINT Item,
+    _In_ BOOL ByPosition)
+{
+    MENUITEMINFOW mii;
+
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_STATE;
+    if (!GetMenuItemInfoW(Menu, Item, ByPosition, &mii))
+    {
+        return HRESULT_FROM_WIN32(NtGetLastError());
+    }
+
+    mii.fState ^= MFS_CHECKED;
+    if (!SetMenuItemInfoW(Menu, Item, ByPosition, &mii))
+    {
+        return HRESULT_FROM_WIN32(NtGetLastError());
+    }
+
+    return mii.fState & MFS_CHECKED ? S_OK : S_FALSE;
+}
+
 // Return FALSE to stop enumeration, UI_EnumTreeViewItems will returns S_FALSE
 typedef
 _Function_class_(UI_TREEVIEW_ENUMITEM_FN)

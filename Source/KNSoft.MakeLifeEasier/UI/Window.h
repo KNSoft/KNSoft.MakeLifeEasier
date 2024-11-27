@@ -16,6 +16,19 @@ UI_TruncateHandle(
 #endif
 }
 
+/// <seealso cref="PtInRect"/>
+FORCEINLINE
+LOGICAL
+UI_PtInRect(
+    _In_ PRECT Rect,
+    _In_ PPOINT Point)
+{
+    return (Point->x >= Rect->left &&
+            Point->x < Rect->right &&
+            Point->y >= Rect->top &&
+            Point->y < Rect->bottom);
+}
+
 /// <summary>
 /// Gets position and size of virtual screen (multiple monitors support)
 /// </summary>
@@ -161,6 +174,8 @@ UI_DisableWindowVisualStyle(
 
 #pragma endregion
 
+#pragma region DWM
+
 FORCEINLINE
 HRESULT
 UI_GetWindowRect(
@@ -176,6 +191,45 @@ UI_GetWindowRect(
 
     return GetWindowRect(Window, Rect) ? S_FALSE : HRESULT_FROM_WIN32(NtGetLastError());
 }
+
+FORCEINLINE
+DWORD
+UI_GetWindowCloackedState(
+    _In_ HWND Window)
+{
+    DWORD State;
+
+    return ((SharedUserData->NtMajorVersion > 6 ||
+             (SharedUserData->NtMajorVersion == 6 && SharedUserData->NtMinorVersion > 1)) &&
+            DwmGetWindowAttribute(Window, DWMWA_CLOAKED, &State, sizeof(State)) == S_OK) ? State : 0;
+}
+
+FORCEINLINE
+HRESULT
+UI_EnableWindowPeek(
+    _In_ HWND Window,
+    _In_ BOOL Enable)
+{
+    HRESULT hr;
+
+    hr = DwmSetWindowAttribute(Window, DWMWA_DISALLOW_PEEK, &Enable, sizeof(Enable));
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    /* In Win11, DWMWA_DISALLOW_PEEK seems not work */
+    if (SharedUserData->NtMajorVersion > 10 ||
+        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber >= 22000))
+    {
+        hr = DwmSetWindowAttribute(Window, DWMWA_FORCE_ICONIC_REPRESENTATION, &Enable, sizeof(Enable));
+        return hr == S_OK ? S_FALSE : hr;
+    }
+
+    return S_OK;
+}
+
+#pragma endregion
 
 /* Flash Window */
 
