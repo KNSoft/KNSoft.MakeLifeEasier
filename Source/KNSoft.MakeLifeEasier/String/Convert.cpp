@@ -269,7 +269,7 @@ Str_FromIntEx_Impl(
     } else if (Base == 8)
     {
         uPowerFlag = 3;
-    } else if (Base == 10 || Base == 0)
+    } else if (Base == 10)
     {
         uPowerFlag = 0;
     } else if (Base == 16)

@@ -1,28 +1,5 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-#pragma region Directory
-
-NTSTATUS
-NTAPI
-IO_OpenDirectory(
-    _Out_ PHANDLE DirectoryHandle,
-    _In_ PUNICODE_STRING DirectoryPath,
-    _In_ ACCESS_MASK DesiredAccess,
-    _In_ ULONG ShareAccess)
-{
-    IO_STATUS_BLOCK IoStatusBlock;
-    OBJECT_ATTRIBUTES ObjectAttributes = RTL_CONSTANT_OBJECT_ATTRIBUTES(DirectoryPath, OBJ_CASE_INSENSITIVE);
-
-    return NtOpenFile(DirectoryHandle,
-                      DesiredAccess,
-                      &ObjectAttributes,
-                      &IoStatusBlock,
-                      ShareAccess,
-                      FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT);
-}
-
-#pragma endregion
-
 #pragma region Find File
 
 #define FILE_FIND_BUFFER_SIZE PAGE_SIZE
@@ -107,28 +84,6 @@ IO_BeginFindFile(
         Mem_Free(Buffer);
     }
     return Status;
-}
-
-NTSTATUS
-NTAPI
-IO_ContinueFindFileFind(
-    _Inout_ PFILE_FIND FindData)
-{
-    return IO_FindFile(FindData->DirectoryHandle,
-                       FindData->Buffer,
-                       FindData->Length,
-                       FindData->FileInformationClass,
-                       FindData->SearchFilter,
-                       FALSE,
-                       &FindData->HasData);
-}
-
-LOGICAL
-NTAPI
-IO_EndFindFile(
-    _In_ PFILE_FIND FindData)
-{
-    return Mem_Free(FindData->Buffer);
 }
 
 #pragma endregion

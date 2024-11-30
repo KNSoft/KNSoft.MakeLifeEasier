@@ -8,14 +8,24 @@ EXTERN_C_START
 
 #pragma region Directory
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
 IO_OpenDirectory(
     _Out_ PHANDLE DirectoryHandle,
     _In_ PUNICODE_STRING DirectoryPath,
     _In_ ACCESS_MASK DesiredAccess,
-    _In_ ULONG ShareAccess);
+    _In_ ULONG ShareAccess)
+{
+    IO_STATUS_BLOCK IoStatusBlock;
+    OBJECT_ATTRIBUTES ObjectAttributes = RTL_CONSTANT_OBJECT_ATTRIBUTES(DirectoryPath, OBJ_CASE_INSENSITIVE);
+
+    return NtOpenFile(DirectoryHandle,
+                      DesiredAccess,
+                      &ObjectAttributes,
+                      &IoStatusBlock,
+                      ShareAccess,
+                      FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT);
+}
 
 #pragma endregion
 
@@ -55,17 +65,27 @@ IO_BeginFindFile(
     _In_opt_ PCUNICODE_STRING SearchFilter,
     _In_ FILE_INFORMATION_CLASS FileInformationClass);
 
-MLE_API
+FORCEINLINE
 NTSTATUS
-NTAPI
 IO_ContinueFindFileFind(
-    _Inout_ PFILE_FIND FindData);
+    _Inout_ PFILE_FIND FindData)
+{
+    return IO_FindFile(FindData->DirectoryHandle,
+                       FindData->Buffer,
+                       FindData->Length,
+                       FindData->FileInformationClass,
+                       FindData->SearchFilter,
+                       FALSE,
+                       &FindData->HasData);
+}
 
-MLE_API
+FORCEINLINE
 LOGICAL
-NTAPI
 IO_EndFindFile(
-    _In_ PFILE_FIND FindData);
+    _In_ PFILE_FIND FindData)
+{
+    return Mem_Free(FindData->Buffer);
+}
 
 #pragma endregion
 
