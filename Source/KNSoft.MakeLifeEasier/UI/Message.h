@@ -49,6 +49,37 @@ UI_EnableDlgItem(
     return EnableWindow(GetDlgItem(Dialog, ItemId), EnableState);
 }
 
+/// <seealso cref="SendMessageTimeoutW"/>
+FORCEINLINE
+W32ERROR
+UI_SendMessageTimeout(
+    _In_ HWND Window,
+    _In_ UINT Msg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam,
+    _In_ UINT fuFlags,
+    _In_ UINT uTimeout,
+    _Out_opt_ PDWORD_PTR lpdwResult)
+{
+    LRESULT lr;
+    W32ERROR Ret;
+
+    NtSetLastError(ERROR_SUCCESS);
+    lr = SendMessageTimeoutW(Window, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult);
+    if (lr != 0)
+    {
+        Ret = ERROR_SUCCESS;
+    } else
+    {
+        Ret = NtGetLastError();
+        if (Ret == ERROR_SUCCESS)
+        {
+            Ret = ERROR_GEN_FAILURE;
+        }
+    }
+    return Ret;
+}
+
 /// <seealso cref="SendMessage"/>
 #define UI_SendMsgW(Window, Msg, wParam, lParam) SendMessageW(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))
 #define UI_SendMsgA(Window, Msg, wParam, lParam) SendMessageA(Window, Msg, (WPARAM)(wParam), (LPARAM)(lParam))

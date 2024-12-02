@@ -24,6 +24,18 @@ UI_TruncateHandle32(
     return (ULONG)(ULONG_PTR)Handle32;
 }
 
+FORCEINLINE
+W32ERROR
+UI_GetWindowLong(
+    _In_ HWND Window,
+    _In_ INT Index,
+    _Out_ PLONG_PTR Value)
+{
+    NtSetLastError(ERROR_SUCCESS);
+    *Value = GetWindowLongPtrW(Window, Index);
+    return *Value != 0 ? ERROR_SUCCESS : NtGetLastError();
+}
+
 /// <seealso cref="PtInRect"/>
 FORCEINLINE
 LOGICAL

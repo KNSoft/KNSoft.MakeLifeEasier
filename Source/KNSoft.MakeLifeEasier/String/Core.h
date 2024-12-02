@@ -131,6 +131,15 @@ Str_EqualW(
 
 #pragma endregion
 
+FORCEINLINE
+LOGICAL
+Str_TestCchRet(
+    _In_ unsigned long CchRet,
+    _In_ size_t const BufferCount)
+{
+    return CchRet > 0 && CchRet < BufferCount;
+}
+
 #pragma region String PrintF
 
 _Success_(
