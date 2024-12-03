@@ -4,7 +4,7 @@ HRESULT
 NTAPI
 UI_GetRelativeRect(
     _In_ HWND Window,
-    _In_ HWND RefWindow,
+    _In_opt_ HWND RefWindow,
     _Out_ PRECT Rect)
 {
     POINT pt;
@@ -20,7 +20,7 @@ UI_GetRelativeRect(
 
     pt.x = rc.left;
     pt.y = rc.top;
-    hParent = RefWindow ? RefWindow : GetParent(Window);
+    hParent = RefWindow == NULL ? GetParent(Window) : RefWindow;
     if (!ScreenToClient(hParent ? hParent : GetDesktopWindow(), &pt))
     {
         return E_UNEXPECTED;
