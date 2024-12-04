@@ -40,7 +40,7 @@ Mlep_DlgBox(
 
     /* All KNSoft dialog boxes are DPI awared */
     DPIContext = UI_EnableDPIAwareContext();
-    hr = KNS_ModelDlgBox((HINSTANCE)&__ImageBase, Owner, DlgRes, DlgProc, InitParam);
+    hr = KNS_OpenModelDialogBox((HINSTANCE)&__ImageBase, Owner, DlgRes, DlgProc, InitParam);
     UI_RestoreDPIAwareContext(DPIContext);
     return hr;
 }

@@ -20,7 +20,7 @@ KNS_DlgMessageLoop(
 
 FORCEINLINE
 HRESULT
-KNS_ModelDlgBox(
+KNS_OpenModelDialogBox(
     _In_opt_ HINSTANCE Instance,
     _In_opt_ HWND Owner,
     _In_ LPCDLGTEMPLATEW DialogTemplate,

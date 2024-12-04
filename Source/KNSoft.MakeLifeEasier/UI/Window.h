@@ -70,6 +70,12 @@ UI_GetScreenPos(
     }
 }
 
+/// <summary>
+/// Gets position of window relative to specified window
+/// </summary>
+/// <param name="Window">Handle to the window to obtain position</param>
+/// <param name="RefWindow">Handle to the window relative to, parent window used if inputs NULL</param>
+/// <param name="Rect">Pointer to a RECT structure to receive position</param>
 MLE_API
 HRESULT
 NTAPI

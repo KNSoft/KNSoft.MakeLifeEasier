@@ -73,7 +73,7 @@ KNS_I18NInitArray(
     {
         pIndex = (PLONG_PTR)Add2Ptr(pStruct, FieldOffset);
         Index = *pIndex;
-        if (Index >= 0 && Index < I18NTable->Table->StringCount)
+        if (Index >= 0 && Index < (LONG_PTR)I18NTable->Table->StringCount)
         {
             *pIndex = (LONG_PTR)KNS_I18NGetString(I18NTable, (INT)Index);
         }
