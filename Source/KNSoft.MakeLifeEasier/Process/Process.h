@@ -101,4 +101,13 @@ PS_GetThreadExitCode(
     return STATUS_SUCCESS;
 }
 
+FORCEINLINE
+NTSTATUS
+PS_GetWow64Peb(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PVOID* Wow64Peb)
+{
+    return NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, Wow64Peb, sizeof(*Wow64Peb), NULL);
+}
+
 EXTERN_C_END

@@ -16,12 +16,6 @@ PS_32Read64Memory(
     _In_ ULONGLONG NumberOfBytesToRead,
     _Out_opt_ PULONGLONG NumberOfBytesRead);
 
-#if IS_WIN64
-#define PS_ReadMemory64 NtReadVirtualMemory
-#else
-#define PS_ReadMemory64 PS_32Read64Memory
-#endif
-
 FORCEINLINE
 NTSTATUS
 PS_RWStatus(
@@ -49,7 +43,7 @@ PS_DuplicateUnicodeString32(
 FORCEINLINE
 LOGICAL
 PS_FreeDuplicatedUnicodeString(
-    _In_ PUNICODE_STRING String)
+    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PUNICODE_STRING String)
 {
     return Mem_Free(String);
 }
@@ -99,24 +93,24 @@ PS_GetRemoteModuleEntryByAddress32(
     _Out_ PLDR_DATA_TABLE_ENTRY32 ModuleEntry);
 
 MLE_API
-NTSTATUS
+HRESULT
 NTAPI
 PS_GetRemoteAddressName64(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_64 Address,
-    _Outptr_opt_ PUNICODE_STRING* ModuleName,
+    _Outptr_opt_ PUNICODE_STRING* ModulePath,
     _Outptr_opt_ PUNICODE_STRING* SymbolName,
-    _Out_opt_ PULONG SymbolOffset);
+    _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement);
 
 MLE_API
-NTSTATUS
+HRESULT
 NTAPI
 PS_GetRemoteAddressName32(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_32 Address,
-    _Outptr_opt_ PUNICODE_STRING* ModuleName,
+    _Outptr_opt_ PUNICODE_STRING* ModulePath,
     _Outptr_opt_ PUNICODE_STRING* SymbolName,
-    _Out_opt_ PULONG SymbolOffset);
+    _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement);
 
 #pragma endregion
 

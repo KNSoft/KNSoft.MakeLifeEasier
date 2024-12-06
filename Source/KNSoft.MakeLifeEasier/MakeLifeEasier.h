@@ -14,6 +14,7 @@
 #include <WinTrust.h>
 #include <Uxtheme.h>
 #include <dwmapi.h>
+#include <DbgHelp.h>
 
 #ifndef MLE_API
 #define MLE_API DECLSPEC_IMPORT
@@ -55,6 +56,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "NT/Security.h"
 #include "PE/Resolve.h"
 #include "PE/Resource.h"
+#include "PE/Symbol.h"
 #include "Process/Environment.h"
 #include "Process/Loader.h"
 #include "Process/Remote.h"

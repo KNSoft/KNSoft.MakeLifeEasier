@@ -28,6 +28,7 @@
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "UxTheme.lib")
 #pragma comment(lib, "Dwmapi.lib")
+#pragma comment(lib, "DbgHelp.lib")
 
 EXTERN_C_START
 

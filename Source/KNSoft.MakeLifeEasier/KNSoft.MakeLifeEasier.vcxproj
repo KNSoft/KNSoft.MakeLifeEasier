@@ -174,10 +174,13 @@
     <ClCompile Include="NT\Security.c" />
     <ClCompile Include="PE\Resolve.c" />
     <ClCompile Include="PE\Resource.c" />
+    <ClCompile Include="PE\Symbol.c" />
     <ClCompile Include="Process\Environment.cpp" />
     <ClCompile Include="Process\Loader.c" />
     <ClCompile Include="Process\Process.c" />
     <ClCompile Include="Process\Remote.c" />
+    <ClCompile Include="Process\Remote32.c" />
+    <ClCompile Include="Process\Remote64.c" />
     <ClCompile Include="Process\Sync.c" />
     <ClCompile Include="Process\Token.c" />
     <ClCompile Include="Resource.Embedded.rc.g.c" />
@@ -204,6 +207,7 @@
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
     <None Include="packages.config" />
+    <None Include="Process\Remote.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Crypt\Cert.h" />
@@ -225,6 +229,7 @@
     <ClInclude Include="NT\Security.h" />
     <ClInclude Include="PE\Resolve.h" />
     <ClInclude Include="PE\Resource.h" />
+    <ClInclude Include="PE\Symbol.h" />
     <ClInclude Include="PE\Util.h" />
     <ClInclude Include="Process\Environment.h" />
     <ClInclude Include="Process\Loader.h" />

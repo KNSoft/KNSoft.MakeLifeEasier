@@ -168,10 +168,22 @@
     <ClCompile Include="Process\Remote.c">
       <Filter>Process</Filter>
     </ClCompile>
+    <ClCompile Include="Process\Remote32.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote64.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\Symbol.c">
+      <Filter>PE</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
     <None Include="packages.config" />
+    <None Include="Process\Remote.inl">
+      <Filter>Process</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Memory\Memory.h">
@@ -309,6 +321,9 @@
       <Filter>Process</Filter>
     </ClInclude>
     <ClInclude Include="PE\Util.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Symbol.h">
       <Filter>PE</Filter>
     </ClInclude>
   </ItemGroup>
