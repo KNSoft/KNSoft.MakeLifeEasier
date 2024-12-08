@@ -73,7 +73,6 @@ PE_SymLoadModule(
     _In_opt_ DWORD Flags,
     _Out_opt_ PDWORD64 BaseAddress)
 {
-    W32ERROR Ret;
     DWORD64 Base;
 
     RtlAcquireSRWLockExclusive(&g_Lock);

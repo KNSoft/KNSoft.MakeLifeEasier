@@ -188,7 +188,7 @@ PS_DuplicateUnicodeStringT(
     PUNICODE_STRING String;
     PWSTR Buffer;
 
-    String = Mem_Alloc(sizeof(UNICODE_STRING) + Src->Length + sizeof(UNICODE_NULL));
+    String = NT_AllocStringW(Src->Length / sizeof(WCHAR));
     if (String == NULL)
     {
         return STATUS_NO_MEMORY;
@@ -207,116 +207,4 @@ PS_DuplicateUnicodeStringT(
     String->Buffer = Buffer;
     *Dst = String;
     return STATUS_SUCCESS;
-}
-
-HRESULT
-NTAPI
-PS_GetRemoteAddressNameT(
-    _In_ HANDLE ProcessHandle,
-    _In_ VOID* POINTER_T Address,
-    _Outptr_opt_ PUNICODE_STRING* ModulePath,
-    _Outptr_opt_ PUNICODE_STRING* SymbolName,
-    _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement)
-{
-    HRESULT hr;
-    NTSTATUS Status;
-    LDR_DATA_TABLE_ENTRY_T DllEntry;
-    PUNICODE_STRING DllPath;
-    W32ERROR SymRet;
-    DWORD OldSymOptions;
-    DWORD64 SymModuleBase;
-    BYTE SymInfoBuffer[sizeof(SYMBOL_INFOW) + (MAX_CIDENTIFIERNAME_CCH - 1) * sizeof(WCHAR)];
-    PSYMBOL_INFOW SymInfo = (PSYMBOL_INFOW)SymInfoBuffer;
-    ULONG SymNameSize;
-    PUNICODE_STRING SymName;
-    PWCHAR SymNameString;
-
-    /* Get module full path */
-    Status = PS_GetRemoteModuleEntryByAddressT(ProcessHandle, Address, &DllEntry);
-    if (!NT_SUCCESS(Status))
-    {
-        return HRESULT_FROM_NT(Status);
-    }
-    Status = PS_DuplicateUnicodeStringT(ProcessHandle, &DllEntry.FullDllName, &DllPath);
-    if (!NT_SUCCESS(Status))
-    {
-        return HRESULT_FROM_NT(Status);
-    }
-    if (SymbolName == NULL)
-    {
-        hr = S_OK;
-        goto _Exit_0;
-    }
-
-    /* Get symbol name */
-    SymName = NULL;
-    SymRet = PE_SymInitialize(NULL, FALSE);
-    if (SymRet != ERROR_SUCCESS)
-    {
-        goto _Exit_1;
-    }
-    SymRet = PE_SymSetOptions(SYMOPT_FAIL_CRITICAL_ERRORS |
-                              SYMOPT_NO_PROMPTS |
-                              SYMOPT_UNDNAME |
-                              SYMOPT_NO_UNQUALIFIED_LOADS |
-                              SYMOPT_OMAP_FIND_NEAREST, &OldSymOptions);
-    if (SymRet != ERROR_SUCCESS)
-    {
-        OldSymOptions = MAXDWORD;
-    }
-    SymRet = PE_SymLoadModule(NULL,
-                              DllPath->Buffer,
-                              NULL,
-                              (DWORD64)DllEntry.DllBase,
-                              DllEntry.SizeOfImage,
-                              NULL,
-                              0,
-                              &SymModuleBase);
-    if (SymRet != ERROR_SUCCESS)
-    {
-        goto _Exit_2;
-    }
-    SymInfo->SizeOfStruct = sizeof(*SymInfo);
-    SymInfo->MaxNameLen = MAX_CIDENTIFIERNAME_CCH;
-    SymRet = PE_SymFromAddr((DWORD64)(ULONG_T)Address, SymbolDisplacement, (PSYMBOL_INFOW)SymInfoBuffer);
-    if (SymRet != ERROR_SUCCESS)
-    {
-        goto _Exit_3;
-    }
-    SymNameSize = SymInfo->NameLen * sizeof(WCHAR);
-    SymName = Mem_Alloc(sizeof(UNICODE_STRING) + SymNameSize + sizeof(UNICODE_NULL));
-    if (SymName == NULL)
-    {
-        goto _Exit_3;
-    }
-    SymNameString = Add2Ptr(SymName, sizeof(UNICODE_STRING));
-    memcpy(SymNameString, SymInfo->Name, SymNameSize);
-    SymNameString[SymInfo->NameLen] = UNICODE_NULL;
-    SymName->Length = (USHORT)SymNameSize;
-    SymName->MaximumLength = (USHORT)SymNameSize + sizeof(UNICODE_NULL);
-    SymName->Buffer = SymNameString;
-
-_Exit_3:
-    if (SymModuleBase != 0)
-    {
-        PE_SymUnloadModule(SymModuleBase);
-    }
-_Exit_2:
-    if (OldSymOptions != MAXDWORD)
-    {
-        PE_SymSetOptions(OldSymOptions, NULL);
-    }
-    PE_SymCleanup();
-_Exit_1:
-    *SymbolName = SymName;
-    hr = SymName == NULL ? S_FALSE : S_OK;
-_Exit_0:
-    if (ModulePath != NULL)
-    {
-        *ModulePath = DllPath;
-    } else
-    {
-        PS_FreeDuplicatedUnicodeString(DllPath);
-    }
-    return hr;
 }

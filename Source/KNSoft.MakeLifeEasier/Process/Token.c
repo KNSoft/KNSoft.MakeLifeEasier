@@ -79,7 +79,7 @@ PS_OpenCurrentThreadToken(
     _Out_ PHANDLE TokenHandle)
 {
     NTSTATUS Status;
-    HANDLE hPrimaryToken;
+    HANDLE PrimaryToken;
 
     if (NtCurrentTeb()->IsImpersonating)
     {
@@ -90,13 +90,13 @@ PS_OpenCurrentThreadToken(
         }
     }
 
-    Status = NtOpenProcessToken(NtCurrentProcess(), MAXIMUM_ALLOWED, &hPrimaryToken);
+    Status = NtOpenProcessToken(NtCurrentProcess(), MAXIMUM_ALLOWED, &PrimaryToken);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    Status = PS_DuplicateToken(hPrimaryToken, TokenImpersonation, TokenHandle);
-    NtClose(hPrimaryToken);
+    Status = PS_DuplicateToken(PrimaryToken, TokenImpersonation, TokenHandle);
+    NtClose(PrimaryToken);
     return Status;
 }
 

@@ -28,9 +28,9 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
  * - Depends on NDK only
  * - Header only
  */
+#include "Memory/Core.h"
 #include "NT/Core.h"
 #include "String/Core.h"
-#include "Memory/Core.h"
 
 /*
  * L1 Header
@@ -59,7 +59,6 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "PE/Symbol.h"
 #include "Process/Environment.h"
 #include "Process/Loader.h"
-#include "Process/Remote.h"
 #include "Process/Token.h"
 #include "Shell/Shell.h"
 #include "String/Convert.h"
@@ -79,6 +78,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Error/Message.h"
 #include "IO/File.h"
 #include "Process/Process.h"
+#include "Process/Remote.h"
 #include "UI/Control/Dialog.h"
 
 /* KNSoft specification, do not use */

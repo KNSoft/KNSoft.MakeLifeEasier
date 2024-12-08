@@ -2,6 +2,8 @@
 
 #include <KNSoft/NDK/NDK.h>
 
+#include "../Memory/Core.h"
+
 #pragma region String
 
 /* See also RtlInitUnicodeStringEx */
@@ -26,8 +28,8 @@ NT_InitStringW(
     {
         NTString->Length = NTString->MaximumLength = 0;
     }
-
     NTString->Buffer = (PWCHAR)String;
+
     return STATUS_SUCCESS;
 }
 
@@ -53,9 +55,65 @@ NT_InitStringA(
     {
         NTString->Length = NTString->MaximumLength = 0;
     }
-
     NTString->Buffer = (PCHAR)String;
+
     return STATUS_SUCCESS;
+}
+
+FORCEINLINE
+PUNICODE_STRING
+NT_AllocStringW(
+    _In_ USHORT CchLength)
+{
+    PUNICODE_STRING p;
+
+    p = (PUNICODE_STRING)Mem_Alloc(sizeof(UNICODE_STRING) + CchLength * sizeof(WCHAR) + sizeof(UNICODE_NULL));
+    if (p == NULL)
+    {
+        return p;
+    }
+    p->Length = CchLength * sizeof(WCHAR);
+    p->MaximumLength = p->Length + sizeof(UNICODE_NULL);
+    p->Buffer = (PWCH)Add2Ptr(p, sizeof(UNICODE_STRING));
+
+    return p;
+}
+
+FORCEINLINE
+PANSI_STRING
+NT_AllocStringA(
+    _In_ USHORT CchLength)
+{
+    PANSI_STRING p;
+
+    p = (PANSI_STRING)Mem_Alloc(sizeof(ANSI_STRING) + CchLength * sizeof(CHAR) + sizeof(ANSI_NULL));
+    if (p == NULL)
+    {
+        return p;
+    }
+    p->Length = CchLength * sizeof(CHAR);
+    p->MaximumLength = p->Length + sizeof(ANSI_NULL);
+    p->Buffer = (PCHAR)Add2Ptr(p, sizeof(ANSI_STRING));
+
+    return p;
+}
+
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+NT_FreeStringW(
+    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PUNICODE_STRING String)
+{
+    return Mem_Free(String);
+}
+
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+NT_FreeStringA(
+    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PANSI_STRING String)
+{
+    return Mem_Free(String);
 }
 
 #pragma endregion

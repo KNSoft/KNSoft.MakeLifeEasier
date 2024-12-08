@@ -150,3 +150,136 @@ _Fallback_0:
 _Fallback_1:
     return PS_GetMachineTypeFromFile(ProcessHandle, MachineType);
 }
+
+HRESULT
+NTAPI
+PS_GetRemoteAddressName(
+    _In_ HANDLE ProcessHandle,
+    _In_ ULONGLONG Address,
+    _Outptr_opt_ PUNICODE_STRING* ModulePath,
+    _Outptr_opt_result_maybenull_ PUNICODE_STRING* SymbolName,
+    _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement)
+{
+    HRESULT hr;
+    NTSTATUS Status;
+    USHORT Bits;
+    LDR_DATA_TABLE_ENTRY64 DllEntry64;
+    LDR_DATA_TABLE_ENTRY32 DllEntry32;
+    PUNICODE_STRING DllPath;
+    W32ERROR SymRet;
+    DWORD OldSymOptions;
+    DWORD64 SymModuleBase;
+    BYTE SymInfoBuffer[sizeof(SYMBOL_INFOW) + (MAX_CIDENTIFIERNAME_CCH - 1) * sizeof(WCHAR)];
+    PSYMBOL_INFOW SymInfo;
+    PUNICODE_STRING SymName;
+
+    /* Get process machine bits */
+    Status = PS_GetMachineBits(ProcessHandle, &Bits);
+    if (!NT_SUCCESS(Status))
+    {
+        return HRESULT_FROM_NT(Status);
+    }
+
+    /* Get module full path */
+    if (Bits != 32)
+    {
+        Status = PS_GetRemoteModuleEntryByAddress64(ProcessHandle, (VOID* POINTER_64)Address, &DllEntry64);
+    } else
+    {
+        Status = PS_GetRemoteModuleEntryByAddress32(ProcessHandle, (VOID* POINTER_32)Address, &DllEntry32);
+    }
+    if (!NT_SUCCESS(Status))
+    {
+        return HRESULT_FROM_NT(Status);
+    }
+    if (Bits != 32)
+    {
+        Status = PS_DuplicateUnicodeString64(ProcessHandle, &DllEntry64.FullDllName, &DllPath);
+    } else
+    {
+        Status = PS_DuplicateUnicodeString32(ProcessHandle, &DllEntry32.FullDllName, &DllPath);
+    }
+    if (!NT_SUCCESS(Status))
+    {
+        return HRESULT_FROM_NT(Status);
+    }
+    if (SymbolName == NULL)
+    {
+        hr = S_OK;
+        goto _Exit_0;
+    }
+
+    /* Get symbol name */
+    if (SymbolDisplacement != NULL)
+    {
+        *SymbolDisplacement = 0;
+    }
+    SymName = NULL;
+    SymRet = PE_SymInitialize(NULL, FALSE);
+    if (SymRet != ERROR_SUCCESS)
+    {
+        goto _Exit_1;
+    }
+    SymRet = PE_SymSetOptions(SYMOPT_FAIL_CRITICAL_ERRORS |
+                              SYMOPT_NO_PROMPTS |
+                              SYMOPT_UNDNAME |
+                              SYMOPT_NO_UNQUALIFIED_LOADS |
+                              SYMOPT_OMAP_FIND_NEAREST, &OldSymOptions);
+    if (SymRet != ERROR_SUCCESS)
+    {
+        OldSymOptions = MAXDWORD;
+    }
+    SymRet = PE_SymLoadModule(NULL,
+                              DllPath->Buffer,
+                              NULL,
+                              Bits != 32 ? (DWORD64)DllEntry64.DllBase: (DWORD64)DllEntry32.DllBase,
+                              Bits != 32 ? DllEntry64.SizeOfImage : DllEntry32.SizeOfImage,
+                              NULL,
+                              0,
+                              &SymModuleBase);
+    if (SymRet != ERROR_SUCCESS)
+    {
+        goto _Exit_2;
+    }
+    SymInfo = (PSYMBOL_INFOW)SymInfoBuffer;
+    SymInfo->SizeOfStruct = sizeof(*SymInfo);
+    C_ASSERT(MAX_CIDENTIFIERNAME_CCH < MAXUSHORT);
+    SymInfo->MaxNameLen = MAX_CIDENTIFIERNAME_CCH;
+    SymRet = PE_SymFromAddr((DWORD64)Address, SymbolDisplacement, (PSYMBOL_INFOW)SymInfoBuffer);
+    if (SymRet != ERROR_SUCCESS)
+    {
+        goto _Exit_3;
+    }
+
+    SymName = NT_AllocStringW((USHORT)SymInfo->NameLen);
+    if (SymName == NULL)
+    {
+        goto _Exit_3;
+    }
+    memcpy(SymName->Buffer, SymInfo->Name, SymName->Length);
+    SymName->Buffer[SymInfo->NameLen] = UNICODE_NULL;
+
+_Exit_3:
+    if (SymModuleBase != 0)
+    {
+        PE_SymUnloadModule(SymModuleBase);
+    }
+_Exit_2:
+    if (OldSymOptions != MAXDWORD)
+    {
+        PE_SymSetOptions(OldSymOptions, NULL);
+    }
+    PE_SymCleanup();
+_Exit_1:
+    *SymbolName = SymName;
+    hr = SymName == NULL ? S_FALSE : S_OK;
+_Exit_0:
+    if (ModulePath != NULL)
+    {
+        *ModulePath = DllPath;
+    } else
+    {
+        PS_FreeUnicodeString(DllPath);
+    }
+    return hr;
+}

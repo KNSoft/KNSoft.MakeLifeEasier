@@ -5,7 +5,7 @@
 EXTERN_C_START
 
 FORCEINLINE
-ULONG
+USHORT
 PE_GetMachineBits(
     _In_ USHORT Machine)
 {

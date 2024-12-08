@@ -2,6 +2,8 @@
 
 #include "../MakeLifeEasier.h"
 
+#include "../PE/Util.h"
+
 EXTERN_C_START
 
 #pragma region Memory R/W
@@ -41,11 +43,12 @@ PS_DuplicateUnicodeString32(
     _Out_ PUNICODE_STRING* Dst);
 
 FORCEINLINE
+_Success_(return != FALSE)
 LOGICAL
-PS_FreeDuplicatedUnicodeString(
+PS_FreeUnicodeString(
     __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PUNICODE_STRING String)
 {
-    return Mem_Free(String);
+    return NT_FreeStringW(String);
 }
 
 #pragma endregion
@@ -57,6 +60,33 @@ NTAPI
 PS_GetMachineType(
     _In_ HANDLE ProcessHandle,
     _Out_ PUSHORT MachineType);
+
+FORCEINLINE
+NTSTATUS
+NTAPI
+PS_GetMachineBits(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PUSHORT MachineBits)
+{
+    NTSTATUS Status;
+    USHORT MachineType;
+    USHORT Bits;
+
+    Status = PS_GetMachineType(ProcessHandle, &MachineType);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    Bits = PE_GetMachineBits(MachineType);
+    if (Bits == 0)
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    *MachineBits = Bits;
+    return STATUS_SUCCESS;
+}
 
 #pragma region Enumerate Modules
 
@@ -95,21 +125,11 @@ PS_GetRemoteModuleEntryByAddress32(
 MLE_API
 HRESULT
 NTAPI
-PS_GetRemoteAddressName64(
+PS_GetRemoteAddressName(
     _In_ HANDLE ProcessHandle,
-    _In_ VOID* POINTER_64 Address,
+    _In_ ULONGLONG Address,
     _Outptr_opt_ PUNICODE_STRING* ModulePath,
-    _Outptr_opt_ PUNICODE_STRING* SymbolName,
-    _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement);
-
-MLE_API
-HRESULT
-NTAPI
-PS_GetRemoteAddressName32(
-    _In_ HANDLE ProcessHandle,
-    _In_ VOID* POINTER_32 Address,
-    _Outptr_opt_ PUNICODE_STRING* ModulePath,
-    _Outptr_opt_ PUNICODE_STRING* SymbolName,
+    _Outptr_opt_result_maybenull_ PUNICODE_STRING* SymbolName,
     _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement);
 
 #pragma endregion
