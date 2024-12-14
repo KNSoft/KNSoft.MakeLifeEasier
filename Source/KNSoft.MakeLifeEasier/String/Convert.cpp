@@ -243,8 +243,8 @@ Str_ToIntExA(
 
 template <typename TChar>
 static
-_Success_(return != FALSE)
-LOGICAL
+_Success_(return > 0)
+ULONG
 NTAPI
 Str_FromIntEx_Impl(
     _In_ INT64 Value,
@@ -277,12 +277,12 @@ Str_FromIntEx_Impl(
         uPowerFlag = 4;
     } else
     {
-        return FALSE;
+        return 0;
     }
 
     if (DestCchSize <= 1)
     {
-        return FALSE;
+        return 0;
     }
 
     // Find max divisor
@@ -329,11 +329,11 @@ Str_FromIntEx_Impl(
     };
     *psz = (TChar)'\0';
 
-    return lRet;
+    return PtrOffset(StrValue, psz) / sizeof(TChar);
 }
 
-_Success_(return != FALSE)
-LOGICAL
+_Success_(return > 0)
+ULONG
 NTAPI
 Str_FromIntExW(
     _In_ INT64 Value,
@@ -345,8 +345,8 @@ Str_FromIntExW(
     return Str_FromIntEx_Impl<WCHAR>(Value, Unsigned, Base, StrValue, DestCchSize);
 }
 
-_Success_(return != FALSE)
-LOGICAL
+_Success_(return > 0)
+ULONG
 NTAPI
 Str_FromIntExA(
     _In_ INT64 Value,

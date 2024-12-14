@@ -185,7 +185,7 @@ UI_FlashWindow_Thread(
         Status = NTSTATUS_FROM_WIN32(NtGetLastError());
     }
     ReleaseDC(NULL, ScreenDC);
-    UI_Redraw(Window);
+    RedrawWindow(NULL, &Rect, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_UPDATENOW);
 
     return Status;
 }

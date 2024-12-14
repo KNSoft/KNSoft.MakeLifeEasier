@@ -131,41 +131,28 @@ Str_EqualW(
 
 #pragma endregion
 
-FORCEINLINE
-LOGICAL
-Str_TestCchRet(
-    _In_ unsigned long CchRet,
-    _In_ size_t const BufferCount)
-{
-    return CchRet > 0 && CchRet < BufferCount;
-}
-
 #pragma region String PrintF
 
-_Success_(
-    return > 0 && return < BufferCount
-)
+_Success_(return > 0)
 FORCEINLINE
 ULONG
 Str_VPrintfExW(
-    _Out_writes_opt_(BufferCount) _Always_(_Post_z_) wchar_t* const Buffer,
-    _In_ size_t const BufferCount,
-    _In_z_ _Printf_format_string_ const wchar_t* Format,
-    va_list ArgList)
+    _Out_writes_(BufferCount) _Always_(_Post_z_) PWSTR Buffer,
+    _In_ ULONG BufferCount,
+    _In_z_ _Printf_format_string_ PCWSTR Format,
+    _In_opt_ va_list ArgList)
 {
     return StrSafe_CchVPrintfW(Buffer, BufferCount, Format, ArgList);
 }
 
-_Success_(
-    return > 0 && return < BufferCount
-)
+_Success_(return > 0)
 FORCEINLINE
 ULONG
 Str_VPrintfExA(
-    _Out_writes_opt_(BufferCount) _Always_(_Post_z_) char* const Buffer,
-    _In_ size_t const BufferCount,
-    _In_z_ _Printf_format_string_ const char* Format,
-    va_list ArgList)
+    _Out_writes_(BufferCount) _Always_(_Post_z_) PSTR Buffer,
+    _In_ ULONG const BufferCount,
+    _In_z_ _Printf_format_string_ PCSTR Format,
+    _In_opt_ va_list ArgList)
 {
     return StrSafe_CchVPrintfA(Buffer, BufferCount, Format, ArgList);
 }
@@ -191,28 +178,24 @@ Str_VPrintfExA(
 
 #pragma region String Copy
 
-_Success_(
-    return > 0 && return < BufferCount
-)
+_Success_(return > 0)
 FORCEINLINE
-SIZE_T
+ULONG
 Str_CopyExW(
-    _Out_writes_opt_(BufferCount) _When_(BufferCount > 0, _Notnull_) _Always_(_Post_z_) wchar_t* const Buffer,
-    _In_ size_t const BufferCount,
-    _In_z_ const wchar_t* Source)
+    _Out_writes_(BufferCount) _Always_(_Post_z_) PWSTR Buffer,
+    _In_range_(>, 0) ULONG BufferCount,
+    _In_z_ PCWSTR Source)
 {
     return StrSafe_CchCopyW(Buffer, BufferCount, Source);
 }
 
-_Success_(
-    return > 0 && return < BufferCount
-)
+_Success_(return > 0)
 FORCEINLINE
-SIZE_T
+ULONG
 Str_CopyExA(
-    _Out_writes_opt_(BufferCount) _When_(BufferCount > 0, _Notnull_) _Always_(_Post_z_) char* const Buffer,
-    _In_ size_t const BufferCount,
-    _In_z_ const char* Source)
+    _Out_writes_(BufferCount) _Always_(_Post_z_) PSTR Buffer,
+    _In_range_(>, 0) ULONG BufferCount,
+    _In_z_ PCSTR Source)
 {
     return StrSafe_CchCopyA(Buffer, BufferCount, Source);
 }

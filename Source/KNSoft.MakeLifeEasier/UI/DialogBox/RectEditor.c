@@ -22,7 +22,7 @@ Dlg_RectEditor_SetValue(
 {
     WCHAR Num[MAX_INT32_IN_DEC_CCH];
 
-    UI_SetWindowTextW(Edit, Str_DecFromIntW(Value, Num) ? Num : NULL);
+    UI_SetWindowTextW(Edit, Str_DecFromIntW(Value, Num) > 0 ? Num : NULL);
 }
 
 static

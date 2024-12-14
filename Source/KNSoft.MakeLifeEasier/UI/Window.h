@@ -298,4 +298,31 @@ NTAPI
 UI_FlashWindow(
     _In_ HWND Window);
 
+/* Window Process */
+
+FORCEINLINE
+W32ERROR
+UI_GetWindowThreadProcessId(
+    _In_ HWND Window,
+    _Out_opt_ PULONG ThreadId,
+    _Out_opt_ PULONG ProcessId)
+{
+    DWORD TID, PID;
+
+    TID = GetWindowThreadProcessId(Window, &PID);
+    if (TID == 0)
+    {
+        return NtGetLastError();
+    }
+    if (ThreadId != NULL)
+    {
+        *ThreadId = TID;
+    }
+    if (ProcessId != NULL)
+    {
+        *ProcessId = PID;
+    }
+    return ERROR_SUCCESS;
+}
+
 EXTERN_C_END

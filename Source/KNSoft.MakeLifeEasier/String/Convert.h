@@ -55,8 +55,8 @@ Str_ToIntExA(
 #pragma region String From Integer
 
 MLE_API
-_Success_(return != FALSE)
-LOGICAL
+_Success_(return > 0)
+ULONG
 NTAPI
 Str_FromIntExW(
     _In_ INT64 Value,
@@ -66,8 +66,8 @@ Str_FromIntExW(
     _In_ ULONG DestCchSize);
 
 MLE_API
-_Success_(return != FALSE)
-LOGICAL
+_Success_(return > 0)
+ULONG
 NTAPI
 Str_FromIntExA(
     _In_ INT64 Value,

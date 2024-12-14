@@ -88,7 +88,7 @@ UI_ValueEditor_FormatValue(
         return FALSE;
     }
 
-    return i > 0 && i < BufferCount;
+    return i > 0;
 }
 
 static

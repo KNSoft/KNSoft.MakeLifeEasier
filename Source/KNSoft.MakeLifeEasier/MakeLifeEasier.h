@@ -20,7 +20,7 @@
 #define MLE_API DECLSPEC_IMPORT
 #endif
 
-typedef _Return_type_success_(return == 0) ULONG W32ERROR;
+typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 
 /*
  * Core Header
@@ -60,6 +60,7 @@ typedef _Return_type_success_(return == 0) ULONG W32ERROR;
 #include "Process/Environment.h"
 #include "Process/Loader.h"
 #include "Process/Token.h"
+#include "Shell/Desktop.h"
 #include "Shell/Shell.h"
 #include "String/Convert.h"
 #include "String/Encoding.h"

@@ -177,6 +177,9 @@
     <ClCompile Include="PE\Symbol.c">
       <Filter>PE</Filter>
     </ClCompile>
+    <ClCompile Include="Shell\Desktop.c">
+      <Filter>Shell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -325,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="PE\Symbol.h">
       <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell\Desktop.h">
+      <Filter>Shell</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
