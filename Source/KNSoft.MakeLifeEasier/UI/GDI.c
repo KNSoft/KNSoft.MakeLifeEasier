@@ -129,7 +129,6 @@ UI_GetFontInfo(
 
 #pragma region Bitmap and Icon
 
-/* See also: https://learn.microsoft.com/en-us/windows/win32/gdi/storing-an-image */
 W32ERROR
 NTAPI
 UI_WriteBitmapFileData(

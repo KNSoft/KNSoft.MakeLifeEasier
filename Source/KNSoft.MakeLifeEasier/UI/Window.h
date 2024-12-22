@@ -107,7 +107,7 @@ UI_EnumChildWindows(
 FORCEINLINE
 LOGICAL
 UI_Redraw(
-    _In_ HWND Window)
+    _In_opt_ HWND Window)
 {
     return RedrawWindow(Window, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW);
 }

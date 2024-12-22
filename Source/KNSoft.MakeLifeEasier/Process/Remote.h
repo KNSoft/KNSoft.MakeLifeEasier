@@ -123,7 +123,7 @@ PS_GetRemoteModuleEntryByAddress32(
     _Out_ PLDR_DATA_TABLE_ENTRY32 ModuleEntry);
 
 MLE_API
-HRESULT
+NTSTATUS
 NTAPI
 PS_GetRemoteAddressName(
     _In_ HANDLE ProcessHandle,

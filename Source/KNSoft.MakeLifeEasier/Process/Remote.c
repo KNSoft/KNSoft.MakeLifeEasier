@@ -151,7 +151,7 @@ _Fallback_1:
     return PS_GetMachineTypeFromFile(ProcessHandle, MachineType);
 }
 
-HRESULT
+NTSTATUS
 NTAPI
 PS_GetRemoteAddressName(
     _In_ HANDLE ProcessHandle,
@@ -160,7 +160,6 @@ PS_GetRemoteAddressName(
     _Outptr_opt_result_maybenull_ PUNICODE_STRING* SymbolName,
     _Out_opt_ _When_(SymbolName == NULL, _Null_) PULONGLONG SymbolDisplacement)
 {
-    HRESULT hr;
     NTSTATUS Status;
     USHORT Bits;
     LDR_DATA_TABLE_ENTRY64 DllEntry64;
@@ -177,7 +176,7 @@ PS_GetRemoteAddressName(
     Status = PS_GetMachineBits(ProcessHandle, &Bits);
     if (!NT_SUCCESS(Status))
     {
-        return HRESULT_FROM_NT(Status);
+        return Status;
     }
 
     /* Get module full path */
@@ -190,7 +189,7 @@ PS_GetRemoteAddressName(
     }
     if (!NT_SUCCESS(Status))
     {
-        return HRESULT_FROM_NT(Status);
+        return Status;
     }
     if (Bits != 32)
     {
@@ -201,11 +200,11 @@ PS_GetRemoteAddressName(
     }
     if (!NT_SUCCESS(Status))
     {
-        return HRESULT_FROM_NT(Status);
+        return Status;
     }
     if (SymbolName == NULL)
     {
-        hr = S_OK;
+        Status = STATUS_SUCCESS;
         goto _Exit_0;
     }
 
@@ -272,7 +271,7 @@ _Exit_2:
     PE_SymCleanup();
 _Exit_1:
     *SymbolName = SymName;
-    hr = SymName == NULL ? S_FALSE : S_OK;
+    Status = STATUS_SUCCESS;
 _Exit_0:
     if (ModulePath != NULL)
     {
@@ -281,5 +280,5 @@ _Exit_0:
     {
         PS_FreeUnicodeString(DllPath);
     }
-    return hr;
+    return Status;
 }

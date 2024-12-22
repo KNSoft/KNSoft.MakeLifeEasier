@@ -127,6 +127,11 @@ UI_CreateBitmap(
     return CreateDIBSection(NULL, &Info, DIB_RGB_COLORS, Bits, NULL, 0);
 }
 
+/// <summary>
+/// Writes bitmap (DDB) data to buffer
+/// <see href="https://docs.microsoft.com/en-US/windows/win32/gdi/storing-an-image">Storing an Image - MSDN</see>
+/// <see href="https://docs.microsoft.com/en-us/windows/win32/gdi/bitmap-storage">Bitmap Storage - MSDN</see>
+/// </summary>
 MLE_API
 W32ERROR
 NTAPI
