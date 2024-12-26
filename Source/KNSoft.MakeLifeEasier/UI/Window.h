@@ -19,9 +19,9 @@ UI_TruncateHandle(
 FORCEINLINE
 ULONG
 UI_TruncateHandle32(
-    _In_ PVOID Handle32)
+    _In_ PVOID Handle)
 {
-    return (ULONG)(ULONG_PTR)Handle32;
+    return (ULONG)(ULONG_PTR)Handle;
 }
 
 FORCEINLINE

@@ -8,6 +8,8 @@ EXTERN_C_START
 
 #if defined(TYPE_OF)
 #define Mem_AllocPtr(p) ((LOGICAL)((p = (TYPE_OF(p))Mem_Alloc(sizeof(*(p)))) != NULL))
+#else
+#define Mem_AllocPtr(p) ((LOGICAL)((p = Mem_Alloc(sizeof(*(p)))) != NULL))
 #endif
 
 #pragma endregion

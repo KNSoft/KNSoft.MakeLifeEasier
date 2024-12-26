@@ -50,10 +50,19 @@ FORCEINLINE
 PCWSTR
 KNS_I18NGetString(
     _In_ PKNS_I18N_TABLE I18NTable,
-    _In_ INT Index)
+    _In_ ULONG_PTR Index)
 {
     KNS_I18NInitTable(I18NTable);
-    return Precomp4C_I18N_GetString(I18NTable->Table, Index);
+
+    if (Index >= 0 && Index < (ULONG_PTR)I18NTable->Table->StringCount)
+    {
+        return Precomp4C_I18N_GetString(I18NTable->Table, (USHORT)Index);
+    } else if (Index > MAXUSHORT)
+    {
+        return (PCWSTR)Index;
+    }
+
+    return NULL;
 }
 
 FORCEINLINE
@@ -65,19 +74,15 @@ KNS_I18NInitArray(
     _In_ ULONG Count,
     _In_ ULONG FieldOffset)
 {
-    PBYTE pStruct = (PBYTE)Array;
-    LONG_PTR Index, *pIndex;
+    PVOID pStruct = Array;
+    PULONG_PTR pIndex;
     ULONG i;
 
     for (i = 0; i < Count; i++)
     {
-        pIndex = (PLONG_PTR)Add2Ptr(pStruct, FieldOffset);
-        Index = *pIndex;
-        if (Index >= 0 && Index < (LONG_PTR)I18NTable->Table->StringCount)
-        {
-            *pIndex = (LONG_PTR)KNS_I18NGetString(I18NTable, (INT)Index);
-        }
-        pStruct = (PBYTE)Add2Ptr(pStruct, Size);
+        pIndex = (PULONG_PTR)Add2Ptr(pStruct, FieldOffset);
+        *pIndex = (ULONG_PTR)KNS_I18NGetString(I18NTable, *pIndex);
+        pStruct = Add2Ptr(pStruct, Size);
     }
 }
 
