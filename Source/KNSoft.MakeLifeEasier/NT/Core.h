@@ -141,3 +141,25 @@ NT_InitEmptyObject(
 }
 
 #pragma endregion
+
+#pragma region Time
+
+_Ret_maybenull_
+FORCEINLINE
+PLARGE_INTEGER
+NT_MillisecondsToTimeout(
+    _Out_ CONST PLARGE_INTEGER Timeout,
+    _In_ CONST ULONG Milliseconds)
+{
+    if (Milliseconds == INFINITE)
+    {
+        Timeout->QuadPart = MINLONGLONG;
+        return NULL;
+    } else
+    {
+        Timeout->QuadPart = Milliseconds * -10000LL; // ms to 100ns
+        return Timeout;
+    }
+}
+
+#pragma endregion

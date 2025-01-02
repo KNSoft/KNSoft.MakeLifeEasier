@@ -26,8 +26,8 @@ FORCEINLINE
 NTSTATUS
 PE_AccessResource(
     _In_ PVOID Base,
-    _In_ LPCWSTR Type,
-    _In_ LPCWSTR Name,
+    _In_ PCWSTR Type,
+    _In_ PCWSTR Name,
     _In_ WORD Language,
     _Out_ PVOID* Resource,
     _Out_opt_ PULONG Length)

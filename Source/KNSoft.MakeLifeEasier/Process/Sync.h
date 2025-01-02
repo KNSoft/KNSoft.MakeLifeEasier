@@ -100,18 +100,8 @@ PS_WaitForObject(
     _In_ HANDLE Object,
     _In_ ULONG Milliseconds)
 {
-    LARGE_INTEGER LI, *Timeout;
-
-    if (Milliseconds == INFINITE)
-    {
-        Timeout = NULL;
-    } else
-    {
-        LI.QuadPart = Milliseconds * -10000LL;
-        Timeout = &LI;
-    }
-
-    return NtWaitForSingleObject(Object, FALSE, Timeout);
+    LARGE_INTEGER Timeout;
+    return NtWaitForSingleObject(Object, FALSE, NT_MillisecondsToTimeout(&Timeout, Milliseconds));
 }
 
 FORCEINLINE
@@ -121,7 +111,7 @@ PS_DelayExec(
 {
     LARGE_INTEGER LI;
     
-    LI.QuadPart = Milliseconds == INFINITE ? MINLONGLONG : Milliseconds * -10000LL;
+    NT_MillisecondsToTimeout(&LI, Milliseconds);
     return NtDelayExecution(FALSE, &LI);
 }
 
