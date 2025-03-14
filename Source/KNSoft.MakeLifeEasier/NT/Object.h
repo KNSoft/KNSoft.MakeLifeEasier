@@ -4,6 +4,55 @@
 
 EXTERN_C_START
 
+#pragma region NT String
+
+/*
+ * If failed, the caller could use
+ * STATUS_BUFFER_TOO_SMALL, ERROR_INSUFFICIENT_BUFFER, ... as error code
+ */
+
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+NT_CopyStringW(
+    _In_ PCUNICODE_STRING NtString,
+    _Out_writes_(Count) PWSTR Buffer,
+    _In_ ULONG Count)
+{
+    USHORT i;
+
+    i = NtString->Length / sizeof(WCHAR);
+    if (Count <= i)
+    {
+        return FALSE;
+    }
+    memcpy(Buffer, NtString->Buffer, NtString->Length);
+    Buffer[i] = UNICODE_NULL;
+    return TRUE;
+}
+
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+NT_CopyStringA(
+    _In_ PCANSI_STRING NtString,
+    _Out_writes_(Count) PSTR Buffer,
+    _In_ ULONG Count)
+{
+    USHORT i;
+
+    i = NtString->Length / sizeof(CHAR);
+    if (Count <= i)
+    {
+        return FALSE;
+    }
+    memcpy(Buffer, NtString->Buffer, NtString->Length);
+    Buffer[i] = ANSI_NULL;
+    return TRUE;
+}
+
+#pragma endregion
+
 #pragma region Path
 
 /* NtPath should be freed by NT_FreeNtPath */

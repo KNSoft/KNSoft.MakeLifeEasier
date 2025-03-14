@@ -26,4 +26,27 @@ PS_GetProcAddress(
     return LdrGetProcedureAddress(DllBase, ProcName, ProcOridinal, Address);
 }
 
+FORCEINLINE
+_Success_(return > 0)
+ULONG
+PS_GetDirectory(
+    _Out_writes_(Count) PWSTR Buffer,
+    _In_ ULONG Count)
+{
+    PUNICODE_STRING str = &NtCurrentPeb()->ProcessParameters->ImagePathName;
+    USHORT i = str->Length / sizeof(WCHAR);
+    PWCH p = str->Buffer;
+
+    while (i > 0)
+    {
+        if (p[--i] == OBJ_NAME_PATH_SEPARATOR)
+        {
+            memcpy(Buffer, p, i * sizeof(WCHAR));
+            Buffer[i] = UNICODE_NULL;
+            return i;
+        }
+    }
+    return 0;
+}
+
 EXTERN_C_END

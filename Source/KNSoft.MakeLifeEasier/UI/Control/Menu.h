@@ -96,4 +96,20 @@ UI_ToggleMenuCheckItem(
     return mii.fState & MFS_CHECKED ? S_OK : S_FALSE;
 }
 
+FORCEINLINE
+BOOL
+UI_EnableMenuItem(
+    _In_ HMENU Menu,
+    _In_ UINT Item,
+    _In_ BOOL ByPosition,
+    _In_ BOOL Enable)
+{
+    MENUITEMINFOW mii;
+
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_STATE;
+    mii.fState = Enable ? MFS_ENABLED : MFS_DISABLED;
+    return SetMenuItemInfoW(Menu, Item, ByPosition, &mii);
+}
+
 EXTERN_C_END

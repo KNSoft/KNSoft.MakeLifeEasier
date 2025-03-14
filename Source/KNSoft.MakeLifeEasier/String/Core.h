@@ -21,12 +21,6 @@ Str_LenA(
     return strlen(String);
 }
 
-#ifdef UNICODE
-#define Str_Len Str_LenW
-#else
-#define Str_Len Str_LenA
-#endif
-
 FORCEINLINE
 INT
 Str_CmpA(
@@ -45,12 +39,6 @@ Str_CmpW(
     return wcscmp(String1, String2);
 }
 
-#ifdef UNICODE
-#define Str_Cmp Str_CmpW
-#else
-#define Str_Cmp Str_CmpA
-#endif
-
 FORCEINLINE
 PCWSTR
 Str_StrW(
@@ -68,12 +56,6 @@ Str_StrA(
 {
     return strstr(String, SubString);
 }
-
-#ifdef UNICODE
-#define Str_Str Str_StrW
-#else
-#define Str_Str Str_StrA
-#endif
 
 #pragma endregion
 
@@ -97,12 +79,6 @@ Str_SizeA(
     return Str_LenA(String) * sizeof(CHAR);
 }
 
-#ifdef UNICODE
-#define Str_Size Str_SizeW
-#else
-#define Str_Size Str_SizeA
-#endif
-
 /* Str_Equal */
 
 FORCEINLINE
@@ -123,12 +99,6 @@ Str_EqualW(
     return Str_CmpW(String1, String2) == 0;
 }
 
-#ifdef UNICODE
-#define Str_Equal Str_EqualW
-#else
-#define Str_Equal Str_EqualA
-#endif
-
 #pragma endregion
 
 #pragma region String PrintF
@@ -139,7 +109,7 @@ ULONG
 Str_VPrintfExW(
     _Out_writes_(BufferCount) _Always_(_Post_z_) PWSTR Buffer,
     _In_ ULONG BufferCount,
-    _In_z_ _Printf_format_string_ PCWSTR Format,
+    _In_ _Printf_format_string_ PCWSTR Format,
     _In_opt_ va_list ArgList)
 {
     return StrSafe_CchVPrintfW(Buffer, BufferCount, Format, ArgList);
@@ -151,7 +121,7 @@ ULONG
 Str_VPrintfExA(
     _Out_writes_(BufferCount) _Always_(_Post_z_) PSTR Buffer,
     _In_ ULONG const BufferCount,
-    _In_z_ _Printf_format_string_ PCSTR Format,
+    _In_ _Printf_format_string_ PCSTR Format,
     _In_opt_ va_list ArgList)
 {
     return StrSafe_CchVPrintfA(Buffer, BufferCount, Format, ArgList);
@@ -159,20 +129,11 @@ Str_VPrintfExA(
 
 #define Str_PrintfExW StrSafe_CchPrintfW
 #define Str_PrintfExA StrSafe_CchPrintfA
-#ifdef UNICODE
-#define Str_VPrintfEx Str_VPrintfExW
-#define Str_PrintfEx Str_PrintfExW
-#else
-#define Str_VPrintfEx Str_VPrintfExA
-#define Str_PrintfEx Str_PrintfExA
-#endif
 
 #define Str_PrintfW(Dest, Format, ...) Str_PrintfExW(Dest, ARRAYSIZE(Dest), Format, __VA_ARGS__)
 #define Str_PrintfA(Dest, Format, ...) Str_PrintfExA(Dest, ARRAYSIZE(Dest), Format, __VA_ARGS__)
-#define Str_Printf(Dest, Format, ...) Str_PrintfEx(Dest, ARRAYSIZE(Dest), Format, __VA_ARGS__)
 #define Str_VPrintfW(Dest, Format, ArgList) Str_VPrintfExW(Dest, ARRAYSIZE(Dest), Format, ArgList)
 #define Str_VPrintfA(Dest, Format, ArgList) Str_VPrintfExA(Dest, ARRAYSIZE(Dest), Format, ArgList)
-#define Str_VPrintf(Dest, Format, ArgList) Str_VPrintfEx(Dest, ARRAYSIZE(Dest), Format, ArgList)
 
 #pragma endregion Str_[V]Printf[Ex][A/W]
 
@@ -184,7 +145,7 @@ ULONG
 Str_CopyExW(
     _Out_writes_(BufferCount) _Always_(_Post_z_) PWSTR Buffer,
     _In_range_(>, 0) ULONG BufferCount,
-    _In_z_ PCWSTR Source)
+    _In_ PCWSTR Source)
 {
     return StrSafe_CchCopyW(Buffer, BufferCount, Source);
 }
@@ -195,19 +156,43 @@ ULONG
 Str_CopyExA(
     _Out_writes_(BufferCount) _Always_(_Post_z_) PSTR Buffer,
     _In_range_(>, 0) ULONG BufferCount,
-    _In_z_ PCSTR Source)
+    _In_ PCSTR Source)
 {
     return StrSafe_CchCopyA(Buffer, BufferCount, Source);
 }
 
-#ifdef UNICODE
-#define Str_CopyEx Str_CopyExW
-#else
-#define Str_CopyEx Str_CopyExA
-#endif
-
 #define Str_CopyW(Dest, Source) Str_CopyExW(Dest, ARRAYSIZE(Dest), Source)
 #define Str_CopyA(Dest, Source) Str_CopyExA(Dest, ARRAYSIZE(Dest), Source)
-#define Str_Copy(Dest, Source) Str_CopyEx(Dest, ARRAYSIZE(Dest), Source)
 
 #pragma endregion Str_Copy[Ex][A/W]
+
+#pragma region String Concatenation
+
+_Success_(return > 0)
+FORCEINLINE
+ULONG
+Str_CatExW(
+    _Inout_updates_(BufferCount) PWSTR Buffer,
+    _In_range_(>, 0) ULONG BufferCount,
+    _In_ PCWSTR Source)
+{
+    ULONG i = (ULONG)Str_LenW(Buffer);
+    return StrSafe_CchCopyW(Buffer + i, BufferCount - i, Source);
+}
+
+_Success_(return > 0)
+FORCEINLINE
+ULONG
+Str_CatExA(
+    _Inout_updates_(BufferCount) PSTR Buffer,
+    _In_range_(>, 0) ULONG BufferCount,
+    _In_ PCSTR Source)
+{
+    ULONG i = (ULONG)Str_LenA(Buffer);
+    return StrSafe_CchCopyA(Buffer + i, BufferCount - i, Source);
+}
+
+#define Str_CatW(Buffer, Source) Str_CatExW(Buffer, ARRAYSIZE(Buffer), Source)
+#define Str_CatA(Buffer, Source) Str_CatExA(Buffer, ARRAYSIZE(Buffer), Source)
+
+#pragma endregion Str_Cat[Ex][A/W]
