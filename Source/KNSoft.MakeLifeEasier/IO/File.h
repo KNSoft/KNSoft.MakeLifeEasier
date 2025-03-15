@@ -80,6 +80,7 @@ IO_ContinueFindFileFind(
 }
 
 FORCEINLINE
+_Success_(return != FALSE)
 LOGICAL
 IO_EndFindFile(
     _In_ PFILE_FIND FindData)
@@ -206,8 +207,6 @@ IO_OpenWin32File(
     NT_FreeNtPath(&NtPath);
     return Status;
 }
-
-
 
 FORCEINLINE
 NTSTATUS

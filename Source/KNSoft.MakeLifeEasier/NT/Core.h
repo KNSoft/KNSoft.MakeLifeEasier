@@ -149,7 +149,7 @@ FORCEINLINE
 PLARGE_INTEGER
 NT_MillisecondsToTimeout(
     _Out_ CONST PLARGE_INTEGER Timeout,
-    _In_ CONST ULONG Milliseconds)
+    _In_ ULONG Milliseconds)
 {
     if (Milliseconds == INFINITE)
     {

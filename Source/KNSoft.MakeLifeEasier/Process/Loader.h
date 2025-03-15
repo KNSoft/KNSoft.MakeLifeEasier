@@ -37,7 +37,7 @@ PS_GetDirectory(
     USHORT i = str->Length / sizeof(WCHAR);
     PWCH p = str->Buffer;
 
-    while (i > 0)
+    while (i > 0 && i <= Count)
     {
         if (p[--i] == OBJ_NAME_PATH_SEPARATOR)
         {

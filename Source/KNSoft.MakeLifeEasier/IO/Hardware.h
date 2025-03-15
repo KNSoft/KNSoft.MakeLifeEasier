@@ -9,9 +9,9 @@ EXTERN_C_START
 FORCEINLINE
 NTSTATUS
 IO_OpenDevice(
+    _Out_ PHANDLE DeviceHandle,
     _In_ PCUNICODE_STRING DeviceName,
-    _In_ ACCESS_MASK DesiredAccess,
-    _Out_ PHANDLE DeviceHandle)
+    _In_ ACCESS_MASK DesiredAccess)
 {
     IO_STATUS_BLOCK IoStatusBlock;
     OBJECT_ATTRIBUTES ObjectAttribute = RTL_CONSTANT_OBJECT_ATTRIBUTES(DeviceName, OBJ_CASE_INSENSITIVE);
