@@ -19,7 +19,7 @@ Crypt_EnumBlobCertificates(
                               &Blob);
     if (!CertStore)
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     }
 
     CertContext = NULL;

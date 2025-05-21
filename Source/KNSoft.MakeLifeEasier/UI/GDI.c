@@ -72,7 +72,7 @@ UI_GetDefaultFont(
     ncm.cbSize = sizeof(ncm);
     if (!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0))
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     }
 
     UI_InitFontInfo_Impl(FontInfo);
@@ -106,7 +106,7 @@ UI_CreateDefaultFont(
     hFont = CreateFontIndirectExW(&FontInfo);
     if (hFont == NULL)
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     } else
     {
         *Font = hFont;

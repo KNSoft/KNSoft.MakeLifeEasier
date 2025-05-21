@@ -31,9 +31,9 @@ UI_GetWindowLong(
     _In_ INT Index,
     _Out_ PLONG_PTR Value)
 {
-    NtSetLastError(ERROR_SUCCESS);
+    Err_SetLastError(ERROR_SUCCESS);
     *Value = GetWindowLongPtrW(Window, Index);
-    return *Value != 0 ? ERROR_SUCCESS : NtGetLastError();
+    return *Value != 0 ? ERROR_SUCCESS : Err_GetLastError();
 }
 
 /// <seealso cref="PtInRect"/>
@@ -125,7 +125,7 @@ UI_SetWindowRect(
                         Rect->top,
                         Rect->right - Rect->left,
                         Rect->bottom - Rect->top,
-                        SWP_NOZORDER | SWP_NOACTIVATE | (Redraw ? 0 : SWP_NOREDRAW)) ? ERROR_SUCCESS : NtGetLastError();
+                        SWP_NOZORDER | SWP_NOACTIVATE | (Redraw ? 0 : SWP_NOREDRAW)) ? ERROR_SUCCESS : Err_GetLastError();
 }
 
 #pragma region Window Resize Subclass
@@ -208,7 +208,7 @@ UI_SetDialogTextureTheme(
     OldFlags = (DWORD)(DWORD_PTR)GetPropW(Dialog, (PCWSTR)UXTHEME_ATOM_DLGTEXTURE);
     if (!SetPropW(Dialog, (PCWSTR)UXTHEME_ATOM_DLGTEXTURE, (HANDLE)(DWORD_PTR)(OldFlags | (Flags & ETDT_VALIDBITS))))
     {
-        return HRESULT_FROM_WIN32(NtGetLastError());
+        return HRESULT_FROM_WIN32(Err_GetLastError());
     }
 
     return S_OK;
@@ -248,7 +248,7 @@ UI_GetWindowRect(
         return S_OK;
     }
 
-    return GetWindowRect(Window, Rect) ? S_FALSE : HRESULT_FROM_WIN32(NtGetLastError());
+    return GetWindowRect(Window, Rect) ? S_FALSE : HRESULT_FROM_WIN32(Err_GetLastError());
 }
 
 FORCEINLINE
@@ -312,7 +312,7 @@ UI_GetWindowThreadProcessId(
     TID = GetWindowThreadProcessId(Window, &PID);
     if (TID == 0)
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     }
     if (ThreadId != NULL)
     {

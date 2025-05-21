@@ -13,7 +13,7 @@ PE_SymInitialize(
     RtlAcquireSRWLockExclusive(&g_Lock);
     Ret = SymInitializeW(NtReadTeb(ClientId.UniqueProcess),
                          UserSearchPath,
-                         fInvadeProcess) ? ERROR_SUCCESS : NtGetLastError();
+                         fInvadeProcess) ? ERROR_SUCCESS : Err_GetLastError();
     RtlReleaseSRWLockExclusive(&g_Lock);
 
     return Ret;
@@ -26,7 +26,7 @@ PE_SymCleanup(VOID)
     W32ERROR Ret;
 
     RtlAcquireSRWLockExclusive(&g_Lock);
-    Ret = SymCleanup(NtReadTeb(ClientId.UniqueProcess)) ? ERROR_SUCCESS : NtGetLastError();
+    Ret = SymCleanup(NtReadTeb(ClientId.UniqueProcess)) ? ERROR_SUCCESS : Err_GetLastError();
     RtlReleaseSRWLockExclusive(&g_Lock);
 
     return Ret;
@@ -90,7 +90,7 @@ PE_SymLoadModule(
         *BaseAddress = Base;
     }
 
-    return Base != 0 ? ERROR_SUCCESS : NtGetLastError();
+    return Base != 0 ? ERROR_SUCCESS : Err_GetLastError();
 }
 
 W32ERROR
@@ -101,7 +101,7 @@ PE_SymUnloadModule(
     W32ERROR Ret;
 
     RtlAcquireSRWLockExclusive(&g_Lock);
-    Ret = SymUnloadModule64(NtReadTeb(ClientId.UniqueProcess), BaseOfDll) ? ERROR_SUCCESS : NtGetLastError();
+    Ret = SymUnloadModule64(NtReadTeb(ClientId.UniqueProcess), BaseOfDll) ? ERROR_SUCCESS : Err_GetLastError();
     RtlReleaseSRWLockExclusive(&g_Lock);
 
     return Ret;
@@ -120,7 +120,7 @@ PE_SymFromAddr(
     Ret = SymFromAddrW(NtReadTeb(ClientId.UniqueProcess),
                        Address,
                        Displacement,
-                       Symbol) ? ERROR_SUCCESS : NtGetLastError();
+                       Symbol) ? ERROR_SUCCESS : Err_GetLastError();
     RtlReleaseSRWLockExclusive(&g_Lock);
 
     return Ret;

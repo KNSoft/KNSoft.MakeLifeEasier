@@ -14,7 +14,7 @@ UI_AllowDrop(
 {
     return (ChangeWindowMessageFilterEx(Window, WM_DROPFILES, MSGFLT_ADD, NULL) &&
             ChangeWindowMessageFilterEx(Window, WM_COPYGLOBALDATA, MSGFLT_ADD, NULL)) ?
-        ERROR_SUCCESS : NtGetLastError();
+        ERROR_SUCCESS : Err_GetLastError();
 }
 
 MLE_API
@@ -64,14 +64,14 @@ UI_SendMessageTimeout(
     LRESULT lr;
     W32ERROR Ret;
 
-    NtSetLastError(ERROR_SUCCESS);
+    Err_SetLastError(ERROR_SUCCESS);
     lr = SendMessageTimeoutW(Window, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult);
     if (lr != 0)
     {
         Ret = ERROR_SUCCESS;
     } else
     {
-        Ret = NtGetLastError();
+        Ret = Err_GetLastError();
         if (Ret == ERROR_SUCCESS)
         {
             Ret = ERROR_GEN_FAILURE;
@@ -186,7 +186,7 @@ UI_MessageLoop(
             return ERROR_SUCCESS;
         } else if (Ret == -1)
         {
-            return NtGetLastError();
+            return Err_GetLastError();
         } else if ((Accelerator == NULL || !TranslateAcceleratorW(Msg.hwnd, Accelerator, &Msg)) &&
                    (!Dialog || !IsDialogMessageW(Msg.hwnd, &Msg)))
         {

@@ -44,10 +44,10 @@ UI_SetNoNotifyFlag(
 {
     if (EnableState)
     {
-        return SetPropW(Window, UI_NONOTIFY_PROP, (HANDLE)TRUE) ? ERROR_SUCCESS : NtGetLastError();
+        return SetPropW(Window, UI_NONOTIFY_PROP, (HANDLE)TRUE) ? ERROR_SUCCESS : Err_GetLastError();
     } else
     {
-        return RemovePropW(Window, UI_NONOTIFY_PROP) != NULL ? ERROR_SUCCESS : NtGetLastError();
+        return RemovePropW(Window, UI_NONOTIFY_PROP) != NULL ? ERROR_SUCCESS : Err_GetLastError();
     }
 }
 

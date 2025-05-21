@@ -25,7 +25,7 @@ UI_BeginBufferedPaint(
     }
     if (!GetClientRect(Window, &rc))
     {
-        Error = NtGetLastError();
+        Error = Err_GetLastError();
         goto _Exit_1;
     }
     hMemBitmap = CreateCompatibleBitmap(ps.hdc, rc.right, rc.bottom);
@@ -71,7 +71,7 @@ UI_EndBufferedPaint(
                    Paint->DC,
                    0,
                    0,
-                   SRCCOPY) ? ERROR_SUCCESS : NtGetLastError();
+                   SRCCOPY) ? ERROR_SUCCESS : Err_GetLastError();
     DeleteDC(Paint->DC);
     DeleteObject(Paint->Bitmap);
     EndPaint(Window, &Paint->PaintStruct);

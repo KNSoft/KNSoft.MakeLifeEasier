@@ -50,7 +50,7 @@ PS_CreateProcess(
                                  CurrentDirectory,
                                  psi,
                                  ProcessInformation,
-                                 NULL) ? ERROR_SUCCESS : NtGetLastError();
+                                 NULL) ? ERROR_SUCCESS : Err_GetLastError();
     if (Environment)
     {
         DestroyEnvironmentBlock(Environment);

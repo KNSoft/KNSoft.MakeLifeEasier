@@ -19,7 +19,7 @@ PVOID
 Mem_Alloc(
     _In_ SIZE_T Size)
 {
-    return RtlAllocateHeap(NtGetProcessHeap(), 0, Size);
+    return RtlAllocateHeap(RtlProcessHeap(), 0, Size);
 }
 
 FORCEINLINE
@@ -28,5 +28,5 @@ LOGICAL
 Mem_Free(
     __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PVOID BaseAddress)
 {
-    return RtlFreeHeap(NtGetProcessHeap(), 0, BaseAddress);
+    return RtlFreeHeap(RtlProcessHeap(), 0, BaseAddress);
 }

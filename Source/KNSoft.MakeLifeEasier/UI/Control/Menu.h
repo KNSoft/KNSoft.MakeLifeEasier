@@ -84,13 +84,13 @@ UI_ToggleMenuCheckItem(
     mii.fMask = MIIM_STATE;
     if (!GetMenuItemInfoW(Menu, Item, ByPosition, &mii))
     {
-        return HRESULT_FROM_WIN32(NtGetLastError());
+        return HRESULT_FROM_WIN32(Err_GetLastError());
     }
 
     mii.fState ^= MFS_CHECKED;
     if (!SetMenuItemInfoW(Menu, Item, ByPosition, &mii))
     {
-        return HRESULT_FROM_WIN32(NtGetLastError());
+        return HRESULT_FROM_WIN32(Err_GetLastError());
     }
 
     return mii.fState & MFS_CHECKED ? S_OK : S_FALSE;

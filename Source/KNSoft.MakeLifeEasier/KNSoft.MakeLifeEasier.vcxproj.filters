@@ -183,10 +183,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
-    <None Include="packages.config" />
     <None Include="Process\Remote.inl">
       <Filter>Process</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Memory\Memory.h">

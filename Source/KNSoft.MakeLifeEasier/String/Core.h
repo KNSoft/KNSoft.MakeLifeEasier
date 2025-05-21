@@ -3,62 +3,6 @@
 #include <KNSoft/NDK/Package/StrSafe.h>
 #include <KNSoft/NDK/NDK.h>
 
-#pragma region CRT Alias
-
-FORCEINLINE
-SIZE_T
-Str_LenW(
-    _In_ PCWSTR String)
-{
-    return wcslen(String);
-}
-
-FORCEINLINE
-SIZE_T
-Str_LenA(
-    _In_ PCSTR String)
-{
-    return strlen(String);
-}
-
-FORCEINLINE
-INT
-Str_CmpA(
-    _In_ PCSTR String1,
-    _In_ PCSTR String2)
-{
-    return strcmp(String1, String2);
-}
-
-FORCEINLINE
-INT
-Str_CmpW(
-    _In_ PCWSTR String1,
-    _In_ PCWSTR String2)
-{
-    return wcscmp(String1, String2);
-}
-
-FORCEINLINE
-PCWSTR
-Str_StrW(
-    _In_ PCWSTR String,
-    _In_ PCWSTR SubString)
-{
-    return wcsstr(String, SubString);
-}
-
-FORCEINLINE
-PCSTR
-Str_StrA(
-    _In_ PCSTR String,
-    _In_ PCSTR SubString)
-{
-    return strstr(String, SubString);
-}
-
-#pragma endregion
-
 #pragma region Basic Operations
 
 /* Str_Size */
@@ -68,7 +12,7 @@ SIZE_T
 Str_SizeW(
     _In_ PCWSTR String)
 {
-    return Str_LenW(String) * sizeof(WCHAR);
+    return wcslen(String) * sizeof(WCHAR);
 }
 
 FORCEINLINE
@@ -76,7 +20,7 @@ SIZE_T
 Str_SizeA(
     _In_ PCSTR String)
 {
-    return Str_LenA(String) * sizeof(CHAR);
+    return strlen(String) * sizeof(CHAR);
 }
 
 /* Str_Equal */
@@ -87,7 +31,7 @@ Str_EqualA(
     _In_ PCSTR String1,
     _In_ PCSTR String2)
 {
-    return Str_CmpA(String1, String2) == 0;
+    return strcmp(String1, String2) == 0;
 }
 
 FORCEINLINE
@@ -96,7 +40,7 @@ Str_EqualW(
     _In_ PCWSTR String1,
     _In_ PCWSTR String2)
 {
-    return Str_CmpW(String1, String2) == 0;
+    return wcscmp(String1, String2) == 0;
 }
 
 #pragma endregion
@@ -176,7 +120,7 @@ Str_CatExW(
     _In_range_(>, 0) ULONG BufferCount,
     _In_ PCWSTR Source)
 {
-    ULONG i = (ULONG)Str_LenW(Buffer);
+    ULONG i = (ULONG)wcslen(Buffer);
     return StrSafe_CchCopyW(Buffer + i, BufferCount - i, Source);
 }
 
@@ -188,7 +132,7 @@ Str_CatExA(
     _In_range_(>, 0) ULONG BufferCount,
     _In_ PCSTR Source)
 {
-    ULONG i = (ULONG)Str_LenA(Buffer);
+    ULONG i = (ULONG)strlen(Buffer);
     return StrSafe_CchCopyA(Buffer + i, BufferCount - i, Source);
 }
 

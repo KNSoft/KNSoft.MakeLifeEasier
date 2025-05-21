@@ -7,7 +7,7 @@
 #define _USE_COMMCTL60
 #endif
 
-#include <KNSoft/NDK/NDK.h>
+#include <KNSoft/NDK/NDK.inl>
 
 #include <stdint.h>
 

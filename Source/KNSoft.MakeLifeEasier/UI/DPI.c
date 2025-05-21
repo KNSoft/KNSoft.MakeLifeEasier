@@ -28,7 +28,7 @@ UI_DPIScaleFont(
     NewFont = CreateFontIndirectExW(&FontInfo);
     if (NewFont == NULL)
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     }
 
     DeleteObject(*Font);
@@ -84,7 +84,7 @@ UI_DPIAdjustWindowRect(
     }
 
 _Fallback:
-    return AdjustWindowRectEx(Rect, Style, HasMenu, ExStyle) ? ERROR_SUCCESS : NtGetLastError();
+    return AdjustWindowRectEx(Rect, Style, HasMenu, ExStyle) ? ERROR_SUCCESS : Err_GetLastError();
 }
 
 static
@@ -113,7 +113,7 @@ UI_DPIScaleDialog(
     {
         if (!GetClientRect(Dialog, &rcDlg) || !ClientToScreen(Dialog, &ptOrigin))
         {
-            return NtGetLastError();
+            return Err_GetLastError();
         }
         rcDlg.left += ptOrigin.x;
         rcDlg.right += ptOrigin.x;
@@ -231,7 +231,7 @@ UI_DPIScaleDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 /* Success */
                 return 0;
             }
-            Ret = NtGetLastError();
+            Ret = Err_GetLastError();
         }
 
         if (DPIInfo->Font != NULL)

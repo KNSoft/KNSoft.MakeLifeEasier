@@ -24,7 +24,7 @@ Shell_GetExplorerProcessId(
     {
         return ERROR_NOT_FOUND;
     }
-    return GetWindowThreadProcessId(ShellWindow, ProcessId) != 0 ? ERROR_SUCCESS : NtGetLastError();
+    return GetWindowThreadProcessId(ShellWindow, ProcessId) != 0 ? ERROR_SUCCESS : Err_GetLastError();
 }
 
 FORCEINLINE

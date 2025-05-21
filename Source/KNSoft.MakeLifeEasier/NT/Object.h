@@ -91,7 +91,7 @@ LOGICAL
 NT_FreeNtPath(
     _In_ PUNICODE_STRING NtPath)
 {
-    return RtlFreeHeap(NtGetProcessHeap(), 0, NtPath->Buffer);
+    return RtlFreeHeap(RtlProcessHeap(), 0, NtPath->Buffer);
 }
 
 #pragma endregion

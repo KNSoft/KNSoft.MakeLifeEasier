@@ -30,7 +30,7 @@ Shell_Exec(
         return ERROR_SUCCESS;
     } else
     {
-        return NtGetLastError();
+        return Err_GetLastError();
     }
 }
 

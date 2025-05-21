@@ -4,6 +4,47 @@
 
 EXTERN_C_START
 
+/* See also GetLastError, RtlGetLastWin32Error */
+_Ret_range_(>, 0)
+FORCEINLINE
+ULONG
+Err_GetLastError(VOID)
+{
+    ULONG Error = (ULONG)NtReadTeb(LastErrorValue);
+    _Analysis_assume_(Error > 0);
+    return Error;
+}
+
+/* See also SetLastError, RtlSetLastWin32Error */
+FORCEINLINE
+VOID
+NTAPI
+Err_SetLastError(
+    _In_ ULONG Win32Error)
+{
+    NtWriteTeb(LastErrorValue, Win32Error);
+}
+
+/* See also RtlGetLastNtStatus */
+_Ret_range_(<, 0)
+FORCEINLINE
+NTSTATUS
+Err_GetLastStatus(VOID)
+{
+    NTSTATUS Status = (NTSTATUS)NtReadTeb(LastStatusValue);
+    _Analysis_assume_(Status < 0);
+    return Status;
+}
+
+FORCEINLINE
+VOID
+NTAPI
+Err_SetLastStatus(
+    _In_ NTSTATUS Status)
+{
+    NtWriteTeb(LastStatusValue, Status);
+}
+
 /* See also RtlNtStatusToDosErrorNoTeb */
 FORCEINLINE
 ULONG

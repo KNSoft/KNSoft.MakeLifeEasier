@@ -39,7 +39,7 @@ NTAPI
 Sys_FreeInfo(
     __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PVOID Info)
 {
-    return RtlFreeHeap(NtGetProcessHeap(), 0, Info);
+    return RtlFreeHeap(RtlProcessHeap(), 0, Info);
 }
 
 MLE_API

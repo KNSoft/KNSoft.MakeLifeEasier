@@ -8,9 +8,9 @@ EXTERN_C_START
 
 /* Similar to RtlRunOnce* but sync only and inline */
 
-typedef DECLSPEC_ALIGN(SIZE_OF_POINTER) struct _PS_RUNONCE
+typedef DECLSPEC_POINTERALIGN struct _PS_RUNONCE
 {
-    DECLSPEC_ALIGN(SIZE_OF_POINTER) _Interlocked_operand_ PVOID volatile Ptr;
+    DECLSPEC_POINTERALIGN _Interlocked_operand_ PVOID volatile Ptr;
 } PS_RUNONCE, *PPS_RUNONCE;
 
 #define PS_RUNONCE_INIT { NULL }

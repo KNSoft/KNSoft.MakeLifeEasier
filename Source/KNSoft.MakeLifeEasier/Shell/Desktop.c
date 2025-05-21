@@ -9,7 +9,7 @@ Shell_QuitShellWindow(
     W32ERROR Ret;
     HWND ShellTray;
 
-    Ret = PostMessageW(ShellWindow, WM_QUIT, 0, 0) ? ERROR_SUCCESS : NtGetLastError();
+    Ret = PostMessageW(ShellWindow, WM_QUIT, 0, 0) ? ERROR_SUCCESS : Err_GetLastError();
     ShellTray = Shell_GetTrayWindow();
     if (ShellTray != NULL && PostMessageW(ShellTray, WM_QUIT, 0, 0))
     {
@@ -17,7 +17,7 @@ Shell_QuitShellWindow(
     }
     if (!Ret)
     {
-        Ret = EndTask(ShellWindow, FALSE, TRUE) ? ERROR_SUCCESS : NtGetLastError();
+        Ret = EndTask(ShellWindow, FALSE, TRUE) ? ERROR_SUCCESS : Err_GetLastError();
     }
     return Ret;
 }

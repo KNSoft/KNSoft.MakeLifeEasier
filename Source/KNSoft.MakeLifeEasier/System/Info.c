@@ -75,7 +75,7 @@ Sys_QueryDynamicInfo(
     }
 
 _Try_Alloc:
-    Buffer = RtlAllocateHeap(NtGetProcessHeap(), 0, Length);
+    Buffer = RtlAllocateHeap(RtlProcessHeap(), 0, Length);
     if (Buffer == NULL)
     {
         return STATUS_NO_MEMORY;

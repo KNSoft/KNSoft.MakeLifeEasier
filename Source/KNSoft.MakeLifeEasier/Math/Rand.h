@@ -78,24 +78,24 @@ FORCEINLINE
 ULONG
 Math_Random32(VOID)
 {
-    ULONG p;
-    return
 #if defined(_AMD64_) || defined(_X86_)
-        Math_GetHWRandom32(&p) ? p :
+    ULONG p;
+    return Math_GetHWRandom32(&p) ? p : Math_GetSWRandom32();
+#else
+    return Math_GetSWRandom32();
 #endif
-        Math_GetSWRandom32();
 }
 
 FORCEINLINE
 ULONGLONG
 Math_Random64(VOID)
 {
-    ULONGLONG p;
-    return
 #if defined(_AMD64_) || defined(_X86_)
-        Math_GetHWRandom64(&p) ? p :
+    ULONGLONG p;
+    return Math_GetHWRandom64(&p) ? p : Math_GetSWRandom64();
+#else
+    return Math_GetSWRandom64();
 #endif
-        Math_GetSWRandom64();
 }
 
 /// <summary>

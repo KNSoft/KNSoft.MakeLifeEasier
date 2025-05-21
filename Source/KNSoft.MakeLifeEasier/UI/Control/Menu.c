@@ -28,7 +28,7 @@ UI_CreateMenuItemsEx(
             eRet = UI_CreateMenuItemsEx(Items[i].Handle, Items[i].SubMenus, Items[i].SubMenusCount);
             if (eRet != ERROR_SUCCESS)
             {
-                NtSetLastError(eRet);
+                Err_SetLastError(eRet);
                 break;
             }
             Items[i].Flags |= MF_POPUP;
@@ -55,7 +55,7 @@ UI_CreateMenuItemsEx(
 
     if (i < Count)
     {
-        eRet = NtGetLastError();
+        eRet = Err_GetLastError();
         for (j = 0; j <= i; j++)
         {
             if (Items[j].Handle != NULL)

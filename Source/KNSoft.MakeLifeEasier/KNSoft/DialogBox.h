@@ -30,7 +30,7 @@ KNS_OpenModelDialogBox(
     INT_PTR DlgRet;
 
     DlgRet = DialogBoxIndirectParamW(Instance, DialogTemplate, Owner, DlgProc, InitParam);
-    return DlgRet != -1 ? (HRESULT)DlgRet : HRESULT_FROM_WIN32(NtGetLastError());
+    return DlgRet != -1 ? (HRESULT)DlgRet : HRESULT_FROM_WIN32(Err_GetLastError());
 }
 
 EXTERN_C_END
