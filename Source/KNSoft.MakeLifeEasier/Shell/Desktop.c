@@ -143,7 +143,7 @@ Shell_StartExplorerEx(
         return Ret;
     }
 
-    /* Wait shell windows start */
+    /* Wait shell window start */
     u = 0;
     do
     {
