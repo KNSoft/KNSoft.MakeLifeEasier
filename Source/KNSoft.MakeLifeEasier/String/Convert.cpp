@@ -22,7 +22,7 @@ Str_ToIntEx_Impl(
     UINT64 uTemp;
 
     // Minus
-    if (*psz == UNICODE_NULL)
+    if (*psz == (TChar)'\0')
     {
         return FALSE;
     }
