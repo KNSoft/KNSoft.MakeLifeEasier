@@ -66,7 +66,7 @@ PS_EnumerateModulesT(
     Status = PS_GetWow64Peb(ProcessHandle, &Wow64Peb);
     if (NT_SUCCESS(Status) && Wow64Peb != NULL)
     {
-        PebPtr = (PEB_T * POINTER_T)Wow64Peb;
+        PebPtr = (PEB_T* POINTER_T)Wow64Peb;
     } else
     {
         Status = NtQueryInformationProcess(ProcessHandle, ProcessBasicInformation, &pbi, sizeof(pbi), NULL);
@@ -74,7 +74,7 @@ PS_EnumerateModulesT(
         {
             return Status;
         }
-        PebPtr = (PEB_T * POINTER_T)pbi.PebBaseAddress;
+        PebPtr = (PEB_T* POINTER_T)pbi.PebBaseAddress;
     }
 
     Status = PS_RWStatus(PS_ReadMemory(ProcessHandle, &PebPtr->Ldr, &LdrPtr, sizeof(LdrPtr), NULL));
@@ -109,7 +109,7 @@ PS_EnumerateModulesT(
         {
             return STATUS_INVALID_HANDLE;
         }
-        NodePtr = (LDR_DATA_TABLE_ENTRY_T * POINTER_T)CONTAINING_RECORD((ULONG_PTR)LdrEntry.InLoadOrderLinks.Flink,
+        NodePtr = (LDR_DATA_TABLE_ENTRY_T* POINTER_T)CONTAINING_RECORD((ULONG_PTR)LdrEntry.InLoadOrderLinks.Flink,
                                                                        LDR_DATA_TABLE_ENTRY_T,
                                                                        InLoadOrderLinks);
     } while (NodePtr != HeadPtr);

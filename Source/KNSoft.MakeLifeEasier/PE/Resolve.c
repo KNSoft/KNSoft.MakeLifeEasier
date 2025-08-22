@@ -8,8 +8,7 @@ PE_ResolveOnline(
     _In_reads_bytes_(Size) PVOID Image,
     _In_ ULONG Size)
 {
-    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)Image;
-    PIMAGE_NT_HEADERS pNtHeader = Add2Ptr(pDosHeader, pDosHeader->e_lfanew);
+    PIMAGE_NT_HEADERS pNtHeader = Add2Ptr(Image, ((PIMAGE_DOS_HEADER)Image)->e_lfanew);
     PIMAGE_FILE_HEADER pFileHeader = &pNtHeader->FileHeader;
     PIMAGE_OPTIONAL_HEADER pOptHeader = &pNtHeader->OptionalHeader;
     PIMAGE_SECTION_HEADER pSectionHeader = Add2Ptr(pOptHeader, pFileHeader->SizeOfOptionalHeader);
@@ -348,7 +347,7 @@ PE_GetCertificate(
     LPWIN_CERTIFICATE pCertificate;
     PIMAGE_DATA_DIRECTORY pCertificateDir;
 
-    if (PEStruct->OfflineMap == FALSE)
+    if (!PEStruct->OfflineMap)
     {
         return NULL;
     }

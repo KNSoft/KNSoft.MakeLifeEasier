@@ -6,7 +6,7 @@ NTSTATUS
 NTAPI
 IO_QueryStorageProperty(
     _In_ HANDLE DeviceHandle,
-    _In_ PSTORAGE_PROPERTY_QUERY Query,
+    _In_reads_bytes_(QuerySize) PSTORAGE_PROPERTY_QUERY Query,
     _In_ ULONG QuerySize,
     _Out_ _At_(*StorageProperty,
                _Readable_bytes_(*StoragePropertyLength)

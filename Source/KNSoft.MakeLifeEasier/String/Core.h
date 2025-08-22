@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <KNSoft/NDK/Package/StrSafe.h>
+#include <KNSoft/NDK/Package/StrSafe.inl>
 #include <KNSoft/NDK/NDK.h>
 
 #pragma region Basic Operations

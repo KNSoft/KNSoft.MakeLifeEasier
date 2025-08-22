@@ -7,7 +7,7 @@ EXTERN_C_START
 FORCEINLINE
 ULONG
 Str_UnicodeToAnsi(
-    _Out_writes_z_(BufferCount) PSTR Buffer,
+    _Out_writes_(BufferCount) PSTR Buffer,
     _In_ ULONG BufferCount,
     _In_ PCWSTR UnicodeString)
 {
@@ -29,7 +29,7 @@ Str_UnicodeToAnsi(
 FORCEINLINE
 ULONG
 Str_AnsiToUnicode(
-    _Out_writes_z_(BufferCount) PWSTR Buffer,
+    _Out_writes_(BufferCount) PWSTR Buffer,
     _In_ ULONG BufferCount,
     _In_ PCSTR AnsiString)
 {
@@ -51,7 +51,7 @@ Str_AnsiToUnicode(
 FORCEINLINE
 ULONG
 Str_UnicodeToUtf8(
-    _Out_writes_opt_z_(BufferCount) PSTR Buffer,
+    _Out_writes_opt_(BufferCount) PSTR Buffer,
     _In_opt_ ULONG BufferCount,
     _In_ PCWSTR UnicodeString)
 {
@@ -79,7 +79,7 @@ Str_UnicodeToUtf8(
 FORCEINLINE
 ULONG
 Str_Utf8ToUnicode(
-    _Out_writes_opt_z_(BufferCount) PWSTR Buffer,
+    _Out_writes_opt_(BufferCount) PWSTR Buffer,
     _In_opt_ ULONG BufferCount,
     _In_ PCSTR Utf8String)
 {

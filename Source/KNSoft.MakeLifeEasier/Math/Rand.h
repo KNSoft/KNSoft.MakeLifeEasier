@@ -10,7 +10,7 @@ EXTERN_C_START
 
 /* See also Microsoft SymCrypt */
 
-#if defined(_AMD64_) || defined(_X86_)
+#if defined(_M_X64) || defined(_M_IX86)
 
 FORCEINLINE
 LOGICAL
@@ -42,7 +42,7 @@ Math_GetHWRandom64(
     for (i = 0; i < 1000000; i++)
     {
         if (
-#if defined(_AMD64_)
+#if defined(_M_X64)
             _rdrand64_step(&p) != 0
 #else
             _rdrand32_step((PUINT)&p) != 0 && _rdrand32_step((PUINT)Add2Ptr(&p, sizeof(ULONG))) != 0
@@ -78,7 +78,7 @@ FORCEINLINE
 ULONG
 Math_Random32(VOID)
 {
-#if defined(_AMD64_) || defined(_X86_)
+#if defined(_M_X64) || defined(_M_IX86)
     ULONG p;
     return Math_GetHWRandom32(&p) ? p : Math_GetSWRandom32();
 #else
@@ -90,7 +90,7 @@ FORCEINLINE
 ULONGLONG
 Math_Random64(VOID)
 {
-#if defined(_AMD64_) || defined(_X86_)
+#if defined(_M_X64) || defined(_M_IX86)
     ULONGLONG p;
     return Math_GetHWRandom64(&p) ? p : Math_GetSWRandom64();
 #else
