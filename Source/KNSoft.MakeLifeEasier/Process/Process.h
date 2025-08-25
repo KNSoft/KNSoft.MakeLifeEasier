@@ -67,6 +67,26 @@ PS_OpenProcess(
 
 FORCEINLINE
 NTSTATUS
+PS_TerminateProcessById(
+    _In_ ULONG ProcessId,
+    _In_ NTSTATUS ExitStatus)
+{
+    NTSTATUS Status;
+    HANDLE ProcessHandle;
+
+    Status = PS_OpenProcess(&ProcessHandle, PROCESS_TERMINATE, ProcessId);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    Status = NtTerminateProcess(ProcessHandle, ExitStatus);
+    NtClose(ProcessHandle);
+    return Status;
+}
+
+FORCEINLINE
+NTSTATUS
 PS_OpenThread(
     _Out_ PHANDLE ThreadHandle,
     _In_ ACCESS_MASK DesiredAccess,
