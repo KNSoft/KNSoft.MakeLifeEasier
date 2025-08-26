@@ -33,6 +33,34 @@ UI_CreateMenuItemsEx(
 #define UI_CreateMenuItems(Parent, Items) UI_CreateMenuItemsEx(Parent, Items, ARRAYSIZE(Items))
 
 FORCEINLINE
+W32ERROR
+UI_CreateMenuEx(
+    _Out_ HMENU* MenuHandle,
+    _In_ LOGICAL Popup,
+    _Inout_updates_(Count) UI_MENU_ITEM Items[],
+    _In_ UINT Count)
+{
+    W32ERROR Ret;
+    HMENU hMenu = Popup ? CreatePopupMenu() : CreateMenu();
+
+    if (hMenu == NULL)
+    {
+        return Err_GetLastError();
+    }
+    Ret = UI_CreateMenuItemsEx(hMenu, Items, Count);
+    if (Ret == ERROR_SUCCESS)
+    {
+        *MenuHandle = hMenu;
+    } else
+    {
+        DestroyMenu(hMenu);
+    }
+    return Ret;
+}
+
+#define UI_CreateMenu(MenuHandle, Popup, Items) UI_CreateMenuEx(MenuHandle, Popup, Items, ARRAYSIZE(Items))
+
+FORCEINLINE
 VOID
 UI_DestroyMenuItemsEx(
     _In_reads_(Count) UI_MENU_ITEM Items[],
@@ -70,7 +98,7 @@ UI_PopupMenu(
     return TrackPopupMenu(Menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, X, Y, 0, Window, NULL);
 }
 
-/* Return current check state*/
+/* Return current check state (S_OK: checked, S_FALSE: Unchecked) */
 FORCEINLINE
 HRESULT
 UI_ToggleMenuCheckItem(
