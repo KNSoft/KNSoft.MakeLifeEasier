@@ -3,10 +3,6 @@
 #define OEMRESOURCE
 #define STRICT_TYPED_ITEMIDS
 
-#ifdef MSB_CONFIGURATIONTYPE_EXE
-#define _USE_COMMCTL60
-#endif
-
 #include <KNSoft/NDK/NDK.inl>
 
 #include <stdint.h>

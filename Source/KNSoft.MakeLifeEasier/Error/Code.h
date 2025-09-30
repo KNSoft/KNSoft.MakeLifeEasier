@@ -5,14 +5,13 @@
 EXTERN_C_START
 
 /* See also GetLastError, RtlGetLastWin32Error */
-_Ret_range_(>, 0)
+_Check_return_
+_Post_equals_last_error_
 FORCEINLINE
 ULONG
 Err_GetLastError(VOID)
 {
-    ULONG Error = (ULONG)NtReadTeb(LastErrorValue);
-    _Analysis_assume_(Error > 0);
-    return Error;
+    return NtReadTeb(LastErrorValue);
 }
 
 /* See also SetLastError, RtlSetLastWin32Error */

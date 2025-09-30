@@ -34,9 +34,9 @@ PE_AccessResource(
 {
     NTSTATUS Status;
     PIMAGE_RESOURCE_DATA_ENTRY DataEntry;
-    LDR_RESOURCE_INFO Info = { (ULONG_PTR)Type, (ULONG_PTR)Name, (ULONG_PTR)Language };
+    ULONG_PTR Path[] = { (ULONG_PTR)Type, (ULONG_PTR)Name, (ULONG_PTR)Language };
 
-    Status = LdrFindResource_U(Base, &Info, RESOURCE_DATA_LEVEL, &DataEntry);
+    Status = LdrFindResource_U(Base, Path, ARRAYSIZE(Path), &DataEntry);
     if (!NT_SUCCESS(Status))
     {
         return Status;

@@ -145,7 +145,7 @@ _Function_class_(LDR_ENUM_CALLBACK_T)
 VOID
 NTAPI
 PS_FindModulesByNameT(
-    _In_ LDR_DATA_TABLE_ENTRY_T* ModuleInformation,
+    _In_ const LDR_DATA_TABLE_ENTRY_T* ModuleInformation,
     _In_ PVOID Parameter,
     _Out_ BOOLEAN* Stop)
 {
