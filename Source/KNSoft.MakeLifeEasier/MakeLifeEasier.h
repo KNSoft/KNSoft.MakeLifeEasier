@@ -10,6 +10,7 @@
 #pragma once
 
 #include <KNSoft/NDK/NDK.h>
+#include <KNSoft/NDK/NDK.inl>
 
 #include <WinTrust.h>
 #include <Uxtheme.h>
@@ -88,3 +89,12 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "KNSoft/I18N.h"
 #include "KNSoft/DialogBox.h"
 #endif
+
+#pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
+
+#pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "UxTheme.lib")
+#pragma comment(lib, "Dwmapi.lib")
+#pragma comment(lib, "DbgHelp.lib")
+#pragma comment(lib, "WinSta.lib")
+#pragma comment(lib, "Secur32.lib")

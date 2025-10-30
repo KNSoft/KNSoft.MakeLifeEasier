@@ -1,21 +1,5 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-static const SECURITY_QUALITY_OF_SERVICE g_ImpersonationSqos = {
-    sizeof(g_ImpersonationSqos),
-    DEFAULT_IMPERSONATION_LEVEL,
-    SECURITY_STATIC_TRACKING,
-    FALSE
-};
-
-static const OBJECT_ATTRIBUTES g_ImpersonationObjectAttribute = {
-    sizeof(g_ImpersonationObjectAttribute),
-    NULL,
-    NULL,
-    0,
-    NULL,
-    (PVOID)&g_ImpersonationSqos
-};
-
 NTSTATUS
 NTAPI
 PS_DuplicateToken(
@@ -25,7 +9,7 @@ PS_DuplicateToken(
 {
     return NtDuplicateToken(TokenHandle,
                             MAXIMUM_ALLOWED,
-                            (POBJECT_ATTRIBUTES)(&g_ImpersonationObjectAttribute),
+                            (POBJECT_ATTRIBUTES)(&NT_DefaultImpersonationObjectAttribute),
                             FALSE,
                             TokenType,
                             NewTokenHandle);
@@ -40,14 +24,12 @@ PS_DuplicateSystemToken(
 {
     NTSTATUS Status;
     HANDLE ProcessHandle, TokenHandle;
-    OBJECT_ATTRIBUTES ObjectAttributes, *pObjectAttributes;
     CLIENT_ID ClientId;
 
-    NT_InitEmptyObject(&ObjectAttributes);
     ClientId.UniqueProcess = (HANDLE)(ULONG_PTR)ProcessId;
     ClientId.UniqueThread = 0;
 
-    Status = NtOpenProcess(&ProcessHandle, PROCESS_QUERY_LIMITED_INFORMATION, &ObjectAttributes, &ClientId);
+    Status = NtOpenProcess(&ProcessHandle, PROCESS_QUERY_LIMITED_INFORMATION, &NT_EmptyObjectAttribute, &ClientId);
     if (!NT_SUCCESS(Status))
     {
         return Status;
@@ -57,15 +39,12 @@ PS_DuplicateSystemToken(
     {
         goto _Exit;
     }
-    if (TokenType == TokenImpersonation)
-    {
-        ObjectAttributes.SecurityQualityOfService = (PVOID)&g_ImpersonationSqos;
-        pObjectAttributes = &ObjectAttributes;
-    } else
-    {
-        pObjectAttributes = NULL;
-    }
-    Status = NtDuplicateToken(TokenHandle, MAXIMUM_ALLOWED, pObjectAttributes, FALSE, TokenType, NewTokenHandle);
+    Status = NtDuplicateToken(TokenHandle,
+                              MAXIMUM_ALLOWED,
+                              TokenType == TokenImpersonation ? (POBJECT_ATTRIBUTES)&NT_DefaultImpersonationObjectAttribute : NULL,
+                              FALSE,
+                              TokenType,
+                              NewTokenHandle);
     NtClose(TokenHandle);
 
 _Exit:
@@ -168,4 +147,36 @@ PS_IsAdminToken(
     }
 
     return GrantedAccess == g_AdminGroupDacl.Ace.AccessMask ? STATUS_SUCCESS : STATUS_NOT_ALL_ASSIGNED;
+}
+
+NTSTATUS
+NTAPI
+PS_GetTokenInfo(
+    _In_ HANDLE TokenHandle,
+    _In_ TOKEN_INFORMATION_CLASS TokenInformationClass,
+    _Out_ PVOID* Info)
+{
+    PVOID Buffer;
+    ULONG Length;
+    NTSTATUS Status;
+
+    Status = NtQueryInformationToken(TokenHandle, TokenInformationClass, NULL, 0, &Length);
+    if (Status != STATUS_BUFFER_TOO_SMALL)
+    {
+        return !NT_SUCCESS(Status) ? Status : STATUS_INVALID_INFO_CLASS;
+    }
+    Buffer = Mem_Alloc(Length);
+    if (Buffer == NULL)
+    {
+        return STATUS_NO_MEMORY;
+    }
+    Status = NtQueryInformationToken(TokenHandle, TokenInformationClass, Buffer, Length, &Length);
+    if (NT_SUCCESS(Status))
+    {
+        *Info = Buffer;
+    } else
+    {
+        Mem_Free(Buffer);
+    }
+    return Status;
 }

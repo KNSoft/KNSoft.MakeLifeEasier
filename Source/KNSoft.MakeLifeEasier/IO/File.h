@@ -296,6 +296,26 @@ IO_GetWin32FileAttributes(
 
 FORCEINLINE
 NTSTATUS
+IO_IsDirectory(
+    _In_ PUNICODE_STRING FileName,
+    _In_opt_ HANDLE RootDirectory,
+    _Out_ PBOOLEAN IsDirectory)
+{
+    NTSTATUS Status;
+    OBJECT_ATTRIBUTES Object;
+    FILE_NETWORK_OPEN_INFORMATION Attributes;
+
+    NT_InitObject(&Object, FileName, OBJ_CASE_INSENSITIVE, RootDirectory);
+    Status = NtQueryFullAttributesFile(&Object, &Attributes);
+    if (NT_SUCCESS(Status))
+    {
+        *IsDirectory = BooleanFlagOn(Attributes.FileAttributes, FILE_ATTRIBUTE_DIRECTORY);
+    }
+    return Status;
+}
+
+FORCEINLINE
+NTSTATUS
 IO_ReadFile(
     _In_ HANDLE FileHandle,
     _In_opt_ PLARGE_INTEGER Offset,

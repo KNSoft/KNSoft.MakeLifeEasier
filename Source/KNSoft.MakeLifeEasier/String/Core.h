@@ -43,6 +43,46 @@ Str_EqualW(
     return wcscmp(String1, String2) == 0;
 }
 
+/* Str_[Index/StartsWith] */
+
+FORCEINLINE
+SIZE_T
+Str_IndexW(
+    _In_ PCWSTR String,
+    _In_ PCWSTR SubString)
+{
+    PCWSTR pSubStr = wcsstr(String, SubString);
+    return pSubStr != NULL ? pSubStr - String : -1;
+}
+
+FORCEINLINE
+SIZE_T
+Str_IndexA(
+    _In_ PCSTR String,
+    _In_ PCSTR SubString)
+{
+    PCSTR pSubStr = strstr(String, SubString);
+    return pSubStr != NULL ? pSubStr - String : -1;
+}
+
+FORCEINLINE
+LOGICAL
+Str_StartsWithW(
+    _In_ PCWSTR String,
+    _In_ PCWSTR SubString)
+{
+    return Str_IndexW(String, SubString) == 0;
+}
+
+FORCEINLINE
+LOGICAL
+Str_StartsWithA(
+    _In_ PCSTR String,
+    _In_ PCSTR SubString)
+{
+    return Str_IndexA(String, SubString) == 0;
+}
+
 #pragma endregion
 
 #pragma region String PrintF

@@ -21,4 +21,15 @@ UI_SetDialogFont(
     UI_Redraw(Dialog);
 }
 
+/// <seealso cref="EnableWindow"/>
+FORCEINLINE
+LOGICAL
+UI_EnableDlgItem(
+    _In_ HWND Dialog,
+    _In_ INT ItemId,
+    _In_ LOGICAL EnableState)
+{
+    return EnableWindow(GetDlgItem(Dialog, ItemId), EnableState);
+}
+
 EXTERN_C_END

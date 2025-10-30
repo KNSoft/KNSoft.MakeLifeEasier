@@ -3,8 +3,6 @@
 #define OEMRESOURCE
 #define STRICT_TYPED_ITEMIDS
 
-#include <KNSoft/NDK/NDK.inl>
-
 #include <stdint.h>
 
 #include "Resource.Embedded.h"
@@ -18,13 +16,6 @@
 #endif
 
 #include "MakeLifeEasier.h"
-
-#pragma comment(lib, "KNSoft.NDK.WinAPI.lib")
-
-#pragma comment(lib, "Crypt32.lib")
-#pragma comment(lib, "UxTheme.lib")
-#pragma comment(lib, "Dwmapi.lib")
-#pragma comment(lib, "DbgHelp.lib")
 
 EXTERN_C_START
 

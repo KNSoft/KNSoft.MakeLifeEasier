@@ -38,17 +38,6 @@ UI_GetWindowTextExA(
 #define UI_GetWindowTextW(Window, Text) UI_GetWindowTextExW(Window, Text, ARRAYSIZE(Text))
 #define UI_GetWindowTextA(Window, Text) UI_GetWindowTextExA(Window, Text, ARRAYSIZE(Text))
 
-/// <seealso cref="EnableWindow"/>
-FORCEINLINE
-LOGICAL
-UI_EnableDlgItem(
-    _In_ HWND Dialog,
-    _In_ INT ItemId,
-    _In_ LOGICAL EnableState)
-{
-    return EnableWindow(GetDlgItem(Dialog, ItemId), EnableState);
-}
-
 /// <seealso cref="SendMessageTimeoutW"/>
 FORCEINLINE
 W32ERROR

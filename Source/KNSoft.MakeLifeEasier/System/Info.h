@@ -45,7 +45,14 @@ Sys_FreeInfo(
 MLE_API
 NTSTATUS
 NTAPI
-Sys_LsaGetProcessId(
+Sys_GetLsaProcessId(
     _Out_ PULONG LsaProcessId);
+
+FORCEINLINE
+ULONG
+Sys_GetCsrProcessId(VOID)
+{
+    return (ULONG)(ULONG_PTR)CsrGetProcessId();
+}
 
 EXTERN_C_END

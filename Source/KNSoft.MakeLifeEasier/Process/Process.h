@@ -55,14 +55,12 @@ PS_OpenProcess(
     _In_ ACCESS_MASK DesiredAccess,
     _In_ ULONG ProcessId)
 {
-    OBJECT_ATTRIBUTES ObjectAttributes;
     CLIENT_ID ClientId;
 
-    NT_InitEmptyObject(&ObjectAttributes);
     ClientId.UniqueProcess = (HANDLE)(ULONG_PTR)ProcessId;
     ClientId.UniqueThread = 0;
 
-    return NtOpenProcess(ProcessHandle, DesiredAccess, &ObjectAttributes, &ClientId);
+    return NtOpenProcess(ProcessHandle, DesiredAccess, &NT_EmptyObjectAttribute, &ClientId);
 }
 
 FORCEINLINE
@@ -92,14 +90,12 @@ PS_OpenThread(
     _In_ ACCESS_MASK DesiredAccess,
     _In_ ULONG ThreadId)
 {
-    OBJECT_ATTRIBUTES ObjectAttributes;
     CLIENT_ID ClientId;
 
-    NT_InitEmptyObject(&ObjectAttributes);
     ClientId.UniqueProcess = 0;
     ClientId.UniqueThread = (HANDLE)(ULONG_PTR)ThreadId;
 
-    return NtOpenThread(ThreadHandle, DesiredAccess, &ObjectAttributes, &ClientId);
+    return NtOpenThread(ThreadHandle, DesiredAccess, &NT_EmptyObjectAttribute, &ClientId);
 }
 
 FORCEINLINE
@@ -128,6 +124,23 @@ PS_GetWow64Peb(
     _Out_ PVOID* Wow64Peb)
 {
     return NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, Wow64Peb, sizeof(*Wow64Peb), NULL);
+}
+
+FORCEINLINE
+NTSTATUS
+PS_IsWow64(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PBOOLEAN IsWow64)
+{
+    NTSTATUS Status;
+    PVOID Wow64Peb;
+
+    Status = NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, &Wow64Peb, sizeof(Wow64Peb), NULL);
+    if (NT_SUCCESS(Status))
+    {
+        *IsWow64 = Wow64Peb != NULL;
+    }
+    return Status;
 }
 
 EXTERN_C_END

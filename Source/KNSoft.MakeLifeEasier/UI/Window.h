@@ -36,6 +36,76 @@ UI_GetWindowLong(
     return *Value != 0 ? ERROR_SUCCESS : Err_GetLastError();
 }
 
+FORCEINLINE
+W32ERROR
+UI_SetWindowLong(
+    _In_ HWND Window,
+    _In_ INT Index,
+    _In_ LONG_PTR Value)
+{
+    LONG_PTR OldValue;
+
+    Err_SetLastError(ERROR_SUCCESS);
+    OldValue = SetWindowLongPtrW(Window, Index, Value);
+    return OldValue != 0 ? ERROR_SUCCESS : Err_GetLastError();
+}
+
+FORCEINLINE
+W32ERROR
+UI_GetClassLong(
+    _In_ HWND Window,
+    _In_ INT Index,
+    _Out_ PULONG_PTR Value)
+{
+    Err_SetLastError(ERROR_SUCCESS);
+    *Value = GetClassLongPtrW(Window, Index);
+    return *Value != 0 ? ERROR_SUCCESS : Err_GetLastError();
+}
+
+FORCEINLINE
+W32ERROR
+UI_SetClassLong(
+    _In_ HWND Window,
+    _In_ INT Index,
+    _In_ ULONG_PTR Value)
+{
+    ULONG_PTR OldValue;
+
+    Err_SetLastError(ERROR_SUCCESS);
+    OldValue = SetClassLongPtrW(Window, Index, Value);
+    return OldValue != 0 ? ERROR_SUCCESS : Err_GetLastError();
+}
+
+FORCEINLINE
+W32ERROR
+UI_EnableWindowStyle(
+    _In_ HWND Window,
+    _In_ INT StyleIndex,
+    _In_ LONG_PTR StyleFlag,
+    _In_ LOGICAL EnableState)
+{
+    W32ERROR Ret;
+    LONG_PTR Style;
+
+    if (StyleIndex != GWL_STYLE && StyleIndex != GWL_EXSTYLE)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+    Ret = UI_GetWindowLong(Window, StyleIndex, &Style);
+    if (Ret != ERROR_SUCCESS)
+    {
+        return Ret;
+    }
+    if (EnableState)
+    {
+        SetFlag(Style, StyleFlag);
+    } else
+    {
+        ClearFlag(Style, StyleFlag);
+    }
+    return UI_SetWindowLong(Window, StyleIndex, Style);
+}
+
 /// <seealso cref="PtInRect"/>
 FORCEINLINE
 LOGICAL

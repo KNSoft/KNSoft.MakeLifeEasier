@@ -4,6 +4,14 @@
 
 EXTERN_C_START
 
+FORCEINLINE
+COLORREF
+UI_InverseRGB(
+    _In_ COLORREF Color)
+{
+    return ~(Color) & 0xFFFFFF;
+}
+
 #pragma region Font
 
 MLE_API

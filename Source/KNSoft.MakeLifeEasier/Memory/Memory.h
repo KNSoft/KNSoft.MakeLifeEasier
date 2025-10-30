@@ -17,10 +17,7 @@ _Must_inspect_result_
 __drv_allocatesMem(Mem)
 NTSTATUS
 Mem_AllocPage(
-    _Out_ _At_(*BaseAddress,
-               _Readable_bytes_(Size)
-               _Writable_bytes_(Size)
-               _Post_readable_byte_size_(Size)) PVOID* BaseAddress,
+    _Out_ _At_(*BaseAddress, _Readable_bytes_(Size) _Writable_bytes_(Size) _Post_readable_byte_size_(Size)) PVOID* BaseAddress,
     _In_ SIZE_T Size,
     _In_ ULONG Protect)
 {

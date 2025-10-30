@@ -99,7 +99,7 @@ static UNICODE_STRING g_LsaPidKeyName = RTL_CONSTANT_STRING(L"LsaPid");
 
 NTSTATUS
 NTAPI
-Sys_LsaGetProcessId(
+Sys_GetLsaProcessId(
     _Out_ PULONG LsaProcessId)
 {
     NTSTATUS Status;

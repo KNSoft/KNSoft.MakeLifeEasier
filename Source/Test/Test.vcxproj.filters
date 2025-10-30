@@ -5,9 +5,17 @@
     <ClCompile Include="Math.c" />
     <ClCompile Include="String.c" />
     <ClCompile Include="Registry.c" />
+    <ClCompile Include="Samples\CreateSuperToken.c">
+      <Filter>Samples</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Samples">
+      <UniqueIdentifier>{30c27c2e-5ee4-47e9-ae12-817679a66160}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

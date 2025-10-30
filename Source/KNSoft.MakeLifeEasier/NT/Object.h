@@ -4,6 +4,8 @@
 
 EXTERN_C_START
 
+MLE_API EXTERN_C CONST OBJECT_ATTRIBUTES NT_EmptyObjectAttribute;
+
 #pragma region NT String
 
 /*

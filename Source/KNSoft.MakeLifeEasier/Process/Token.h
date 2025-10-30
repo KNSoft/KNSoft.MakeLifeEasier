@@ -50,6 +50,14 @@ PS_IsCurrentAdminToken(VOID)
     return Status;
 }
 
+MLE_API
+NTSTATUS
+NTAPI
+PS_GetTokenInfo(
+    _In_ HANDLE TokenHandle,
+    _In_ TOKEN_INFORMATION_CLASS TokenInformationClass,
+    _Out_ PVOID* Info);
+
 /// <summary>
 /// Set impersonate token to current thread
 /// </summary>
