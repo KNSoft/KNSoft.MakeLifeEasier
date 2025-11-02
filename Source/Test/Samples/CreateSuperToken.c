@@ -77,7 +77,7 @@ TEST_FUNC(CreateSuperToken)
 
     /* Build token groups and privileges */
     SID EveryoneSid = SID_EVERYONE, SystemSid = SID_SYSTEM, AuthUsersSid = SID_AUTHENTICATED_USERS;
-    SID_2 AdminsSid = SID_ADMINS, MandatorySid = SID_MANDATORY_SYSTEM;
+    SID_2 AdminsSid = SID_ADMINS, MandatorySid = SID_MANDATORY_SYSTEM, OwnerSid = SID_GUESTS;
     SID_6 TISid = SID_TRUSTED_INSTALLER;
     LUID SystemLuid = SYSTEM_LUID;
 #define GROUP_COUNT 7
@@ -107,7 +107,7 @@ TEST_FUNC(CreateSuperToken)
     HANDLE SuperToken;
     Status = NT_CreateToken(&SuperToken,
                             TokenPrimary,
-                            &MandatorySid,
+                            &OwnerSid.BaseType,
                             &SystemLuid,
                             &Groups.BaseType,
                             &Privileges.BaseType);
