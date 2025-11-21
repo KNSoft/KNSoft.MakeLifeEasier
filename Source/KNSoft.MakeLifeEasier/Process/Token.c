@@ -99,7 +99,7 @@ static const DECLSPEC_ALIGN(4) struct
     {
         { 0, 0, sizeof(g_AdminGroupDacl.Ace) },
         1,
-        SID_ADMINS
+        SID_BUILTIN_ADMINISTRATORS
     }
 };
 

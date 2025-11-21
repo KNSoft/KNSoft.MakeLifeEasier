@@ -31,20 +31,10 @@ NT_CreateToken(
     TOKEN_PRIMARY_GROUP PrimaryGroup = { OwnerSid };
     TOKEN_USER User = { { OwnerSid } };
     TOKEN_SOURCE Source = { 0 };
-    POBJECT_ATTRIBUTES pObjectAttribute;
 
-    if (Type != TokenImpersonation)
-    {
-        pObjectAttribute = NULL;
-    } else
-    {
-        SECURITY_QUALITY_OF_SERVICE Sqos = { sizeof(Sqos), DEFAULT_IMPERSONATION_LEVEL, SECURITY_DYNAMIC_TRACKING, FALSE };
-        OBJECT_ATTRIBUTES ObjectAttribute = { sizeof(ObjectAttribute), NULL, NULL, 0, NULL, &Sqos };
-        pObjectAttribute = &ObjectAttribute;
-    }
     return NtCreateToken(TokenHandle,
                          TOKEN_ALL_ACCESS,
-                         pObjectAttribute,
+                         Type != TokenImpersonation ? NULL : (POBJECT_ATTRIBUTES)&NT_DefaultImpersonationObjectAttribute,
                          Type,
                          AuthenticationId,
                          &ExpirationTime,

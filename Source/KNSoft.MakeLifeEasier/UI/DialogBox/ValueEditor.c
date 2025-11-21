@@ -231,7 +231,7 @@ static INT g_aColPsz[] = {
     Precomp4C_I18N_All_Value,
     Precomp4C_I18N_All_Description
 };
-C_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
+_STATIC_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
 
 /*
  * @remarks

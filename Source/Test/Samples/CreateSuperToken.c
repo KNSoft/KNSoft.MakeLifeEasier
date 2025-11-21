@@ -76,8 +76,8 @@ TEST_FUNC(CreateSuperToken)
     }
 
     /* Build token groups and privileges */
-    SID EveryoneSid = SID_EVERYONE, SystemSid = SID_SYSTEM, AuthUsersSid = SID_AUTHENTICATED_USERS;
-    SID_2 AdminsSid = SID_ADMINS, MandatorySid = SID_MANDATORY_SYSTEM, OwnerSid = SID_GUESTS;
+    SID EveryoneSid = SID_EVERYONE, SystemSid = SID_LOCAL_SYSTEM, AuthUsersSid = SID_AUTHENTICATED_USERS;
+    SID_2 AdminsSid = SID_BUILTIN_ADMINISTRATORS, MandatorySid = SID_ML_SYSTEM, OwnerSid = SID_BUILTIN_GUESTS;
     SID_6 TISid = SID_TRUSTED_INSTALLER;
     LUID SystemLuid = SYSTEM_LUID;
 #define GROUP_COUNT 7
@@ -93,6 +93,7 @@ TEST_FUNC(CreateSuperToken)
             { LogonSid, SE_GROUP_LOGON_ID | SE_GROUP_MANDATORY | SE_GROUP_ENABLED_BY_DEFAULT | SE_GROUP_ENABLED },
         }
     };
+#undef GROUP_COUNT
 #define PRIVILEGE_COUNT (SE_MAX_WELL_KNOWN_PRIVILEGE - SE_MIN_WELL_KNOWN_PRIVILEGE + 1)
     DEFINE_ANYSIZE_STRUCT(Privileges, TOKEN_PRIVILEGES, LUID_AND_ATTRIBUTES, PRIVILEGE_COUNT);
     PLUID_AND_ATTRIBUTES LuidAndAttr = Privileges.BaseType.Privileges;
@@ -102,6 +103,7 @@ TEST_FUNC(CreateSuperToken)
         Privileges.BaseType.Privileges[i].Luid = RtlConvertLongToLuid(i + SE_MIN_WELL_KNOWN_PRIVILEGE);
         Privileges.BaseType.Privileges[i].Attributes = SE_PRIVILEGE_ENABLED_BY_DEFAULT;
     }
+#undef PRIVILEGE_COUNT
 
     /* Create token and set information */
     HANDLE SuperToken;

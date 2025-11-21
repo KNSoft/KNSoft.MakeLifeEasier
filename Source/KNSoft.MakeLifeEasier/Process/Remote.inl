@@ -1,6 +1,6 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-C_ASSERT(_BITS == 32 || _BITS == 64);
+_STATIC_ASSERT(_BITS == 32 || _BITS == 64);
 
 #if !defined(_WIN64) && (_BITS == 64)
 #define PS_ReadMemory PS_32Read64Memory
@@ -154,7 +154,7 @@ PS_FindModulesByNameT(
     if ((ULONG_T)Info->Address >= (ULONG_T)ModuleInformation->DllBase &&
         (ULONG_T)Info->Address < (ULONG_T)ModuleInformation->DllBase + ModuleInformation->SizeOfImage)
     {
-        C_ASSERT(sizeof(*Info->ModuleEntry) == sizeof(*ModuleInformation));
+        _STATIC_ASSERT(sizeof(*Info->ModuleEntry) == sizeof(*ModuleInformation));
         memcpy(Info->ModuleEntry, ModuleInformation, sizeof(*Info->ModuleEntry));
         *Stop = TRUE;
     } else

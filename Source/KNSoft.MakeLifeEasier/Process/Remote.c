@@ -94,7 +94,7 @@ PS_GetMachineTypeFromFile(
     {
         goto _Exit_1;
     }
-    C_ASSERT(sizeof(*MachineType) == FIELD_SIZE(IMAGE_NT_HEADERS, FileHeader.Machine));
+    _STATIC_ASSERT(sizeof(*MachineType) == FIELD_SIZE(IMAGE_NT_HEADERS, FileHeader.Machine));
     Offset.QuadPart = NtHeaderOffset + (LONGLONG)FIELD_OFFSET(IMAGE_NT_HEADERS, FileHeader.Machine);
     Status = IO_ReadFile(FileHandle, &Offset, MachineType, sizeof(*MachineType));
 
@@ -242,7 +242,7 @@ PS_GetRemoteAddressName(
     }
     SymInfo = (PSYMBOL_INFOW)SymInfoBuffer;
     SymInfo->SizeOfStruct = sizeof(*SymInfo);
-    C_ASSERT(MAX_CIDENTIFIERNAME_CCH < MAXUSHORT);
+    _STATIC_ASSERT(MAX_CIDENTIFIERNAME_CCH < MAXUSHORT);
     SymInfo->MaxNameLen = MAX_CIDENTIFIERNAME_CCH;
     SymRet = PE_SymFromAddr((DWORD64)Address, SymbolDisplacement, (PSYMBOL_INFOW)SymInfoBuffer);
     if (SymRet != ERROR_SUCCESS)

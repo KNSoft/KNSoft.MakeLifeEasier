@@ -17,7 +17,14 @@ typedef enum _SYS_LIB_INDEX
     SysLibWs2_32,
     SysLibWinmm,
     SysLibMax
-} SYS_LIB_INDEX, *PSYS_LIB_INDEX;
+} SYS_LIB_INDEX;
+
+MLE_API
+_Success_(return != NULL)
+NTSTATUS
+NTAPI
+Sys_GetNtdllBase(
+    _Out_ PVOID* NtdllBase);
 
 MLE_API
 NTSTATUS
