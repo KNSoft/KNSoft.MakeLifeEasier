@@ -79,7 +79,7 @@ Str_ToIntEx_Impl(
         {
             uBase = 10;
         }
-    } else if (Base == 2 || Base == 8 || Base == 16)
+    } else if (Base == 10 || Base == 16 || Base == 2 || Base == 8)
     {
         uBase = Base;
     } else

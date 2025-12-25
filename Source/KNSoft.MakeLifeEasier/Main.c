@@ -31,7 +31,7 @@ Mlep_DlgBox(
                                         ARRAYSIZE(Precomp4C_Res2C_Resource_Embedded),
                                         MAKEINTRESOURCEW(RT_DIALOG),
                                         DlgResName,
-                                        LANG_USER_DEFAULT,
+                                        LOCALE_NEUTRAL,
                                         &DlgRes,
                                         NULL))
     {
@@ -49,7 +49,7 @@ Mlep_DlgBox(
 
 /* Test code */
 
-#ifdef MSB_CONFIGURATIONTYPE_EXE
+#ifdef MSBUILD_CONFIGURATION_TYPE_EXE
 
 int
 _cdecl
