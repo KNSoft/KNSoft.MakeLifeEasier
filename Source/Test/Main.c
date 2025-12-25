@@ -29,5 +29,19 @@ wmain(
     _In_ int argc,
     _In_reads_(argc) _Pre_z_ wchar_t** argv)
 {
+    PVOID p1 = NULL, p2 = INVALID_HANDLE_VALUE, p3;
+    p3 = _InterlockedReadPointer((const volatile void**)&p2);
+    ANSI_STRING a = RTL_CONSTANT_STRING("NtWow64GetNativeSystemInformation");
+    /*
+    SYSTEM_PROCESSOR_INFORMATION spi;
+    PVOID NtdllBase = (CONTAINING_RECORD(NtCurrentPeb()->Ldr->InInitializationOrderModuleList.Flink, LDR_DATA_TABLE_ENTRY, InInitializationOrderLinks)->DllBase);
+    typeof(NtWow64GetNativeSystemInformation)* pc;
+
+    LdrGetProcedureAddress(NtdllBase, &a, 0, (PVOID*)&pc);
+    pc(SystemProcessorInformation, &spi, sizeof(spi), NULL)*/;
+    PVOID p;
+
+    p = NtReadTebPVOID(WOW32Reserved);
+    p = NtReadTebPVOID(WowTebOffset);
     return UnitTest_Main(argc, argv);
 }

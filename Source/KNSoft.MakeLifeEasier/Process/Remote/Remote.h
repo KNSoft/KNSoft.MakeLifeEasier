@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "../MakeLifeEasier.h"
+#include "../../MakeLifeEasier.h"
 
-#include "../PE/Util.h"
+#include "../../PE/Util.h"
 
 EXTERN_C_START
 
@@ -11,45 +11,30 @@ EXTERN_C_START
 MLE_API
 NTSTATUS
 NTAPI
-PS_32Read64Memory(
+PS_Remote32Read64Memory(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_64 BaseAddress,
     _Out_writes_bytes_(NumberOfBytesToRead) PVOID Buffer,
     _In_ ULONGLONG NumberOfBytesToRead,
     _Out_opt_ PULONGLONG NumberOfBytesRead);
 
-FORCEINLINE
-NTSTATUS
-PS_RWStatus(
-    _In_ NTSTATUS Status)
-{
-    return Status != STATUS_PARTIAL_COPY ? Status : STATUS_DATA_ERROR;
-}
-
+/* Use NT_FreeStringW to free Dst */
 MLE_API
 NTSTATUS
 NTAPI
-PS_DuplicateUnicodeString64(
+PS_RemoteDuplicateUnicodeString64(
     _In_ HANDLE ProcessHandle,
     _In_ PUNICODE_STRING64 Src,
     _Out_ PUNICODE_STRING* Dst);
 
+/* Use NT_FreeStringW to free Dst */
 MLE_API
 NTSTATUS
 NTAPI
-PS_DuplicateUnicodeString32(
+PS_RemoteDuplicateUnicodeString32(
     _In_ HANDLE ProcessHandle,
     _In_ PUNICODE_STRING32 Src,
     _Out_ PUNICODE_STRING* Dst);
-
-FORCEINLINE
-_Success_(return != FALSE)
-LOGICAL
-PS_FreeUnicodeString(
-    __drv_freesMem(Mem) _Frees_ptr_ _Post_invalid_ PUNICODE_STRING String)
-{
-    return NT_FreeStringW(String);
-}
 
 #pragma endregion
 
@@ -57,14 +42,14 @@ PS_FreeUnicodeString(
 MLE_API
 NTSTATUS
 NTAPI
-PS_GetMachineType(
+PS_RemoteGetMachineType(
     _In_ HANDLE ProcessHandle,
     _Out_ PUSHORT MachineType);
 
 FORCEINLINE
 NTSTATUS
 NTAPI
-PS_GetMachineBits(
+PS_RemoteGetMachineBits(
     _In_ HANDLE ProcessHandle,
     _Out_ PUSHORT MachineBits)
 {
@@ -72,7 +57,7 @@ PS_GetMachineBits(
     USHORT MachineType;
     USHORT Bits;
 
-    Status = PS_GetMachineType(ProcessHandle, &MachineType);
+    Status = PS_RemoteGetMachineType(ProcessHandle, &MachineType);
     if (!NT_SUCCESS(Status))
     {
         return Status;
@@ -88,12 +73,38 @@ PS_GetMachineBits(
     return STATUS_SUCCESS;
 }
 
+FORCEINLINE
+NTSTATUS
+PS_RemoteGetWowPeb(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PVOID* WowPeb)
+{
+    return NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, WowPeb, sizeof(*WowPeb), NULL);
+}
+
+FORCEINLINE
+NTSTATUS
+PS_RemoteIsWow(
+    _In_ HANDLE ProcessHandle,
+    _Out_ PBOOLEAN IsWow)
+{
+    NTSTATUS Status;
+    PVOID WowPeb;
+
+    Status = PS_RemoteGetWowPeb(ProcessHandle, &WowPeb);
+    if (NT_SUCCESS(Status))
+    {
+        *IsWow = WowPeb != NULL;
+    }
+    return Status;
+}
+
 #pragma region Enumerate Modules
 
 MLE_API
 NTSTATUS
 NTAPI
-PS_EnumerateModules64(
+PS_RemoteEnumerateModules64(
     _In_ HANDLE ProcessHandle,
     _In_ PLDR_ENUM_CALLBACK64 EnumProc,
     _In_ PVOID Context);
@@ -101,7 +112,7 @@ PS_EnumerateModules64(
 MLE_API
 NTSTATUS
 NTAPI
-PS_EnumerateModules32(
+PS_RemoteEnumerateModules32(
     _In_ HANDLE ProcessHandle,
     _In_ PLDR_ENUM_CALLBACK32 EnumProc,
     _In_ PVOID Context);
@@ -109,7 +120,7 @@ PS_EnumerateModules32(
 MLE_API
 NTSTATUS
 NTAPI
-PS_GetRemoteModuleEntryByAddress64(
+PS_RemoteGetModuleEntryByAddress64(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_64 Address,
     _Out_ PLDR_DATA_TABLE_ENTRY64 ModuleEntry);
@@ -117,7 +128,7 @@ PS_GetRemoteModuleEntryByAddress64(
 MLE_API
 NTSTATUS
 NTAPI
-PS_GetRemoteModuleEntryByAddress32(
+PS_RemoteGetModuleEntryByAddress32(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_32 Address,
     _Out_ PLDR_DATA_TABLE_ENTRY32 ModuleEntry);
@@ -125,7 +136,7 @@ PS_GetRemoteModuleEntryByAddress32(
 MLE_API
 NTSTATUS
 NTAPI
-PS_GetRemoteAddressName(
+PS_RemoteGetAddressName(
     _In_ HANDLE ProcessHandle,
     _In_ ULONGLONG Address,
     _Outptr_opt_ PUNICODE_STRING* ModulePath,

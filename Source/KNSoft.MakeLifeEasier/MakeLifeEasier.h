@@ -46,7 +46,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "PE/Util.h"
 #include "Process/Sync.h"
 #include "Time/Time.h"
-#include "System/Library.h"
+#include "System/APIThunks.h"
 #include "System/Registry.h"
 #include "UI/GDI.h"
 #include "UI/Message.h"
@@ -60,6 +60,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "PE/Symbol.h"
 #include "Process/Environment.h"
 #include "Process/Loader.h"
+#include "Process/Process.h"
 #include "Process/Token.h"
 #include "Shell/Desktop.h"
 #include "Shell/Shell.h"
@@ -80,7 +81,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "Error/Message.h"
 #include "IO/File.h"
 #include "Process/Process.h"
-#include "Process/Remote.h"
+#include "Process/Remote/Remote.h"
 #include "UI/Control/Dialog.h"
 
 /* KNSoft specification, do not use */

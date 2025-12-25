@@ -204,9 +204,9 @@
     <ClCompile Include="Process\Environment.cpp" />
     <ClCompile Include="Process\Loader.c" />
     <ClCompile Include="Process\Process.c" />
-    <ClCompile Include="Process\Remote.c" />
-    <ClCompile Include="Process\Remote32.c" />
-    <ClCompile Include="Process\Remote64.c" />
+    <ClCompile Include="Process\Remote\Remote.c" />
+    <ClCompile Include="Process\Remote\Remote32.c" />
+    <ClCompile Include="Process\Remote\Remote64.c" />
     <ClCompile Include="Process\Sync.c" />
     <ClCompile Include="Process\Token.c" />
     <ClCompile Include="Resource.Embedded.rc.g.c" />
@@ -216,7 +216,7 @@
     <ClCompile Include="String\Encoding.c" />
     <ClCompile Include="String\Hash.cpp" />
     <ClCompile Include="System\Info.c" />
-    <ClCompile Include="System\Library.c" />
+    <ClCompile Include="System\APIThunks.c" />
     <ClCompile Include="System\Registry.cpp" />
     <ClCompile Include="Time\Time.c" />
     <ClCompile Include="UI\Control\ListView.c" />
@@ -234,7 +234,7 @@
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
     <None Include="packages.config" />
-    <None Include="Process\Remote.inl" />
+    <None Include="Process\Remote\Remote.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Crypt\Cert.h" />
@@ -261,7 +261,7 @@
     <ClInclude Include="Process\Environment.h" />
     <ClInclude Include="Process\Loader.h" />
     <ClInclude Include="Process\Process.h" />
-    <ClInclude Include="Process\Remote.h" />
+    <ClInclude Include="Process\Remote\Remote.h" />
     <ClInclude Include="Process\Sync.h" />
     <ClInclude Include="Process\Token.h" />
     <ClInclude Include="Resource.Embedded.h" />
@@ -274,7 +274,7 @@
     <ClInclude Include="String\Encoding.h" />
     <ClInclude Include="String\Hash.h" />
     <ClInclude Include="System\Info.h" />
-    <ClInclude Include="System\Library.h" />
+    <ClInclude Include="System\APIThunks.h" />
     <ClInclude Include="System\Registry.h" />
     <ClInclude Include="Time\Time.h" />
     <ClInclude Include="UI\Control\Dialog.h" />
@@ -308,7 +308,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.targets')" />
-    <Import Project="..\packages\KNSoft.NDK.1.2.45-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.45-beta\build\KNSoft.NDK.targets')" />
+    <Import Project="..\packages\KNSoft.NDK.1.2.47-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.47-beta\build\KNSoft.NDK.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -316,6 +316,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.props'))" />
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.18-alpha\build\KNSoft.Precomp4C.targets'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.45-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.45-beta\build\KNSoft.NDK.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.47-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.47-beta\build\KNSoft.NDK.targets'))" />
   </Target>
 </Project>

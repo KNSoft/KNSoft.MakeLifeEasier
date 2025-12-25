@@ -155,7 +155,7 @@ NTAPI
 UI_ValueEditorDlg(
     _In_opt_ HWND Owner,
     _In_ UI_VALUEEDITOR_TYPE Type,
-    _Inout_ PVOID Value,
+    _Inout_updates_bytes_(ValueSize) PVOID Value,
     _In_ ULONG ValueSize,
     _In_reads_(ConstantCount) UI_VALUEEDITOR_CONSTANT Constants[],
     _In_ ULONG ConstantCount);

@@ -3,7 +3,7 @@
 #include "../MakeLifeEasier.h"
 
 #include "../PE/Resource.h"
-#include "../System/Library.h"
+#include "../System/APIThunks.h"
 #include "../UI/DialogBox/DialogBox.h"
 
 EXTERN_C_START
@@ -16,9 +16,9 @@ PCWSTR
 Err_GetWin32ErrorInfo(
     _In_ ULONG Win32Error)
 {
-    PVOID DllHandle;
+    PVOID DllHandle = Sys_LoadDll(SysDll_kernel32);
 
-    return NT_SUCCESS(Sys_LoadDll(SysLibKernel32, &DllHandle)) ? PE_FindMessage(DllHandle, 0, Win32Error) : NULL;
+    return DllHandle != NULL ? PE_FindMessage(DllHandle, 0, Win32Error) : NULL;
 }
 
 FORCEINLINE
@@ -27,14 +27,14 @@ PCWSTR
 Err_GetNtStatusInfo(
     _In_ NTSTATUS Status)
 {
-    PVOID DllHandle;
+    PVOID DllHandle = Sys_LoadDll(SysDll_ntdll);
 
     if (NT_FACILITY(Status) == FACILITY_NTWIN32)
     {
         return Err_GetWin32ErrorInfo(NT_CODE(Status));
     }
 
-    return NT_SUCCESS(Sys_LoadDll(SysLibNtDll, &DllHandle)) ? PE_FindMessage(DllHandle, 0, Status) : NULL;
+    return DllHandle != NULL ? PE_FindMessage(DllHandle, 0, Status) : NULL;
 }
 
 FORCEINLINE

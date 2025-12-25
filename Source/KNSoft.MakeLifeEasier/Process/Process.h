@@ -6,6 +6,15 @@
 
 EXTERN_C_START
 
+/* Treat warning STATUS_PARTIAL_COPY as error */
+FORCEINLINE
+NTSTATUS
+PS_RWStatus(
+    _In_ NTSTATUS Status)
+{
+    return Status != STATUS_PARTIAL_COPY ? Status : STATUS_DATA_ERROR;
+}
+
 W32ERROR
 NTAPI
 PS_CreateProcess(
@@ -117,30 +126,20 @@ PS_GetThreadExitCode(
     return STATUS_SUCCESS;
 }
 
+/* Wow64 */
+
 FORCEINLINE
-NTSTATUS
-PS_GetWow64Peb(
-    _In_ HANDLE ProcessHandle,
-    _Out_ PVOID* Wow64Peb)
+PVOID
+PS_GetWowTeb(VOID)
 {
-    return NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, Wow64Peb, sizeof(*Wow64Peb), NULL);
+    return Add2Ptr(NtCurrentTeb(), NtReadTeb(WowTebOffset));
 }
 
 FORCEINLINE
-NTSTATUS
-PS_IsWow64(
-    _In_ HANDLE ProcessHandle,
-    _Out_ PBOOLEAN IsWow64)
+BOOLEAN
+PS_IsWow(VOID)
 {
-    NTSTATUS Status;
-    PVOID Wow64Peb;
-
-    Status = NtQueryInformationProcess(ProcessHandle, ProcessWow64Information, &Wow64Peb, sizeof(Wow64Peb), NULL);
-    if (NT_SUCCESS(Status))
-    {
-        *IsWow64 = Wow64Peb != NULL;
-    }
-    return Status;
+    return NtReadTeb(WowTebOffset) == 0;
 }
 
 EXTERN_C_END

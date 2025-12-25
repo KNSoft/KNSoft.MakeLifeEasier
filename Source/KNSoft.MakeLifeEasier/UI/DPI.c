@@ -46,9 +46,6 @@ FN_AdjustWindowRectExForDpi(
     _In_ DWORD dwExStyle,
     _In_ UINT dpi);
 
-static FN_AdjustWindowRectExForDpi* g_pfnAdjustWindowRectExForDpi = NULL;
-static CONST ANSI_STRING g_asAdjustWindowRectExForDpi = RTL_CONSTANT_STRING("AdjustWindowRectExForDpi");
-
 W32ERROR
 NTAPI
 UI_DPIAdjustWindowRect(
@@ -58,27 +55,17 @@ UI_DPIAdjustWindowRect(
 {
     DWORD Style, ExStyle;
     BOOL HasMenu;
+    SYS_LOAD_API(AdjustWindowRectExForDpi);
 
     Style = (DWORD)GetWindowLongPtrW(Window, GWL_STYLE);
     ExStyle = (DWORD)GetWindowLongPtrW(Window, GWL_EXSTYLE);
     HasMenu = GetMenu(Window) != NULL;
 
-    /* AdjustWindowRectExForDpi since Win10 1607 (Redstone, 10.0.14393) */
-    if (SharedUserData->NtMajorVersion < 10 ||
-        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    if (pfnAdjustWindowRectExForDpi == NULL)
     {
         goto _Fallback;
     }
-    if (g_pfnAdjustWindowRectExForDpi == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
-                                           &g_asAdjustWindowRectExForDpi,
-                                           (PVOID*)&g_pfnAdjustWindowRectExForDpi)))
-        {
-            goto _Fallback;
-        }
-    }
-    if (g_pfnAdjustWindowRectExForDpi(Rect, Style, HasMenu, ExStyle, DPI))
+    if (pfnAdjustWindowRectExForDpi(Rect, Style, HasMenu, ExStyle, DPI))
     {
         return ERROR_SUCCESS;
     }
@@ -300,76 +287,21 @@ UI_GetDialogDPIScaleInfo(
 
 #pragma region DPI Awareness Context
 
-typedef
-DPI_AWARENESS_CONTEXT
-WINAPI
-FN_SetThreadDpiAwarenessContext(
-    _In_ DPI_AWARENESS_CONTEXT dpiContext);
-
-static FN_SetThreadDpiAwarenessContext* g_pfnSetThreadDpiAwarenessContext = NULL;
-static CONST ANSI_STRING g_asSetThreadDpiAwarenessContext = RTL_CONSTANT_STRING("SetThreadDpiAwarenessContext");
-
-typedef
-DPI_AWARENESS_CONTEXT
-WINAPI
-FN_GetThreadDpiAwarenessContext(VOID);
-
-static FN_GetThreadDpiAwarenessContext* g_pfnGetThreadDpiAwarenessContext = NULL;
-static CONST ANSI_STRING g_asGetThreadDpiAwarenessContext = RTL_CONSTANT_STRING("GetThreadDpiAwarenessContext");
-
-typedef
-BOOL
-WINAPI
-FN_AreDpiAwarenessContextsEqual(
-    _In_ DPI_AWARENESS_CONTEXT dpiContextA,
-    _In_ DPI_AWARENESS_CONTEXT dpiContextB);
-
-static FN_AreDpiAwarenessContextsEqual* g_pfnAreDpiAwarenessContextsEqual = NULL;
-static CONST ANSI_STRING g_asAreDpiAwarenessContextsEqual = RTL_CONSTANT_STRING("AreDpiAwarenessContextsEqual");
-
-typedef
-DPI_AWARENESS_CONTEXT
-WINAPI
-FN_GetWindowDpiAwarenessContext(
-    _In_ HWND hwnd);
-
-static FN_GetWindowDpiAwarenessContext* g_pfnGetWindowDpiAwarenessContext = NULL;
-static CONST ANSI_STRING g_asGetWindowDpiAwarenessContext = RTL_CONSTANT_STRING("GetWindowDpiAwarenessContext");
-
-typedef
-HRESULT
-STDAPICALLTYPE
-FN_GetProcessDpiAwareness(
-    _In_opt_ HANDLE hprocess,
-    _Out_ PROCESS_DPI_AWARENESS* value);
-
-static FN_GetProcessDpiAwareness* g_pfnGetProcessDpiAwareness = NULL;
-static CONST ANSI_STRING g_asGetProcessDpiAwareness = RTL_CONSTANT_STRING("GetProcessDpiAwareness");
-
 _Success_(return != NULL)
 DPI_AWARENESS_CONTEXT
 NTAPI
 UI_EnableDPIAwareContext(VOID)
 {
-    /* SetThreadDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
-    if (SharedUserData->NtMajorVersion < 10 ||
-        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    SYS_LOAD_API(SetThreadDpiAwarenessContext);
+
+    if (pfnSetThreadDpiAwarenessContext == NULL)
     {
         return NULL;
     }
-    if (g_pfnSetThreadDpiAwarenessContext == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
-                                           &g_asSetThreadDpiAwarenessContext,
-                                           (PVOID*)&g_pfnSetThreadDpiAwarenessContext)))
-        {
-            return NULL;
-        }
-    }
 
     /* PMv2 since Win10 1703 (Redstone 2, 10.0.15063) */
-    return g_pfnSetThreadDpiAwarenessContext(
-        (SharedUserData->NtMajorVersion > 10 || SharedUserData->NtBuildNumber >= 15063) ?
+    return pfnSetThreadDpiAwarenessContext(
+        IS_NT_VERSION_GE(NT_VERSION_WIN10_1703) ?
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 : DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
@@ -383,7 +315,7 @@ UI_RestoreDPIAwareContext(
     {
         return NULL;
     }
-    return g_pfnSetThreadDpiAwarenessContext(Context);
+    return SYS_GET_LOAD_API(SetThreadDpiAwarenessContext)(Context);
 }
 
 _Success_(return != NULL)
@@ -391,22 +323,13 @@ DPI_AWARENESS_CONTEXT
 NTAPI
 UI_GetDPIAwareContext(VOID)
 {
-    /* GetThreadDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
-    if (SharedUserData->NtMajorVersion < 10 ||
-        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    SYS_LOAD_API(GetThreadDpiAwarenessContext);
+
+    if (pfnGetThreadDpiAwarenessContext == NULL)
     {
         return NULL;
     }
-    if (g_pfnGetThreadDpiAwarenessContext == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
-                                           &g_asGetThreadDpiAwarenessContext,
-                                           (PVOID*)&g_pfnGetThreadDpiAwarenessContext)))
-        {
-            return NULL;
-        }
-    }
-    return g_pfnGetThreadDpiAwarenessContext();
+    return pfnGetThreadDpiAwarenessContext();
 }
 
 DPI_AWARENESS_CONTEXT
@@ -414,56 +337,35 @@ NTAPI
 UI_GetWindowDPIAwareContext(
     _In_ HWND Window)
 {
-    PROCESS_DPI_AWARENESS Awareness;
+    SYS_DECL_LOAD_API(GetWindowDpiAwarenessContext); // GetWindowDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393)
+    SYS_DECL_LOAD_API(GetProcessDpiAwareness); // GetProcessDpiAwareness since Win8.1
 
-    /* GetWindowDpiAwarenessContext since Win10 1607 (Redstone, 10.0.14393) */
-    if (SharedUserData->NtMajorVersion < 10 ||
-        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
+    pfnGetWindowDpiAwarenessContext = SYS_GET_LOAD_API(GetWindowDpiAwarenessContext);
+    if (pfnGetWindowDpiAwarenessContext != NULL)
     {
-        goto _Fallback_Win_8_1;
+        return pfnGetWindowDpiAwarenessContext(Window);
     }
-    if (g_pfnGetWindowDpiAwarenessContext == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
-                                           &g_asGetWindowDpiAwarenessContext,
-                                           (PVOID*)&g_pfnGetWindowDpiAwarenessContext)))
-        {
-            goto _Fallback_Win_8_1;
-        }
-    }
-    return g_pfnGetWindowDpiAwarenessContext(Window);
 
-_Fallback_Win_8_1:
-    if (SharedUserData->NtMajorVersion < 8 ||
-        (SharedUserData->NtMajorVersion == 8 && SharedUserData->NtMinorVersion < 1))
+    pfnGetProcessDpiAwareness = SYS_GET_LOAD_API(GetProcessDpiAwareness);
+    if (pfnGetProcessDpiAwareness != NULL)
     {
-        goto _Fallback_Win_6_0;
-    }
-    if (g_pfnGetProcessDpiAwareness == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibShcore,
-                                           &g_asGetProcessDpiAwareness,
-                                           (PVOID*)&g_pfnGetProcessDpiAwareness)))
+        PROCESS_DPI_AWARENESS Awareness;
+        if (pfnGetProcessDpiAwareness(NULL, &Awareness) == S_OK)
         {
-            goto _Fallback_Win_6_0;
+            if (Awareness == PROCESS_DPI_UNAWARE)
+            {
+                return DPI_AWARENESS_CONTEXT_UNAWARE;
+            } if (Awareness == PROCESS_SYSTEM_DPI_AWARE)
+            {
+                return DPI_AWARENESS_CONTEXT_SYSTEM_AWARE;
+            } else if (Awareness == PROCESS_PER_MONITOR_DPI_AWARE)
+            {
+                return DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
+            }
         }
+        return NULL;
     }
-    if (g_pfnGetProcessDpiAwareness(NULL, &Awareness) == S_OK)
-    {
-        if (Awareness == PROCESS_DPI_UNAWARE)
-        {
-            return DPI_AWARENESS_CONTEXT_UNAWARE;
-        } if (Awareness == PROCESS_SYSTEM_DPI_AWARE)
-        {
-            return DPI_AWARENESS_CONTEXT_SYSTEM_AWARE;
-        } else if (Awareness == PROCESS_PER_MONITOR_DPI_AWARE)
-        {
-            return DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
-        }
-    }
-    return NULL;
 
-_Fallback_Win_6_0:
     return IsProcessDPIAware() ? DPI_AWARENESS_CONTEXT_SYSTEM_AWARE : DPI_AWARENESS_CONTEXT_UNAWARE;
 }
 
@@ -473,22 +375,9 @@ UI_CompareDPIAwareContext(
     _In_ DPI_AWARENESS_CONTEXT Context1,
     _In_ DPI_AWARENESS_CONTEXT Context2)
 {
-    /* AreDpiAwarenessContextsEqual since Win10 1607 (Redstone, 10.0.14393) */
-    if (SharedUserData->NtMajorVersion < 10 ||
-        (SharedUserData->NtMajorVersion == 10 && SharedUserData->NtBuildNumber < 14393))
-    {
-        return FALSE;
-    }
-    if (g_pfnAreDpiAwarenessContextsEqual == NULL)
-    {
-        if (!NT_SUCCESS(Sys_LoadProcByName(SysLibUser32,
-                                           &g_asAreDpiAwarenessContextsEqual,
-                                           (PVOID*)&g_pfnAreDpiAwarenessContextsEqual)))
-        {
-            return FALSE;
-        }
-    }
-    return g_pfnAreDpiAwarenessContextsEqual(Context1, Context2);
+    SYS_LOAD_API(AreDpiAwarenessContextsEqual); // AreDpiAwarenessContextsEqual since Win10 1607 (Redstone, 10.0.14393)
+
+    return pfnAreDpiAwarenessContextsEqual != NULL ? pfnAreDpiAwarenessContextsEqual(Context1, Context2) : FALSE;
 }
 
 #pragma endregion

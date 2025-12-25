@@ -1,53 +1,36 @@
-﻿#include "../MakeLifeEasier.inl"
+﻿#include "../../MakeLifeEasier.inl"
 
 #pragma region Memory R/W
 
-typedef
 NTSTATUS
 NTAPI
-FN_NtWow64ReadVirtualMemory64(
-    _In_ HANDLE ProcessHandle,
-    _In_ ULONGLONG BaseAddress,
-    _Out_writes_bytes_(NumberOfBytesToRead) PVOID Buffer,
-    _In_ ULONGLONG NumberOfBytesToRead,
-    _Out_opt_ PULONGLONG NumberOfBytesRead);
-
-static FN_NtWow64ReadVirtualMemory64* g_pfnNtWow64ReadVirtualMemory64 = NULL;
-static CONST ANSI_STRING g_asNtWow64ReadVirtualMemory64 = RTL_CONSTANT_STRING("NtWow64ReadVirtualMemory64");
-
-NTSTATUS
-NTAPI
-PS_32Read64Memory(
+PS_Remote32Read64Memory(
     _In_ HANDLE ProcessHandle,
     _In_ VOID* POINTER_64 BaseAddress,
     _Out_writes_bytes_(NumberOfBytesToRead) PVOID Buffer,
     _In_ ULONGLONG NumberOfBytesToRead,
     _Out_opt_ PULONGLONG NumberOfBytesRead)
 {
-    NTSTATUS Status;
+    SYS_LOAD_API(NtWow64ReadVirtualMemory64); 
 
-    if (g_pfnNtWow64ReadVirtualMemory64 == NULL)
+    if (pfnNtWow64ReadVirtualMemory64 != NULL)
     {
-        Status = Sys_LoadProcByName(SysLibNtDll,
-                                    &g_asNtWow64ReadVirtualMemory64,
-                                    (PVOID*)&g_pfnNtWow64ReadVirtualMemory64);
-        if (!NT_SUCCESS(Status))
-        {
-            return Status;
-        }
+        return pfnNtWow64ReadVirtualMemory64(ProcessHandle,
+                                             (ULONGLONG)BaseAddress,
+                                             Buffer,
+                                             NumberOfBytesToRead,
+                                             NumberOfBytesRead);
+    } else
+    {
+        return STATUS_PROCEDURE_NOT_FOUND;
     }
-    return g_pfnNtWow64ReadVirtualMemory64(ProcessHandle,
-                                           (ULONGLONG)BaseAddress,
-                                           Buffer,
-                                           NumberOfBytesToRead,
-                                           NumberOfBytesRead);
 }
 
 #pragma endregion
 
 static
 NTSTATUS
-PS_GetMachineTypeFromFile(
+PS_RemoteGetMachineTypeFromFile(
     _In_ HANDLE ProcessHandle,
     _Out_ PUSHORT MachineType)
 {
@@ -110,7 +93,7 @@ _Exit_0:
 
 NTSTATUS
 NTAPI
-PS_GetMachineType(
+PS_RemoteGetMachineType(
     _In_ HANDLE ProcessHandle,
     _Out_ PUSHORT MachineType)
 {
@@ -148,12 +131,12 @@ _Fallback_0:
     return STATUS_SUCCESS;
 
 _Fallback_1:
-    return PS_GetMachineTypeFromFile(ProcessHandle, MachineType);
+    return PS_RemoteGetMachineTypeFromFile(ProcessHandle, MachineType);
 }
 
 NTSTATUS
 NTAPI
-PS_GetRemoteAddressName(
+PS_RemoteGetAddressName(
     _In_ HANDLE ProcessHandle,
     _In_ ULONGLONG Address,
     _Outptr_opt_ PUNICODE_STRING* ModulePath,
@@ -173,7 +156,7 @@ PS_GetRemoteAddressName(
     PUNICODE_STRING SymName;
 
     /* Get process machine bits */
-    Status = PS_GetMachineBits(ProcessHandle, &Bits);
+    Status = PS_RemoteGetMachineBits(ProcessHandle, &Bits);
     if (!NT_SUCCESS(Status))
     {
         return Status;
@@ -182,10 +165,10 @@ PS_GetRemoteAddressName(
     /* Get module full path */
     if (Bits != 32)
     {
-        Status = PS_GetRemoteModuleEntryByAddress64(ProcessHandle, (VOID* POINTER_64)Address, &DllEntry64);
+        Status = PS_RemoteGetModuleEntryByAddress64(ProcessHandle, (VOID* POINTER_64)Address, &DllEntry64);
     } else
     {
-        Status = PS_GetRemoteModuleEntryByAddress32(ProcessHandle, (VOID* POINTER_32)Address, &DllEntry32);
+        Status = PS_RemoteGetModuleEntryByAddress32(ProcessHandle, (VOID* POINTER_32)Address, &DllEntry32);
     }
     if (!NT_SUCCESS(Status))
     {
@@ -193,10 +176,10 @@ PS_GetRemoteAddressName(
     }
     if (Bits != 32)
     {
-        Status = PS_DuplicateUnicodeString64(ProcessHandle, &DllEntry64.FullDllName, &DllPath);
+        Status = PS_RemoteDuplicateUnicodeString64(ProcessHandle, &DllEntry64.FullDllName, &DllPath);
     } else
     {
-        Status = PS_DuplicateUnicodeString32(ProcessHandle, &DllEntry32.FullDllName, &DllPath);
+        Status = PS_RemoteDuplicateUnicodeString32(ProcessHandle, &DllEntry32.FullDllName, &DllPath);
     }
     if (!NT_SUCCESS(Status))
     {
@@ -278,7 +261,7 @@ _Exit_0:
         *ModulePath = DllPath;
     } else
     {
-        PS_FreeUnicodeString(DllPath);
+        NT_FreeStringW(DllPath);
     }
     return Status;
 }

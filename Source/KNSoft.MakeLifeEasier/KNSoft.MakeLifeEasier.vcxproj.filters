@@ -49,6 +49,9 @@
     <Filter Include="UI\Control">
       <UniqueIdentifier>{2aeeba04-9117-436c-ab83-36a0eed7434a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Process\Remote">
+      <UniqueIdentifier>{396a0fa9-16a3-4dac-9a15-10075988ec2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory\Memory.c">
@@ -84,7 +87,7 @@
     <ClCompile Include="Error\Message.c">
       <Filter>Error</Filter>
     </ClCompile>
-    <ClCompile Include="System\Library.c">
+    <ClCompile Include="System\APIThunks.c">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="PE\Resolve.c">
@@ -165,28 +168,28 @@
     <ClCompile Include="UI\Control\PropSheet.c">
       <Filter>UI\Control</Filter>
     </ClCompile>
-    <ClCompile Include="Process\Remote.c">
-      <Filter>Process</Filter>
-    </ClCompile>
-    <ClCompile Include="Process\Remote32.c">
-      <Filter>Process</Filter>
-    </ClCompile>
-    <ClCompile Include="Process\Remote64.c">
-      <Filter>Process</Filter>
-    </ClCompile>
     <ClCompile Include="PE\Symbol.c">
       <Filter>PE</Filter>
     </ClCompile>
     <ClCompile Include="Shell\Desktop.c">
       <Filter>Shell</Filter>
     </ClCompile>
+    <ClCompile Include="Process\Remote\Remote.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote\Remote32.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote\Remote64.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
-    <None Include="Process\Remote.inl">
-      <Filter>Process</Filter>
-    </None>
     <None Include="packages.config" />
+    <None Include="Process\Remote\Remote.inl">
+      <Filter>Process\Remote</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Memory\Memory.h">
@@ -229,7 +232,7 @@
     <ClInclude Include="Error\Message.h">
       <Filter>Error</Filter>
     </ClInclude>
-    <ClInclude Include="System\Library.h">
+    <ClInclude Include="System\APIThunks.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="PE\Resolve.h">
@@ -320,9 +323,6 @@
     <ClInclude Include="UI\Control\Dialog.h">
       <Filter>UI\Control</Filter>
     </ClInclude>
-    <ClInclude Include="Process\Remote.h">
-      <Filter>Process</Filter>
-    </ClInclude>
     <ClInclude Include="PE\Util.h">
       <Filter>PE</Filter>
     </ClInclude>
@@ -331,6 +331,9 @@
     </ClInclude>
     <ClInclude Include="Shell\Desktop.h">
       <Filter>Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Remote\Remote.h">
+      <Filter>Process\Remote</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
