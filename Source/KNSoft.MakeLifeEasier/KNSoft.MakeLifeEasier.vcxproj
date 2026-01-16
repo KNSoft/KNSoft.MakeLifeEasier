@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64EC">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64EC">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{4889e88d-a60f-418f-9737-989d84a1a73e}</ProjectGuid>
+    <RootNamespace>KNSoftMakeLifeEasier</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Crypt\Cert.c" />
+    <ClCompile Include="Error\Code.c" />
+    <ClCompile Include="Error\Message.c" />
+    <ClCompile Include="I18N.xml.g.c" />
+    <ClCompile Include="IO\Hardware.c" />
+    <ClCompile Include="IO\File.c" />
+    <ClCompile Include="KNSoft\DialogBox.c" />
+    <ClCompile Include="KNSoft\I18N.c" />
+    <ClCompile Include="Main.c" />
+    <ClCompile Include="Math\Rand.c" />
+    <ClCompile Include="Memory\Memory.c" />
+    <ClCompile Include="NT\Object.c" />
+    <ClCompile Include="NT\Security.c" />
+    <ClCompile Include="PE\Resolve.c" />
+    <ClCompile Include="PE\Resource.c" />
+    <ClCompile Include="PE\Symbol.c" />
+    <ClCompile Include="Process\Environment.cpp" />
+    <ClCompile Include="Process\Loader.c" />
+    <ClCompile Include="Process\Process.c" />
+    <ClCompile Include="Process\Remote\Remote.c" />
+    <ClCompile Include="Process\Remote\Remote32.c" />
+    <ClCompile Include="Process\Remote\Remote64.c" />
+    <ClCompile Include="Process\Sync.c" />
+    <ClCompile Include="Process\Token.c" />
+    <ClCompile Include="Resource.Embedded.rc.g.c" />
+    <ClCompile Include="Shell\Desktop.c" />
+    <ClCompile Include="Shell\Shell.c" />
+    <ClCompile Include="String\Convert.cpp" />
+    <ClCompile Include="String\Encoding.c" />
+    <ClCompile Include="String\Hash.cpp" />
+    <ClCompile Include="System\Info.c" />
+    <ClCompile Include="System\APIThunks.c" />
+    <ClCompile Include="System\Registry.cpp" />
+    <ClCompile Include="Time\Time.c" />
+    <ClCompile Include="UI\Control\ListView.c" />
+    <ClCompile Include="UI\Control\Menu.c" />
+    <ClCompile Include="UI\Control\PropSheet.c" />
+    <ClCompile Include="UI\Control\TreeView.c" />
+    <ClCompile Include="UI\DialogBox\RectEditor.c" />
+    <ClCompile Include="UI\DialogBox\ValueEditor.c" />
+    <ClCompile Include="UI\DPI.c" />
+    <ClCompile Include="UI\GDI.c" />
+    <ClCompile Include="UI\Message.c" />
+    <ClCompile Include="UI\Paint.c" />
+    <ClCompile Include="UI\Window.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MakeLifeEasier.inl" />
+    <None Include="packages.config" />
+    <None Include="Process\Remote\Remote.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Crypt\Cert.h" />
+    <ClInclude Include="Error\Code.h" />
+    <ClInclude Include="Error\Message.h" />
+    <ClInclude Include="I18N.xml.g.h" />
+    <ClInclude Include="IO\Hardware.h" />
+    <ClInclude Include="IO\File.h" />
+    <ClInclude Include="KNSoft\AppInfo.h" />
+    <ClInclude Include="KNSoft\DialogBox.h" />
+    <ClInclude Include="KNSoft\I18N.h" />
+    <ClInclude Include="MakeLifeEasier.h" />
+    <ClInclude Include="Math\Math.h" />
+    <ClInclude Include="Math\Rand.h" />
+    <ClInclude Include="Memory\Core.h" />
+    <ClInclude Include="Memory\Memory.h" />
+    <ClInclude Include="NT\Core.h" />
+    <ClInclude Include="NT\Object.h" />
+    <ClInclude Include="NT\Security.h" />
+    <ClInclude Include="PE\Resolve.h" />
+    <ClInclude Include="PE\Resource.h" />
+    <ClInclude Include="PE\Symbol.h" />
+    <ClInclude Include="PE\Util.h" />
+    <ClInclude Include="Process\Environment.h" />
+    <ClInclude Include="Process\Loader.h" />
+    <ClInclude Include="Process\Process.h" />
+    <ClInclude Include="Process\Remote\Remote.h" />
+    <ClInclude Include="Process\Sync.h" />
+    <ClInclude Include="Process\Token.h" />
+    <ClInclude Include="Resource.Embedded.h" />
+    <ClInclude Include="Resource.Embedded.rc.g.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Shell\Desktop.h" />
+    <ClInclude Include="Shell\Shell.h" />
+    <ClInclude Include="String\Core.h" />
+    <ClInclude Include="String\Convert.h" />
+    <ClInclude Include="String\Encoding.h" />
+    <ClInclude Include="String\Hash.h" />
+    <ClInclude Include="System\Info.h" />
+    <ClInclude Include="System\APIThunks.h" />
+    <ClInclude Include="System\Registry.h" />
+    <ClInclude Include="Time\Time.h" />
+    <ClInclude Include="UI\Control\Dialog.h" />
+    <ClInclude Include="UI\Control\ListView.h" />
+    <ClInclude Include="UI\Control\Menu.h" />
+    <ClInclude Include="UI\Control\PropSheet.h" />
+    <ClInclude Include="UI\Control\TreeView.h" />
+    <ClInclude Include="UI\DialogBox\DialogBox.h" />
+    <ClInclude Include="UI\DPI.h" />
+    <ClInclude Include="UI\GDI.h" />
+    <ClInclude Include="UI\Message.h" />
+    <ClInclude Include="UI\Paint.h" />
+    <ClInclude Include="UI\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.Embedded.rc">
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</P4CEnableRes2C>
+      <P4CEnableRes2C Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</P4CEnableRes2C>
+    </ResourceCompile>
+    <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Precomp4C_I18N Include="I18N.xml" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" />
+    <Import Project="..\packages\KNSoft.NDK.1.2.50-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.50-beta\build\KNSoft.NDK.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.50-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.50-beta\build\KNSoft.NDK.targets'))" />
+  </Target>
+</Project>

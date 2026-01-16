@@ -1,0 +1,64 @@
+<I18N>
+  <Table Name="All">
+    <String Name="RectangleEditor">
+      <Value Locale="en">Rectangle Editor</Value>
+      <Value Locale="zh-Hans">矩形编辑器</Value>
+    </String>
+    <String Name="ValueEditorCombine">
+      <Value Locale="en">Combine Value Editor</Value>
+      <Value Locale="zh-Hans">组合值编辑器</Value>
+    </String>
+    <String Name="EnumEditorCombine">
+      <Value Locale="en">Enumeration Value Editor</Value>
+      <Value Locale="zh-Hans">枚举值编辑器</Value>
+    </String>
+    <String Name="Reset">
+      <Value Locale="en">Reset</Value>
+      <Value Locale="zh-Hans">重置</Value>
+    </String>
+    <String Name="OK">
+      <Value Locale="en">OK</Value>
+      <Value Locale="zh-Hans">确定</Value>
+    </String>
+    <String Name="Left">
+      <Value Locale="en">Left</Value>
+      <Value Locale="zh-Hans">左</Value>
+    </String>
+    <String Name="Top">
+      <Value Locale="en">Top</Value>
+      <Value Locale="zh-Hans">上</Value>
+    </String>
+    <String Name="Right">
+      <Value Locale="en">Right</Value>
+      <Value Locale="zh-Hans">右</Value>
+    </String>
+    <String Name="Bottom">
+      <Value Locale="en">Bottom</Value>
+      <Value Locale="zh-Hans">下</Value>
+    </String>
+    <String Name="Width">
+      <Value Locale="en">Width</Value>
+      <Value Locale="zh-Hans">宽</Value>
+    </String>
+    <String Name="Height">
+      <Value Locale="en">Height</Value>
+      <Value Locale="zh-Hans">高</Value>
+    </String>
+    <String Name="Member">
+      <Value Locale="en">Member</Value>
+      <Value Locale="zh-Hans">成员</Value>
+    </String>
+    <String Name="Value">
+      <Value Locale="en">Value</Value>
+      <Value Locale="zh-Hans">值</Value>
+    </String>
+    <String Name="Description">
+      <Value Locale="en">Description</Value>
+      <Value Locale="zh-Hans">描述</Value>
+    </String>
+    <String Name="Unidentified_Parentheses">
+      <Value Locale="en">(Unidentified)</Value>
+      <Value Locale="zh-Hans">（未识别）</Value>
+    </String>
+  </Table>
+</I18N>

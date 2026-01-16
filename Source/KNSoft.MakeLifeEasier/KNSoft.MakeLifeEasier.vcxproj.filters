@@ -1,0 +1,346 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="IO">
+      <UniqueIdentifier>{e7b41999-cdc9-4123-ae67-e504e872622c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{4c99c82f-dc94-487b-894f-f509b8bc8287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{95fee4d2-126a-4634-ae40-2868a04afc1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{5700933c-0695-4851-858d-50b379344836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shell">
+      <UniqueIdentifier>{20e6e3c4-0dbc-40c1-af85-d5ee9d65ad69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="String">
+      <UniqueIdentifier>{210804f5-0bd4-4dcc-8c4c-5530f530408d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Time">
+      <UniqueIdentifier>{b05800f2-9ab7-4424-a5b5-7ef30b77e3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Error">
+      <UniqueIdentifier>{566a3cfc-616e-48ca-b606-fa446a2ff007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{855e0848-467e-48e5-ae8d-f29a6ae5bb47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PE">
+      <UniqueIdentifier>{43c94c01-ef4f-42f3-bc73-fb9fd5814dca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Process">
+      <UniqueIdentifier>{eaaf15c6-cd44-4910-ba55-056be3466ea0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Crypt">
+      <UniqueIdentifier>{27556378-0429-42f1-be56-5f89e5e2f014}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NT">
+      <UniqueIdentifier>{3cdf7cf2-740b-4617-896f-a36f9ed5757c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KNSoft">
+      <UniqueIdentifier>{a08feceb-b1a2-4226-8b5e-78dc188c11d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\DialogBox">
+      <UniqueIdentifier>{c33347fe-2000-4c97-bd09-132385981b94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Control">
+      <UniqueIdentifier>{2aeeba04-9117-436c-ab83-36a0eed7434a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Process\Remote">
+      <UniqueIdentifier>{396a0fa9-16a3-4dac-9a15-10075988ec2b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Memory\Memory.c">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Rand.c">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Hardware.c">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Message.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Paint.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Window.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\File.c">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Shell\Shell.c">
+      <Filter>Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="Time\Time.c">
+      <Filter>Time</Filter>
+    </ClCompile>
+    <ClCompile Include="String\Hash.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\Message.c">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="System\APIThunks.c">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\Resolve.c">
+      <Filter>PE</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.c" />
+    <ClCompile Include="I18N.xml.g.c" />
+    <ClCompile Include="String\Convert.cpp">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\GDI.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Info.c">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DPI.c">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Registry.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.Embedded.rc.g.c" />
+    <ClCompile Include="Process\Loader.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Token.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Sync.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypt\Cert.c">
+      <Filter>Crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="NT\Object.c">
+      <Filter>NT</Filter>
+    </ClCompile>
+    <ClCompile Include="NT\Security.c">
+      <Filter>NT</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\Code.c">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\Resource.c">
+      <Filter>PE</Filter>
+    </ClCompile>
+    <ClCompile Include="String\Encoding.c">
+      <Filter>String</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Process.c">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="KNSoft\I18N.c">
+      <Filter>KNSoft</Filter>
+    </ClCompile>
+    <ClCompile Include="KNSoft\DialogBox.c">
+      <Filter>KNSoft</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DialogBox\RectEditor.c">
+      <Filter>UI\DialogBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DialogBox\ValueEditor.c">
+      <Filter>UI\DialogBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Environment.cpp">
+      <Filter>Process</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\Menu.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\TreeView.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\ListView.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Control\PropSheet.c">
+      <Filter>UI\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="PE\Symbol.c">
+      <Filter>PE</Filter>
+    </ClCompile>
+    <ClCompile Include="Shell\Desktop.c">
+      <Filter>Shell</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote\Remote.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote\Remote32.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\Remote\Remote64.c">
+      <Filter>Process\Remote</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MakeLifeEasier.inl" />
+    <None Include="Process\Remote\Remote.inl">
+      <Filter>Process\Remote</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Memory\Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MakeLifeEasier.h" />
+    <ClInclude Include="Math\Rand.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Hardware.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Message.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Paint.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Window.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\File.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Math.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell\Shell.h">
+      <Filter>Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Core.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Time\Time.h">
+      <Filter>Time</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Hash.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\Message.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="System\APIThunks.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Resolve.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.Embedded.h" />
+    <ClInclude Include="I18N.xml.g.h" />
+    <ClInclude Include="String\Convert.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\GDI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Info.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\DPI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Registry.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Resource.Embedded.rc.g.h" />
+    <ClInclude Include="Process\Loader.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Token.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Sync.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypt\Cert.h">
+      <Filter>Crypt</Filter>
+    </ClInclude>
+    <ClInclude Include="NT\Object.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="NT\Security.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Core.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\Code.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Resource.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Encoding.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Process.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="KNSoft\I18N.h">
+      <Filter>KNSoft</Filter>
+    </ClInclude>
+    <ClInclude Include="KNSoft\DialogBox.h">
+      <Filter>KNSoft</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\DialogBox\DialogBox.h">
+      <Filter>UI\DialogBox</Filter>
+    </ClInclude>
+    <ClInclude Include="KNSoft\AppInfo.h">
+      <Filter>KNSoft</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Environment.h">
+      <Filter>Process</Filter>
+    </ClInclude>
+    <ClInclude Include="NT\Core.h">
+      <Filter>NT</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\Menu.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\TreeView.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\ListView.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\PropSheet.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Control\Dialog.h">
+      <Filter>UI\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Util.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="PE\Symbol.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell\Desktop.h">
+      <Filter>Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\Remote\Remote.h">
+      <Filter>Process\Remote</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.Embedded.rc" />
+    <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Precomp4C_I18N Include="I18N.xml" />
+  </ItemGroup>
+</Project>
