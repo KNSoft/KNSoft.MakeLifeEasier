@@ -1,5 +1,5 @@
 <I18N>
-  <Table Name="All">
+  <Table Name="KNSMLE">
     <String Name="RectangleEditor">
       <Value Locale="en">Rectangle Editor</Value>
       <Value Locale="zh-Hans">矩形编辑器</Value>

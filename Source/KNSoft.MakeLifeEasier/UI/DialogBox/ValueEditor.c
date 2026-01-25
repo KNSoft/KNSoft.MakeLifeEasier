@@ -227,9 +227,9 @@ UI_ValueEditor_UpdateListOrValue(
 
 static INT g_aColCx[] = { 200, 210, 540 };
 static INT g_aColPsz[] = {
-    Precomp4C_I18N_All_Member,
-    Precomp4C_I18N_All_Value,
-    Precomp4C_I18N_All_Description
+    Precomp4C_I18N_KNSMLE_Member,
+    Precomp4C_I18N_KNSMLE_Value,
+    Precomp4C_I18N_KNSMLE_Description
 };
 _STATIC_ASSERT(ARRAYSIZE(g_aColCx) == ARRAYSIZE(g_aColPsz));
 
@@ -322,8 +322,8 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         SetWindowLongPtrW(hDlg, DWLP_USER, lParam);
         UI_SetWindowTextW(hDlg, Mlep_GetStringEx(pData->Type == UIValueEditorCombine ?
-                                                 Precomp4C_I18N_All_ValueEditorCombine :
-                                                 Precomp4C_I18N_All_EnumEditorCombine));
+                                                 Precomp4C_I18N_KNSMLE_ValueEditorCombine :
+                                                 Precomp4C_I18N_KNSMLE_EnumEditorCombine));
 
         pData->CurrentValue = UI_ValueEditor_GetValue(pData->Value, pData->ValueSize);
         UI_ValueEditor_SetValueText(hDlg, pData->Value, pData->ValueSize);
@@ -427,8 +427,6 @@ DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
     } else if (uMsg == WM_CLOSE)
     {
-        PUI_VALUEEDITOR_DATA pData = (PUI_VALUEEDITOR_DATA)GetWindowLongPtrW(hDlg, DWLP_USER);
-
         EndDialog(hDlg, S_FALSE);
         SetWindowLongPtrW(hDlg, DWLP_MSGRESULT, 0);
     }

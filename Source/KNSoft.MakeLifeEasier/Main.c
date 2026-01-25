@@ -2,7 +2,7 @@
 
 #pragma region I18N Support
 
-static KNS_I18N_TABLE g_I18NTable = { PS_RUNONCE_INIT, &Precomp4C_I18N_Table_All };
+static KNS_I18N_TABLE g_I18NTable = { PS_RUNONCE_INIT, &Precomp4C_I18N_Table_KNSMLE };
 
 PCWSTR
 Mlep_GetStringEx(

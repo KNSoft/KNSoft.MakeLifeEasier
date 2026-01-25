@@ -23,7 +23,7 @@ PCWSTR
 Mlep_GetStringEx(
     _In_ INT Index);
 
-#define Mlep_GetString(x) Mlep_GetStringEx(Precomp4C_I18N_All_##x)
+#define Mlep_GetString(x) Mlep_GetStringEx(Precomp4C_I18N_KNSMLE_##x)
 
 HRESULT
 Mlep_DlgBox(

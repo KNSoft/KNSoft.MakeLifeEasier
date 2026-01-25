@@ -149,6 +149,7 @@ typedef enum _UI_VALUEEDITOR_TYPE
     UIValueEditorMax
 } UI_VALUEEDITOR_TYPE, *PUI_VALUEEDITOR_TYPE;
 
+/* Return S_FALSE if canceled */
 MLE_API
 HRESULT
 NTAPI

@@ -55,6 +55,27 @@ Mem_FreePage(
 
 #pragma endregion
 
+FORCEINLINE
+NTSTATUS
+Mem_WriteCode(
+    _In_ PVOID Address,
+    _In_reads_bytes_(Length) PBYTE OpCode,
+    _In_ ULONG Length)
+{
+    NTSTATUS Status;
+    ULONG OldProtect;
+
+    Status = Mem_ProtectPage(Address, Length, PAGE_EXECUTE_READWRITE, &OldProtect);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    memcpy(Address, OpCode, Length);
+    Mem_ProtectPage(Address, Length, OldProtect, &OldProtect);
+    NtFlushInstructionCache(NtCurrentProcess(), Address, Length);
+    return STATUS_SUCCESS;
+}
+
 /// <summary>
 /// Combines groups of structures into a new allocated buffer
 /// </summary>

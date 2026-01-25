@@ -2,7 +2,7 @@
 
 #include <KNSoft/Precomp4C/I18N/I18N.h>
 
-PRECOMP4C_I18N_TABLE Precomp4C_I18N_Table_All = {
+PRECOMP4C_I18N_TABLE Precomp4C_I18N_Table_KNSMLE = {
     (void*)0,
     0,
     2,
