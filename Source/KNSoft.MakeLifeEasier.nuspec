@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
   <metadata>
     <id>KNSoft.MakeLifeEasier</id>
-    <version>1.0.0-beta</version>
+    <version>1.0.1-beta</version>
     <title>KNSoft.MakeLifeEasier</title>
     <authors>KNSoft</authors>
     <projectUrl>https://github.com/KNSoft/KNSoft.MakeLifeEasier</projectUrl>
