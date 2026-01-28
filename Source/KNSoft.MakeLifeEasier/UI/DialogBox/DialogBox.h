@@ -128,6 +128,7 @@ UI_ChooseFont(
 
 /* MakeLifeEasier dialog box */
 
+/* Return S_FALSE if canceled */
 MLE_API
 HRESULT
 NTAPI

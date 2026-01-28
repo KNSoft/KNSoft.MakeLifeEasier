@@ -7,7 +7,6 @@ UI_GetRelativeRect(
     _In_opt_ HWND RefWindow,
     _Out_ PRECT Rect)
 {
-    POINT pt;
     HANDLE hParent;
     RECT rc;
     HRESULT hr;
@@ -18,20 +17,16 @@ UI_GetRelativeRect(
         return hr;
     }
 
-    pt.x = rc.left;
-    pt.y = rc.top;
-    hParent = RefWindow == NULL ? GetParent(Window) : RefWindow;
-    if (!ScreenToClient(hParent ? hParent : GetDesktopWindow(), &pt))
+    hParent = RefWindow;
+    if (hParent == NULL)
     {
-        return E_UNEXPECTED;
+        hParent = GetAncestor(Window, GA_PARENT);
+        if (hParent == NULL)
+        {
+            hParent = GetDesktopWindow();
+        }
     }
-
-    Rect->right = rc.right + pt.x - rc.left;
-    Rect->bottom = rc.bottom + pt.y - rc.top;
-    Rect->left = pt.x;
-    Rect->top = pt.y;
-
-    return S_OK;
+    return UI_ScreenRectToClient(hParent, &rc, Rect) ? S_OK : E_UNEXPECTED;
 }
 
 static

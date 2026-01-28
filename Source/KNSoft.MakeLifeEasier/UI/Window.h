@@ -140,6 +140,50 @@ UI_GetScreenPos(
     }
 }
 
+/* Input Rect and Output Rect can be the same */
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+UI_ScreenRectToClient(
+    _In_ HWND RelativeTo,
+    _In_ PRECT ScreenRect,
+    _Out_ PRECT RelativeRect)
+{
+    POINT pt = { ScreenRect->left, ScreenRect->top };
+
+    if (!ScreenToClient(RelativeTo, &pt))
+    {
+        return FALSE;
+    }
+    RelativeRect->right = ScreenRect->right - ScreenRect->left + pt.x;
+    RelativeRect->bottom = ScreenRect->bottom - ScreenRect->top + pt.y;
+    RelativeRect->left = pt.x;
+    RelativeRect->top = pt.y;
+    return TRUE;
+}
+
+/* Input Rect and Output Rect can be the same */
+FORCEINLINE
+_Success_(return != FALSE)
+LOGICAL
+UI_ClientRectToScreen(
+    _In_ HWND Window,
+    _In_ PRECT ClientRect,
+    _Out_ PRECT ScreenRect)
+{
+    POINT pt = { ClientRect->left, ClientRect->top };
+
+    if (!ClientToScreen(Window, &pt))
+    {
+        return FALSE;
+    }
+    ScreenRect->right = ClientRect->right - ClientRect->left + pt.x;
+    ScreenRect->bottom = ClientRect->bottom - ClientRect->top + pt.y;
+    ScreenRect->left = pt.x;
+    ScreenRect->top = pt.y;
+    return TRUE;
+}
+
 /// <summary>
 /// Gets position of window relative to specified window
 /// </summary>
