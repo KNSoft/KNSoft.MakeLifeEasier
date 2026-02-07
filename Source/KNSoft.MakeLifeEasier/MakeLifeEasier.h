@@ -16,6 +16,7 @@
 #include <Uxtheme.h>
 #include <dwmapi.h>
 #include <DbgHelp.h>
+#include <ShObjIdl.h>
 
 #ifndef MLE_API
 #define MLE_API DECLSPEC_IMPORT
@@ -64,6 +65,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "Process/Token.h"
 #include "Shell/Desktop.h"
 #include "Shell/Shell.h"
+#include "Shell/VirtDesk.h"
 #include "String/Convert.h"
 #include "String/Encoding.h"
 #include "String/Hash.h"

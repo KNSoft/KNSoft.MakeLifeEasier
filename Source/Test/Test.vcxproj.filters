@@ -8,6 +8,7 @@
     <ClCompile Include="Samples\CreateSuperToken.c">
       <Filter>Samples</Filter>
     </ClCompile>
+    <ClCompile Include="ShellObject.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.h" />

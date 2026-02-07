@@ -183,6 +183,9 @@
     <ClCompile Include="Process\Remote\Remote64.c">
       <Filter>Process\Remote</Filter>
     </ClCompile>
+    <ClCompile Include="Shell\VirtDesk.c">
+      <Filter>Shell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -334,6 +337,9 @@
     </ClInclude>
     <ClInclude Include="Process\Remote\Remote.h">
       <Filter>Process\Remote</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell\VirtDesk.h">
+      <Filter>Shell</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -7,6 +7,7 @@
 #pragma comment (lib, "KNSoft.MakeLifeEasier.lib")
 
 TEST_DECL_FUNC(Math_Round);
+TEST_DECL_FUNC(ShellObject);
 TEST_DECL_FUNC(String_Hash);
 TEST_DECL_FUNC(RegistryWin32);
 TEST_DECL_FUNC(RegistryNT);
@@ -15,6 +16,7 @@ TEST_DECL_FUNC(CreateSuperToken);
 
 CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_ENTRY(Math_Round),
+    TEST_DECL_ENTRY(ShellObject),
     TEST_DECL_ENTRY(String_Hash),
     TEST_DECL_ENTRY(RegistryWin32),
     TEST_DECL_ENTRY(RegistryNT),
