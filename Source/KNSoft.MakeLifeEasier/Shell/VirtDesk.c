@@ -22,7 +22,7 @@ TryCreateImmersiveShellInterface(
                                                          InterfacePtr);
             if (SUCCEEDED(hr))
             {
-                *CachedIID = IIDs[i];
+                *CachedIID = (LPIID)IIDs[i];
                 break;
             }
         }
@@ -65,14 +65,22 @@ HRESULT
 NTAPI
 Shell_CreateIVirtualDesktopManagerInternal(
     _In_ IServiceProvider* ImmersiveShellISP,
-    _Outptr_ IVirtualDesktopManagerInternal** Ptr)
+    _Outptr_ IVirtualDesktopManagerInternal** Ptr,
+    _Outptr_opt_ LPIID* EffetiveIID)
 {
-    return TryCreateImmersiveShellInterface(ImmersiveShellISP,
-                                            &CLSID_VirtualDesktopManagerInternal,
-                                            g_apiidVDMI,
-                                            ARRAYSIZE(g_apiidVDMI),
-                                            &g_piidVDMI,
-                                            Ptr);
+    HRESULT hr;
+
+    hr = TryCreateImmersiveShellInterface(ImmersiveShellISP,
+                                          &CLSID_VirtualDesktopManagerInternal,
+                                          g_apiidVDMI,
+                                          ARRAYSIZE(g_apiidVDMI),
+                                          &g_piidVDMI,
+                                          Ptr);
+    if (SUCCEEDED(hr) && EffetiveIID != NULL)
+    {
+        *EffetiveIID = (LPIID)g_piidVDMI;
+    }
+    return hr;
 }
 
 #pragma endregion
@@ -90,14 +98,77 @@ HRESULT
 NTAPI
 Shell_CreateIApplicationViewCollection(
     _In_ IServiceProvider* ImmersiveShellISP,
-    _Outptr_ IApplicationViewCollection** Ptr)
+    _Outptr_ IApplicationViewCollection** Ptr,
+    _Outptr_opt_ LPIID* EffetiveIID)
 {
-    return TryCreateImmersiveShellInterface(ImmersiveShellISP,
-                                            NULL,
-                                            g_apiidAVC,
-                                            ARRAYSIZE(g_apiidAVC),
-                                            &g_piidAVC,
-                                            Ptr);
+    HRESULT hr;
+
+    hr = TryCreateImmersiveShellInterface(ImmersiveShellISP,
+                                          NULL,
+                                          g_apiidAVC,
+                                          ARRAYSIZE(g_apiidAVC),
+                                          &g_piidAVC,
+                                          Ptr);
+    if (SUCCEEDED(hr) && EffetiveIID != NULL)
+    {
+        *EffetiveIID = (LPIID)g_piidVDMI;
+    }
+    return hr;
 }
 
 #pragma endregion
+
+HRESULT
+NTAPI
+Shell_CreateIVirtualDesktopPinnedApps(
+    _In_ IServiceProvider* ImmersiveShellISP,
+    _Outptr_ IVirtualDesktopPinnedApps** Ptr)
+{
+    return ImmersiveShellISP->lpVtbl->QueryService(ImmersiveShellISP,
+                                                   &CLSID_VirtualDesktopPinnedApps,
+                                                   &IID_IVirtualDesktopPinnedApps,
+                                                   Ptr);
+}
+
+HRESULT
+NTAPI
+Shell_EnumVirtualDesktops(
+    _In_ IVirtualDesktopManagerInternal* VDMI,
+    _In_ PSHELL_ENUM_VIRTUALDESKTOP_PROC Callback,
+    _In_opt_ PVOID Context)
+{
+    HRESULT hr;
+    IObjectArray* Desktops;
+    UINT Count;
+    IVirtualDesktop* Desktop;
+
+    if (!IS_NT_VERSION_GE(NT_VERSION_WIN11_24H2))
+    {
+        return E_NOTIMPL;
+    }
+    hr = VDMI->lpVtbl->GetDesktops(VDMI, &Desktops);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    hr = Desktops->lpVtbl->GetCount(Desktops, &Count);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    for (UINT i = 0; i < Count; i++)
+    {
+        hr = Desktops->lpVtbl->GetAt(Desktops, i, &IID_IVirtualDesktop, &Desktop);
+        if (SUCCEEDED(hr))
+        {
+            if (!Callback(Desktop, i, Context))
+            {
+                return S_FALSE;
+            }
+        } else
+        {
+            return hr;
+        }
+    }
+    return S_OK;
+}

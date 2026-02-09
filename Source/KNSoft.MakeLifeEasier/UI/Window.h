@@ -25,6 +25,14 @@ UI_TruncateHandle32(
 }
 
 FORCEINLINE
+PVOID
+UI_32ToHandle(
+    _In_ ULONG Value)
+{
+    return (PVOID)(ULONG_PTR)Value;
+}
+
+FORCEINLINE
 W32ERROR
 UI_GetWindowLong(
     _In_ HWND Window,

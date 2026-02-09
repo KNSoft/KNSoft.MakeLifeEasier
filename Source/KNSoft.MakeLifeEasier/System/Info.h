@@ -10,6 +10,7 @@ EXTERN_C_START
 // Return FALSE to stop enumeration
 typedef
 _Function_class_(SYS_ENUM_PREFERRED_LANGUAGES_FN)
+__callback
 LOGICAL
 CALLBACK
 SYS_ENUM_PREFERRED_LANGUAGES_FN(

@@ -186,6 +186,9 @@
     <ClCompile Include="Shell\VirtDesk.c">
       <Filter>Shell</Filter>
     </ClCompile>
+    <ClCompile Include="String\Format.c">
+      <Filter>String</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -340,6 +343,9 @@
     </ClInclude>
     <ClInclude Include="Shell\VirtDesk.h">
       <Filter>Shell</Filter>
+    </ClInclude>
+    <ClInclude Include="String\Format.h">
+      <Filter>String</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
