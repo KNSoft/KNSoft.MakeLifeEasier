@@ -139,7 +139,7 @@ Shell_EnumVirtualDesktops(
 {
     HRESULT hr;
     IObjectArray* Desktops;
-    UINT Count;
+    UINT Count, i;
     IVirtualDesktop* Desktop;
 
     if (!IS_NT_VERSION_GE(NT_VERSION_WIN11_24H2))
@@ -154,21 +154,23 @@ Shell_EnumVirtualDesktops(
     hr = Desktops->lpVtbl->GetCount(Desktops, &Count);
     if (FAILED(hr))
     {
-        return hr;
+        goto _Exit;
     }
-    for (UINT i = 0; i < Count; i++)
+    for (i = 0; i < Count; i++)
     {
         hr = Desktops->lpVtbl->GetAt(Desktops, i, &IID_IVirtualDesktop, &Desktop);
-        if (SUCCEEDED(hr))
+        if (FAILED(hr))
         {
-            if (!Callback(Desktop, i, Context))
-            {
-                return S_FALSE;
-            }
-        } else
+            goto _Exit;
+        }
+        if (!Callback(Desktop, i, Context))
         {
-            return hr;
+            hr = S_FALSE;
+            goto _Exit;
         }
     }
-    return S_OK;
+
+_Exit:
+    Desktops->lpVtbl->Release(Desktops);
+    return hr;
 }
