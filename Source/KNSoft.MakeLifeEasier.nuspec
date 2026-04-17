@@ -13,6 +13,9 @@
     <description>A fast, low-level and convenient C/C++ library to "Make Life Easier" when suffering from Windows NT development.</description>
     <tags>Windows Win32 WinSDK</tags>
     <repository type="git" url="https://github.com/KNSoft/KNSoft.MakeLifeEasier" />
+    <dependencies>
+      <dependency id="KNSoft.NDK" version="1.2.44-beta" />
+    </dependencies>
   </metadata>
   <files>
     <file src="..\README.md" target="" />
