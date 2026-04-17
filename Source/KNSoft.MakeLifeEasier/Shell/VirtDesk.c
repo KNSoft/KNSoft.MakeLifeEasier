@@ -111,7 +111,7 @@ Shell_CreateIApplicationViewCollection(
                                           Ptr);
     if (SUCCEEDED(hr) && EffetiveIID != NULL)
     {
-        *EffetiveIID = (LPIID)g_piidVDMI;
+        *EffetiveIID = (LPIID)g_piidAVC;
     }
     return hr;
 }
@@ -141,6 +141,7 @@ Shell_EnumVirtualDesktops(
     IObjectArray* Desktops;
     UINT Count, i;
     IVirtualDesktop* Desktop;
+    LOGICAL Continue;
 
     if (!IS_NT_VERSION_GE(NT_VERSION_WIN11_24H2))
     {
@@ -163,7 +164,9 @@ Shell_EnumVirtualDesktops(
         {
             goto _Exit;
         }
-        if (!Callback(Desktop, i, Context))
+        Continue = Callback(Desktop, i, Context);
+        Desktop->lpVtbl->Release(Desktop);
+        if (!Continue)
         {
             hr = S_FALSE;
             goto _Exit;

@@ -138,6 +138,7 @@ typedef union _PS_FIND_MODULE
         PLDR_DATA_TABLE_ENTRY32 ModuleEntry;
     };
 #endif
+    BOOLEAN Found;
 } PS_FIND_MODULE, *PPS_FIND_MODULE;
 
 static
@@ -156,6 +157,7 @@ PS_FindModuleByNameT(
     {
         _STATIC_ASSERT(sizeof(*Info->ModuleEntry) == sizeof(*ModuleInformation));
         memcpy(Info->ModuleEntry, ModuleInformation, sizeof(*Info->ModuleEntry));
+        Info->Found = TRUE;
         *Stop = TRUE;
     } else
     {
@@ -170,11 +172,22 @@ PS_RemoteGetModuleEntryByAddressT(
     _In_ VOID* POINTER_T Address,
     _Out_ LDR_DATA_TABLE_ENTRY_T* ModuleEntry)
 {
+    NTSTATUS Status;
     PS_FIND_MODULE Info;
 
     Info.Address = Address;
     Info.ModuleEntry = ModuleEntry;
-    return PS_RemoteEnumerateModulesT(ProcessHandle, PS_FindModuleByNameT, (PVOID)&Info);
+    Info.Found = FALSE;
+    Status = PS_RemoteEnumerateModulesT(ProcessHandle, PS_FindModuleByNameT, (PVOID)&Info);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    if (!Info.Found)
+    {
+        Status = STATUS_DLL_NOT_FOUND;
+    }
+    return Status;
 }
 
 NTSTATUS

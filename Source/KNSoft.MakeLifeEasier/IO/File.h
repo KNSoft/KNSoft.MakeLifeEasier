@@ -248,7 +248,6 @@ IO_DeleteWin32File(
     {
         return Status;
     }
-
     Status = NtCreateFile(&FileHandle,
                           DELETE | SYNCHRONIZE,
                           &Object,
@@ -261,6 +260,10 @@ IO_DeleteWin32File(
                           NULL,
                           0);
     NT_FreeNtPath(&NtPath);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
     return NtClose(FileHandle);
 }
 
@@ -288,7 +291,11 @@ IO_GetWin32FileAttributes(
     OBJECT_ATTRIBUTES Object;
     UNICODE_STRING NtPath;
 
-    NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    Status = NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
     Status = NtQueryFullAttributesFile(&Object, Attributes);
     NT_FreeNtPath(&NtPath);
     return Status;

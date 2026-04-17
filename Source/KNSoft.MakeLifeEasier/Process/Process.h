@@ -139,7 +139,7 @@ FORCEINLINE
 BOOLEAN
 PS_IsWow(VOID)
 {
-    return NtReadTeb(WowTebOffset) == 0;
+    return NtReadTeb(WowTebOffset) < 0;
 }
 
 EXTERN_C_END
