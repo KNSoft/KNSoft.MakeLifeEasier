@@ -189,6 +189,9 @@
     <ClCompile Include="String\Format.c">
       <Filter>String</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Gdip.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeLifeEasier.inl" />
@@ -346,6 +349,9 @@
     </ClInclude>
     <ClInclude Include="String\Format.h">
       <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Gdip.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

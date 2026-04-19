@@ -18,6 +18,10 @@
 #include <DbgHelp.h>
 #include <ShObjIdl.h>
 
+#ifdef __cplusplus
+#include <gdiplus.h>
+#endif
+
 #ifndef MLE_API
 #define MLE_API DECLSPEC_IMPORT
 #endif
@@ -86,6 +90,10 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "Process/Process.h"
 #include "Process/Remote/Remote.h"
 #include "UI/Control/Dialog.h"
+
+#ifdef __cplusplus
+#include "UI/Gdip.h"
+#endif
 
 /* KNSoft specification, do not use */
 #if defined(_KNSOFT_)

@@ -174,6 +174,14 @@ UI_SetBitmapBitsAlpha(
     }
 }
 
+typedef struct _UI_SNAPSHOT
+{
+    HDC     DC;
+    HBITMAP Bitmap;
+    POINT   Position;
+    SIZE    Size;
+} UI_SNAPSHOT, *PUI_SNAPSHOT;
+
 #pragma endregion
 
 EXTERN_C_END

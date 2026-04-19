@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" />
   <ItemGroup Label="ProjectConfigurations">
@@ -229,6 +229,7 @@
     <ClCompile Include="UI\DialogBox\ValueEditor.c" />
     <ClCompile Include="UI\DPI.c" />
     <ClCompile Include="UI\GDI.c" />
+    <ClCompile Include="UI\Gdip.cpp" />
     <ClCompile Include="UI\Message.c" />
     <ClCompile Include="UI\Paint.c" />
     <ClCompile Include="UI\Window.c" />
@@ -289,6 +290,7 @@
     <ClInclude Include="UI\DialogBox\DialogBox.h" />
     <ClInclude Include="UI\DPI.h" />
     <ClInclude Include="UI\GDI.h" />
+    <ClInclude Include="UI\Gdip.h" />
     <ClInclude Include="UI\Message.h" />
     <ClInclude Include="UI\Paint.h" />
     <ClInclude Include="UI\Window.h" />

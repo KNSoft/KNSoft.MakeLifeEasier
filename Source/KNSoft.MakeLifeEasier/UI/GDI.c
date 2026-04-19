@@ -416,4 +416,80 @@ _Exit_0:
     return Ret;
 }
 
+_Success_(return != FALSE)
+LOGICAL
+NTAPI
+UI_CreateSnapshot(
+    _In_opt_ HWND Window,
+    _Out_ PUI_SNAPSHOT Snapshot)
+{
+    POINT pt;
+    SIZE size;
+    HDC hDC, hMemDC;
+    HBITMAP hBmp, hBmpOriginal;
+
+    /* Get window position */
+    if (Window != NULL)
+    {
+        RECT rc;
+        if (!GetClientRect(Window, &rc))
+        {
+            return FALSE;
+        }
+        pt.x = pt.y = 0;
+        size.cx = rc.right;
+        size.cy = rc.bottom;
+    } else
+    {
+        UI_GetScreenPos(&pt, &size);
+    }
+
+    /* Create memory DC */
+    hDC = GetDC(Window);
+    if (hDC == NULL)
+    {
+        goto _Error_0;
+    }
+    hMemDC = CreateCompatibleDC(hDC);
+    if (hMemDC == NULL)
+    {
+        goto _Error_1;
+    }
+    hBmp = CreateCompatibleBitmap(hDC, size.cx, size.cy);
+    if (hBmp == NULL)
+    {
+        goto _Error_2;
+    }
+    hBmpOriginal = SelectObject(hMemDC, hBmp);
+    if (!BitBlt(hMemDC, 0, 0, size.cx, size.cy, hDC, pt.x, pt.y, SRCCOPY))
+    {
+        SelectObject(hMemDC, hBmpOriginal);
+        DeleteObject(hBmp);
+        goto _Error_2;
+    }
+
+    /* Success */
+    Snapshot->DC = hMemDC;
+    Snapshot->Bitmap = hBmp;
+    Snapshot->Position = pt;
+    Snapshot->Size = size;
+    return TRUE;
+
+_Error_2:
+    DeleteDC(hMemDC);
+_Error_1:
+    ReleaseDC(Window, hDC);
+_Error_0:
+    return FALSE;
+}
+
+VOID
+NTAPI
+UI_DeleteSnapshot(
+    _In_ PUI_SNAPSHOT Snapshot)
+{
+    DeleteDC(Snapshot->DC);
+    DeleteObject(Snapshot->Bitmap);
+}
+
 #pragma endregion
