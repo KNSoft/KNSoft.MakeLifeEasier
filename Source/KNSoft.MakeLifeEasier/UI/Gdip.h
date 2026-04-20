@@ -42,6 +42,7 @@ UI_GDIP_IMGCODECENUMPROC(
     _In_opt_ PVOID Context);
 typedef UI_GDIP_IMGCODECENUMPROC *PUI_GDIP_IMGCODECENUMPROC;
 
+/* IsEncoder: TRUE for encoder, or FALSE for decoder */
 MLE_API
 _Success_(return == Gdiplus::Ok)
 Gdiplus::Status
@@ -51,6 +52,7 @@ UI_GdipEnumImageCodecs(
     _In_ PUI_GDIP_IMGCODECENUMPROC ImgCodecEnumProc,
     _In_opt_ PVOID Context);
 
+/* IsEncoder: TRUE for encoder, or FALSE for decoder */
 MLE_API
 _Success_(return == Gdiplus::Ok)
 Gdiplus::Status

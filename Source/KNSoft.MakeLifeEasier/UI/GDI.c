@@ -427,6 +427,7 @@ UI_CreateSnapshot(
     SIZE size;
     HDC hDC, hMemDC;
     HBITMAP hBmp, hBmpOriginal;
+    BOOL bRet;
 
     /* Get window position */
     if (Window != NULL)
@@ -461,9 +462,10 @@ UI_CreateSnapshot(
         goto _Error_2;
     }
     hBmpOriginal = SelectObject(hMemDC, hBmp);
-    if (!BitBlt(hMemDC, 0, 0, size.cx, size.cy, hDC, pt.x, pt.y, SRCCOPY))
+    bRet = BitBlt(hMemDC, 0, 0, size.cx, size.cy, hDC, pt.x, pt.y, SRCCOPY);
+    SelectObject(hMemDC, hBmpOriginal);
+    if (!bRet)
     {
-        SelectObject(hMemDC, hBmpOriginal);
         DeleteObject(hBmp);
         goto _Error_2;
     }

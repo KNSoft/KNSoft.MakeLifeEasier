@@ -187,6 +187,7 @@ UI_GdipFindImgCodecEnumProc(
     _In_opt_ PVOID Context)
 {
     PUI_GDIP_IMGCODECENUMPARAM Param = reinterpret_cast<PUI_GDIP_IMGCODECENUMPARAM>(Context);
+    _Analysis_assume_(Param != NULL);
     if (IsEqualGUID(ImageCodecInfo->FormatID, Param->ClsidFormat))
     {
         *(Param->ClsidOut) = ImageCodecInfo->Clsid;

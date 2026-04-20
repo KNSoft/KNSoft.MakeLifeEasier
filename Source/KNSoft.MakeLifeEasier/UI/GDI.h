@@ -182,6 +182,20 @@ typedef struct _UI_SNAPSHOT
     SIZE    Size;
 } UI_SNAPSHOT, *PUI_SNAPSHOT;
 
+MLE_API
+_Success_(return != FALSE)
+LOGICAL
+NTAPI
+UI_CreateSnapshot(
+    _In_opt_ HWND Window,
+    _Out_ PUI_SNAPSHOT Snapshot);
+
+MLE_API
+VOID
+NTAPI
+UI_DeleteSnapshot(
+    _In_ PUI_SNAPSHOT Snapshot);
+
 #pragma endregion
 
 EXTERN_C_END
