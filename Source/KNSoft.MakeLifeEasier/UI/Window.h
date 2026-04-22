@@ -387,6 +387,14 @@ UI_GetWindowCloackedState(
 
 FORCEINLINE
 HRESULT
+UI_IsWindowVisible(
+    _In_ HWND Window)
+{
+    return IsWindowVisible(Window) && !IsIconic(Window) && UI_GetWindowCloackedState(Window) == 0;
+}
+
+FORCEINLINE
+HRESULT
 UI_EnableWindowPeek(
     _In_ HWND Window,
     _In_ BOOL Enable)

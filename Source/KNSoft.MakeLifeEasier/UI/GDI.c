@@ -462,7 +462,16 @@ UI_CreateSnapshot(
         goto _Error_2;
     }
     hBmpOriginal = SelectObject(hMemDC, hBmp);
-    bRet = BitBlt(hMemDC, 0, 0, size.cx, size.cy, hDC, pt.x, pt.y, SRCCOPY);
+
+    if (Window == NULL ||
+        !PrintWindow(Window, hMemDC, PW_CLIENTONLY | PW_RENDERFULLCONTENT))
+    {
+        bRet = BitBlt(hMemDC, 0, 0, size.cx, size.cy, hDC, pt.x, pt.y, SRCCOPY | CAPTUREBLT);
+    } else
+    {
+        bRet = TRUE;
+    }
+
     SelectObject(hMemDC, hBmpOriginal);
     if (!bRet)
     {
