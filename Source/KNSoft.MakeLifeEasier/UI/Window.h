@@ -386,7 +386,7 @@ UI_GetWindowCloackedState(
 }
 
 FORCEINLINE
-HRESULT
+LOGICAL
 UI_IsWindowVisible(
     _In_ HWND Window)
 {
