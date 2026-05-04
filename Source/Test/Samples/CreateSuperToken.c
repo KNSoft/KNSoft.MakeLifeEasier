@@ -42,6 +42,18 @@ TEST_FUNC(CreateSuperToken)
         UnitTest_PrintF("L%-3lu: PS_Impersonate failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_0;
     }
+    Status = NT_AdjustTokenPrivilege(LsaImpersonateToken, SE_ASSIGNPRIMARYTOKEN_PRIVILEGE, SE_PRIVILEGE_ENABLED);
+    if (Status != STATUS_SUCCESS)
+    {
+        UnitTest_PrintF("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
+        goto _Exit_1;
+    }
+    Status = NT_AdjustTokenPrivilege(LsaImpersonateToken, SE_INCREASE_QUOTA_PRIVILEGE, SE_PRIVILEGE_ENABLED);
+    if (Status != STATUS_SUCCESS)
+    {
+        UnitTest_PrintF("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
+        goto _Exit_1;
+    }
 
     /*** Create super token ***/
 
@@ -93,6 +105,7 @@ TEST_FUNC(CreateSuperToken)
             { LogonSid, SE_GROUP_LOGON_ID | SE_GROUP_MANDATORY | SE_GROUP_ENABLED_BY_DEFAULT | SE_GROUP_ENABLED },
         }
     };
+    _STATIC_ASSERT(ARRAYSIZE(Groups.Array) == GROUP_COUNT - 1);
 #undef GROUP_COUNT
 #define PRIVILEGE_COUNT (SE_MAX_WELL_KNOWN_PRIVILEGE - SE_MIN_WELL_KNOWN_PRIVILEGE + 1)
     DEFINE_ANYSIZE_STRUCT(Privileges, TOKEN_PRIVILEGES, LUID_AND_ATTRIBUTES, PRIVILEGE_COUNT);
@@ -101,7 +114,7 @@ TEST_FUNC(CreateSuperToken)
     for (LONG i = 0; i < PRIVILEGE_COUNT; i++)
     {
         Privileges.BaseType.Privileges[i].Luid = RtlConvertLongToLuid(i + SE_MIN_WELL_KNOWN_PRIVILEGE);
-        Privileges.BaseType.Privileges[i].Attributes = SE_PRIVILEGE_ENABLED_BY_DEFAULT;
+        Privileges.BaseType.Privileges[i].Attributes = SE_PRIVILEGE_ENABLED_BY_DEFAULT | SE_PRIVILEGE_ENABLED;
     }
 #undef PRIVILEGE_COUNT
 
