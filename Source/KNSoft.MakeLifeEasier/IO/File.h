@@ -326,12 +326,27 @@ NTSTATUS
 IO_ReadFile(
     _In_ HANDLE FileHandle,
     _In_opt_ PLARGE_INTEGER Offset,
-    _Out_writes_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
+    _Out_writes_bytes_to_(Length, *BytesRead) __out_data_source(FILE) PVOID Buffer,
+    _In_ ULONG Length,
+    _Out_opt_ PULONG BytesRead)
 {
+    NTSTATUS Status;
     IO_STATUS_BLOCK IoStatusBlock;
 
-    return NtReadFile(FileHandle, NULL, NULL, NULL, &IoStatusBlock, Buffer, Length, Offset, NULL);
+    Status = NtReadFile(FileHandle, NULL, NULL, NULL, &IoStatusBlock, Buffer, Length, Offset, NULL);
+    if (Status == STATUS_PENDING)
+    {
+        Status = NtWaitForSingleObject(FileHandle, FALSE, NULL);
+        if (NT_SUCCESS(Status))
+        {
+            Status = IoStatusBlock.Status;
+        }
+    }
+    if (NT_SUCCESS(Status) && BytesRead != NULL)
+    {
+        *BytesRead = (ULONG)IoStatusBlock.Information;
+    }
+    return Status;
 }
 
 FORCEINLINE
@@ -340,11 +355,26 @@ IO_WriteFile(
     _In_ HANDLE FileHandle,
     _In_opt_ PLARGE_INTEGER Offset,
     _In_reads_bytes_(Length) PVOID Buffer,
-    _In_ ULONG Length)
+    _In_ ULONG Length,
+    _Out_opt_ PULONG BytesWritten)
 {
+    NTSTATUS Status;
     IO_STATUS_BLOCK IoStatusBlock;
 
-    return NtWriteFile(FileHandle, NULL, NULL, NULL, &IoStatusBlock, Buffer, Length, Offset, NULL);
+    Status = NtWriteFile(FileHandle, NULL, NULL, NULL, &IoStatusBlock, Buffer, Length, Offset, NULL);
+    if (Status == STATUS_PENDING)
+    {
+        Status = NtWaitForSingleObject(FileHandle, FALSE, NULL);
+        if (NT_SUCCESS(Status))
+        {
+            Status = IoStatusBlock.Status;
+        }
+    }
+    if (NT_SUCCESS(Status) && BytesWritten != NULL)
+    {
+        *BytesWritten = (ULONG)IoStatusBlock.Information;
+    }
+    return Status;
 }
 
 FORCEINLINE
@@ -389,6 +419,64 @@ IO_DisposeFile(
     FILE_DISPOSITION_INFORMATION Info = { TRUE };
 
     return NtSetInformationFile(FileHandle, &IoStatusBlock, &Info, sizeof(Info), FileDispositionInformation);
+}
+
+#pragma endregion
+
+#pragma region File Map
+
+typedef struct _IO_FILE_MAP
+{
+    SIZE_T FileSize;
+    SIZE_T PageSize;
+    HANDLE SectionHandle;
+    PVOID BaseAddress;
+} IO_FILE_MAP, *PIO_FILE_MAP;
+
+MLE_API
+NTSTATUS
+NTAPI
+IO_MapFileEx(
+    _In_ HANDLE FileHandle,
+    _In_ ULONG AllocationAttributes,
+    _In_ ULONG PageProtection,
+    _Out_ PIO_FILE_MAP MapInfo);
+
+FORCEINLINE
+VOID
+IO_UnmapFile(
+    _In_ PIO_FILE_MAP MapInfo)
+{
+    NtUnmapViewOfSection(NtCurrentProcess(), MapInfo->BaseAddress);
+    NtClose(MapInfo->SectionHandle);
+}
+
+FORCEINLINE
+NTSTATUS
+IO_MapFile(
+    _In_ HANDLE FileHandle,
+    _Out_ PIO_FILE_MAP MapInfo)
+{
+    return IO_MapFileEx(FileHandle, SEC_COMMIT, PAGE_READWRITE, MapInfo);
+}
+
+FORCEINLINE
+NTSTATUS
+IO_MapReadOnlyFile(
+    _In_ HANDLE FileHandle,
+    _Out_ PIO_FILE_MAP MapInfo)
+{
+    return IO_MapFileEx(FileHandle, SEC_COMMIT, PAGE_READONLY, MapInfo);
+}
+
+FORCEINLINE
+NTSTATUS
+IO_MapImageFile(
+    _In_ HANDLE FileHandle,
+    _In_ LOGICAL NoExecute,
+    _Out_ PIO_FILE_MAP MapInfo)
+{
+    return IO_MapFileEx(FileHandle, NoExecute ? SEC_IMAGE_NO_EXECUTE : SEC_IMAGE, PAGE_EXECUTE_READWRITE, MapInfo);
 }
 
 #pragma endregion

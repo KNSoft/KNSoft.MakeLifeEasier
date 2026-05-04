@@ -88,3 +88,72 @@ IO_BeginFindFile(
 
 #pragma endregion
 
+#pragma region File Map
+
+NTSTATUS
+NTAPI
+IO_MapFileEx(
+    _In_ HANDLE FileHandle,
+    _In_ ULONG AllocationAttributes,
+    _In_ ULONG PageProtection,
+    _Out_ PIO_FILE_MAP MapInfo)
+{
+    NTSTATUS Status;
+    ULONGLONG FileSize;
+    HANDLE SectionHandle;
+    PVOID BaseAddress;
+    SIZE_T PageSize;
+    
+    Status = IO_GetFileSize(FileHandle, &FileSize);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    } else if (FileSize == 0)
+    {
+        return STATUS_MAPPED_FILE_SIZE_ZERO;
+    }
+#ifndef _WIN64
+    if (FileSize > MAXSIZE_T - PAGE_SIZE + 1)
+    {
+        return STATUS_NO_MEMORY;
+    }
+#endif
+
+    Status = NtCreateSection(&SectionHandle,
+                             SECTION_ALL_ACCESS,
+                             NULL,
+                             NULL,
+                             PageProtection,
+                             AllocationAttributes,
+                             FileHandle);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    BaseAddress = NULL;
+    PageSize = (SIZE_T)FileSize;
+    Status = NtMapViewOfSection(SectionHandle,
+                                NtCurrentProcess(),
+                                &BaseAddress,
+                                0,
+                                0,
+                                NULL,
+                                &PageSize,
+                                ViewUnmap,
+                                0,
+                                PageProtection);
+    if (NT_SUCCESS(Status))
+    {
+        MapInfo->FileSize = (SIZE_T)FileSize;
+        MapInfo->PageSize = PageSize;
+        MapInfo->SectionHandle = SectionHandle;
+        MapInfo->BaseAddress = BaseAddress;
+    } else
+    {
+        NtClose(SectionHandle);
+    }
+    return Status;
+}
+
+#pragma endregion

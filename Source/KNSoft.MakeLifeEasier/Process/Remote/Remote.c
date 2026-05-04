@@ -72,14 +72,14 @@ PS_RemoteGetMachineTypeFromFile(
         goto _Exit_0;
     }
     Offset.QuadPart = UFIELD_OFFSET(IMAGE_DOS_HEADER, e_lfanew);
-    Status = IO_ReadFile(FileHandle, &Offset, &NtHeaderOffset, FIELD_SIZE(IMAGE_DOS_HEADER, e_lfanew));
+    Status = IO_ReadFile(FileHandle, &Offset, &NtHeaderOffset, FIELD_SIZE(IMAGE_DOS_HEADER, e_lfanew), NULL);
     if (!NT_SUCCESS(Status))
     {
         goto _Exit_1;
     }
     _STATIC_ASSERT(sizeof(*MachineType) == FIELD_SIZE(IMAGE_NT_HEADERS, FileHeader.Machine));
     Offset.QuadPart = NtHeaderOffset + (LONGLONG)FIELD_OFFSET(IMAGE_NT_HEADERS, FileHeader.Machine);
-    Status = IO_ReadFile(FileHandle, &Offset, MachineType, sizeof(*MachineType));
+    Status = IO_ReadFile(FileHandle, &Offset, MachineType, sizeof(*MachineType), NULL);
 
 _Exit_1:
     NtClose(FileHandle);
