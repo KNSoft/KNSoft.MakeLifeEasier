@@ -180,6 +180,8 @@ typedef struct _UI_SNAPSHOT
     HBITMAP Bitmap;
     POINT   Position;
     SIZE    Size;
+
+    HBITMAP OriginalBitmap;
 } UI_SNAPSHOT, *PUI_SNAPSHOT;
 
 MLE_API

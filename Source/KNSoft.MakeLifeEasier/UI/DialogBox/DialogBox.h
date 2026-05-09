@@ -162,4 +162,17 @@ UI_ValueEditorDlg(
     _In_reads_(ConstantCount) UI_VALUEEDITOR_CONSTANT Constants[],
     _In_ ULONG ConstantCount);
 
+/// <returns>
+/// S_OK if user confirmed selection. TargetWindow may still be NULL.
+/// S_FALSE if user canceled.
+/// </returns>
+MLE_API
+HRESULT
+NTAPI
+UI_WindowPickerDlg(
+    _In_ LOGICAL IgnoreChild,
+    _In_ LOGICAL IgnoreTransparent,
+    _In_opt_ HCURSOR Cursor,
+    _Out_ HWND * TargetWindow);
+
 EXTERN_C_END

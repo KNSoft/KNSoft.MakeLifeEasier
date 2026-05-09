@@ -8,21 +8,25 @@ EXTERN_C_START
 
 typedef struct _UI_BUFFEREDPAINT
 {
-    PAINTSTRUCT PaintStruct;    // Native PAINTSTRUCT structure from "BeginPaint"
-    HDC         DC;             // Compatible memory DC
-    HBITMAP     Bitmap;         // Compatible memory bitmap
-    RECT        Rect;           // RECT of window client area
+    PAINTSTRUCT ps;     // Native PAINTSTRUCT structure from "BeginPaint"
+    HDC         hdc;    // Compatible memory DC
+    HBITMAP     hbm;    // Compatible memory bitmap
+    RECT        rc;     // RECT of window client area
+
+    HBITMAP     hbmOriginal;
 } UI_BUFFEREDPAINT, *PUI_BUFFEREDPAINT;
 
 MLE_API
-W32ERROR
+_Success_(return != FALSE)
+LOGICAL
 NTAPI
 UI_BeginBufferedPaint(
     _In_ HWND Window,
     _Out_ PUI_BUFFEREDPAINT Paint);
 
 MLE_API
-W32ERROR
+_Success_(return != FALSE)
+LOGICAL
 NTAPI
 UI_EndBufferedPaint(
     _In_ HWND Window,

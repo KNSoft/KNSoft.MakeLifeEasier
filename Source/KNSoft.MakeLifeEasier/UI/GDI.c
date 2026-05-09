@@ -462,6 +462,10 @@ UI_CreateSnapshot(
         goto _Error_2;
     }
     hBmpOriginal = SelectObject(hMemDC, hBmp);
+    if (hBmpOriginal == NULL)
+    {
+        goto _Error_3;
+    }
 
     if (Window == NULL ||
         !PrintWindow(Window, hMemDC, PW_CLIENTONLY | PW_RENDERFULLCONTENT))
@@ -471,21 +475,23 @@ UI_CreateSnapshot(
     {
         bRet = TRUE;
     }
-
-    SelectObject(hMemDC, hBmpOriginal);
     if (!bRet)
     {
-        DeleteObject(hBmp);
-        goto _Error_2;
+        SelectObject(hMemDC, hBmpOriginal);
+        goto _Error_3;
     }
 
     /* Success */
+    ReleaseDC(Window, hDC);
     Snapshot->DC = hMemDC;
     Snapshot->Bitmap = hBmp;
     Snapshot->Position = pt;
     Snapshot->Size = size;
+    Snapshot->OriginalBitmap = hBmpOriginal;
     return TRUE;
 
+_Error_3:
+    DeleteObject(hBmp);
 _Error_2:
     DeleteDC(hMemDC);
 _Error_1:
@@ -499,6 +505,7 @@ NTAPI
 UI_DeleteSnapshot(
     _In_ PUI_SNAPSHOT Snapshot)
 {
+    SelectObject(Snapshot->DC, Snapshot->OriginalBitmap);
     DeleteDC(Snapshot->DC);
     DeleteObject(Snapshot->Bitmap);
 }

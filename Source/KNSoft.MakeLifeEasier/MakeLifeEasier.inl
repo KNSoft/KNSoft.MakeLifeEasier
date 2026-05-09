@@ -17,6 +17,8 @@
 
 #include "MakeLifeEasier.h"
 
+#include <windowsx.h>
+
 EXTERN_C_START
 
 PCWSTR

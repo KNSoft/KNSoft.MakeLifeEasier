@@ -1,79 +1,77 @@
 ﻿#include "../MakeLifeEasier.inl"
 
-W32ERROR
+_Success_(return != FALSE)
+LOGICAL
 NTAPI
 UI_BeginBufferedPaint(
     _In_ HWND Window,
     _Out_ PUI_BUFFEREDPAINT Paint)
 {
-    W32ERROR Error;
     PAINTSTRUCT ps;
-    HDC hDC, hMemDC;
-    HBITMAP hMemBitmap;
+    HDC hdc, hdcMem;
+    HBITMAP hbm, hbmOriginal;
     RECT rc;
 
-    hDC = BeginPaint(Window, &ps);
-    if (hDC == NULL)
+    hdc = BeginPaint(Window, &ps);
+    if (hdc == NULL)
     {
-        return ERROR_UNIDENTIFIED_ERROR;
+        return FALSE;
     }
-    hMemDC = CreateCompatibleDC(hDC);
-    if (hMemDC == NULL)
+    hdcMem = CreateCompatibleDC(hdc);
+    if (hdcMem == NULL)
     {
-        Error = ERROR_UNIDENTIFIED_ERROR;
         goto _Exit_0;
     }
     if (!GetClientRect(Window, &rc))
     {
-        Error = Err_GetLastError();
         goto _Exit_1;
     }
-    hMemBitmap = CreateCompatibleBitmap(ps.hdc, rc.right, rc.bottom);
-    if (hMemBitmap == NULL)
+    hbm = CreateCompatibleBitmap(ps.hdc, rc.right, rc.bottom);
+    if (hbm == NULL)
     {
-        Error = ERROR_UNIDENTIFIED_ERROR;
         goto _Exit_1;
     }
-    if (SelectObject(hMemDC, hMemBitmap) == NULL)
+    hbmOriginal = SelectObject(hdcMem, hbm);
+    if (hbmOriginal == NULL)
     {
-        Error = ERROR_UNIDENTIFIED_ERROR;
         goto _Exit_2;
     }
 
-    Paint->PaintStruct = ps;
-    Paint->DC = hMemDC;
-    Paint->Bitmap = hMemBitmap;
-    Paint->Rect = rc;
-    return ERROR_SUCCESS;
+    Paint->ps = ps;
+    Paint->hdc = hdcMem;
+    Paint->hbm = hbm;
+    Paint->rc = rc;
+    Paint->hbmOriginal = hbmOriginal;
+    return TRUE;
 
 _Exit_2:
-    DeleteObject(hMemBitmap);
+    DeleteObject(hbm);
 _Exit_1:
-    DeleteDC(hMemDC);
+    DeleteDC(hdcMem);
 _Exit_0:
     EndPaint(Window, &ps);
-    return Error;
+    return FALSE;
 }
 
-W32ERROR
+_Success_(return != FALSE)
+LOGICAL
 NTAPI
 UI_EndBufferedPaint(
     _In_ HWND Window,
     _In_ PUI_BUFFEREDPAINT Paint)
 {
-    W32ERROR Error;
-
-    Error = BitBlt(Paint->PaintStruct.hdc,
-                   Paint->PaintStruct.rcPaint.left,
-                   Paint->PaintStruct.rcPaint.top,
-                   Paint->PaintStruct.rcPaint.right - Paint->PaintStruct.rcPaint.left,
-                   Paint->PaintStruct.rcPaint.bottom - Paint->PaintStruct.rcPaint.top,
-                   Paint->DC,
-                   0,
-                   0,
-                   SRCCOPY) ? ERROR_SUCCESS : Err_GetLastError();
-    DeleteDC(Paint->DC);
-    DeleteObject(Paint->Bitmap);
-    EndPaint(Window, &Paint->PaintStruct);
-    return Error;
+    LOGICAL Ret = BitBlt(Paint->ps.hdc,
+                         Paint->ps.rcPaint.left,
+                         Paint->ps.rcPaint.top,
+                         Paint->ps.rcPaint.right - Paint->ps.rcPaint.left,
+                         Paint->ps.rcPaint.bottom - Paint->ps.rcPaint.top,
+                         Paint->hdc,
+                         Paint->ps.rcPaint.left,
+                         Paint->ps.rcPaint.top,
+                         SRCCOPY);
+    SelectObject(Paint->hdc, Paint->hbmOriginal);
+    DeleteDC(Paint->hdc);
+    DeleteObject(Paint->hbm);
+    Ret &= EndPaint(Window, &Paint->ps);
+    return Ret;
 }
