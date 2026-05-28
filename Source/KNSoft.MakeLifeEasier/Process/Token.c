@@ -180,3 +180,48 @@ PS_GetTokenInfo(
     }
     return Status;
 }
+
+static CONST SID AuthUsersSid = SID_AUTHENTICATED_USERS;
+static CONST SID_2 AdminsSid = SID_BUILTIN_ADMINISTRATORS;
+
+NTSTATUS
+NTAPI
+PS_CreateRestrictedToken(
+    _In_ LOGICAL DisableAuthUsers,
+    _In_ LOGICAL DisableMaxPrivilege,
+    _Out_ PHANDLE RestrictedToken)
+{
+    NTSTATUS Status;
+    HANDLE Token;
+    ULONG Flags;
+#define GROUP_COUNT 2
+    DEFINE_ANYSIZE_STRUCT(DisableGroups, TOKEN_GROUPS, SID_AND_ATTRIBUTES, GROUP_COUNT) = {
+        GROUP_COUNT,
+        { (PSID)&AdminsSid, SE_GROUP_MANDATORY | SE_GROUP_USE_FOR_DENY_ONLY},
+        {
+            { (PSID)&AuthUsersSid, SE_GROUP_MANDATORY | SE_GROUP_USE_FOR_DENY_ONLY }
+        }
+    };
+    _STATIC_ASSERT(ARRAYSIZE(DisableGroups.Array) == GROUP_COUNT - 1);
+#undef GROUP_COUNT
+
+    Flags = DisableMaxPrivilege ? DISABLE_MAX_PRIVILEGE : 0;
+    if (!DisableAuthUsers)
+    {
+        DisableGroups.BaseType.GroupCount = 1;
+    }
+
+    Status = NtOpenProcessToken(NtCurrentProcess(), TOKEN_ALL_ACCESS, &Token);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    Status = NtFilterToken(Token,
+                           Flags,
+                           &DisableGroups.BaseType,
+                           NULL,
+                           NULL,
+                           RestrictedToken);
+    NtClose(Token);
+    return Status;
+}

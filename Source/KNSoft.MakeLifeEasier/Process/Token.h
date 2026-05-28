@@ -91,4 +91,12 @@ PS_AdjustPrivilege(
     return Status;
 }
 
+MLE_API
+NTSTATUS
+NTAPI
+PS_CreateRestrictedToken(
+    _In_ LOGICAL DisableAuthUsers,
+    _In_ LOGICAL DisableMaxPrivilege,
+    _Out_ PHANDLE RestrictedToken);
+
 EXTERN_C_END
