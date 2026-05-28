@@ -110,3 +110,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "WinSta.lib")
 #pragma comment(lib, "Secur32.lib")
+
+#ifdef __cplusplus
+#pragma comment(lib, "gdiplus.lib")
+#endif
