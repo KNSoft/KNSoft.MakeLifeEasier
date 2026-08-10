@@ -23,6 +23,25 @@ Mem_Alloc(
 }
 
 FORCEINLINE
+_Success_(return != NULL)
+_Must_inspect_result_
+_Ret_maybenull_
+_Post_writable_byte_size_(Size)
+__drv_allocatesMem(Mem)
+DECLSPEC_ALLOCATOR
+DECLSPEC_NOALIAS
+DECLSPEC_RESTRICT
+PVOID
+Mem_ReAlloc(
+    _Frees_ptr_opt_ PVOID BaseAddress,
+    _In_ SIZE_T Size)
+{
+    return BaseAddress == NULL ?
+               RtlAllocateHeap(RtlProcessHeap(), 0, Size) :
+               RtlReAllocateHeap(RtlProcessHeap(), 0, BaseAddress, Size);
+}
+
+FORCEINLINE
 _Success_(return != FALSE)
 LOGICAL
 Mem_Free(
