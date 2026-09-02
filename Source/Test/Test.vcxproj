@@ -182,6 +182,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CBS.c" />
+    <ClCompile Include="FVE.c" />
     <ClCompile Include="IO.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math.c" />

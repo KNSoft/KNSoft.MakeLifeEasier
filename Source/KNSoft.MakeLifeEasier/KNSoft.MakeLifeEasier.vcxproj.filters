@@ -93,6 +93,9 @@
     <ClCompile Include="System\CBS.c">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="System\FVE.c">
+      <Filter>System</Filter>
+    </ClCompile>
     <ClCompile Include="PE\Resolve.c">
       <Filter>PE</Filter>
     </ClCompile>
@@ -251,6 +254,9 @@
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="System\CBS.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FVE.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="PE\Resolve.h">

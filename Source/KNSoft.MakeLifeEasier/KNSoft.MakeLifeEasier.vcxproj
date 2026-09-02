@@ -218,6 +218,7 @@
     <ClCompile Include="String\Format.c" />
     <ClCompile Include="String\Hash.cpp" />
     <ClCompile Include="System\CBS.c" />
+    <ClCompile Include="System\FVE.c" />
     <ClCompile Include="System\Info.c" />
     <ClCompile Include="System\APIThunks.c" />
     <ClCompile Include="System\Registry.cpp" />
@@ -281,6 +282,7 @@
     <ClInclude Include="String\Format.h" />
     <ClInclude Include="String\Hash.h" />
     <ClInclude Include="System\CBS.h" />
+    <ClInclude Include="System\FVE.h" />
     <ClInclude Include="System\Info.h" />
     <ClInclude Include="System\APIThunks.h" />
     <ClInclude Include="System\Registry.h" />
