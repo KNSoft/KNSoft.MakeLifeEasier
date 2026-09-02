@@ -1,5 +1,96 @@
 ﻿#include "../MakeLifeEasier.inl"
 
+#pragma region Pipe
+
+NTSTATUS
+NTAPI
+IO_CreatePipe(
+    _In_ HANDLE PipeDirectoryHandle,
+    _Out_ PHANDLE Handle,
+    _Out_ PHANDLE PeerHandle,
+    _In_ ULONG Mode,
+    _In_ ULONG BufferSize)
+{
+    NTSTATUS Status;
+    HANDLE CreatedHandle, CreatedPeerHandle;
+    ACCESS_MASK PipeAccess, PeerAccess;
+    ULONG PipeShareAccess, PeerShareAccess;
+    UNICODE_STRING Name = { 0 };
+    OBJECT_ATTRIBUTES ObjectAttributes = RTL_CONSTANT_OBJECT_ATTRIBUTES(&Name, OBJ_CASE_INSENSITIVE);
+    IO_STATUS_BLOCK IoStatusBlock;
+    LARGE_INTEGER DefaultTimeout;
+
+    switch (Mode)
+    {
+        case FILE_PIPE_INBOUND:
+            PipeAccess = GENERIC_READ | SYNCHRONIZE | FILE_WRITE_ATTRIBUTES;
+            PeerAccess = GENERIC_WRITE | SYNCHRONIZE | FILE_READ_ATTRIBUTES;
+            PipeShareAccess = FILE_SHARE_WRITE;
+            PeerShareAccess = FILE_SHARE_READ;
+            break;
+
+        case FILE_PIPE_OUTBOUND:
+            PipeAccess = GENERIC_WRITE | SYNCHRONIZE | FILE_READ_ATTRIBUTES;
+            PeerAccess = GENERIC_READ | SYNCHRONIZE | FILE_WRITE_ATTRIBUTES;
+            PipeShareAccess = FILE_SHARE_READ;
+            PeerShareAccess = FILE_SHARE_WRITE;
+            break;
+
+        case FILE_PIPE_FULL_DUPLEX:
+            PipeAccess = PeerAccess = GENERIC_READ | GENERIC_WRITE | SYNCHRONIZE;
+            PipeShareAccess = PeerShareAccess = FILE_SHARE_READ | FILE_SHARE_WRITE;
+            break;
+
+        default:
+            return STATUS_INVALID_PARAMETER;
+    }
+
+    ObjectAttributes.RootDirectory = PipeDirectoryHandle;
+    DefaultTimeout.QuadPart = -10000000LL;
+    Status = NtCreateNamedPipeFile(&CreatedHandle,
+                                   PipeAccess,
+                                   &ObjectAttributes,
+                                   &IoStatusBlock,
+                                   PipeShareAccess,
+                                   FILE_CREATE,
+                                   0,
+                                   FILE_PIPE_BYTE_STREAM_TYPE,
+                                   FILE_PIPE_BYTE_STREAM_MODE,
+                                   FILE_PIPE_QUEUE_OPERATION,
+                                   1,
+                                   BufferSize,
+                                   BufferSize,
+                                   &DefaultTimeout);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    ObjectAttributes.RootDirectory = CreatedHandle;
+    Status = NtCreateFile(&CreatedPeerHandle,
+                          PeerAccess,
+                          &ObjectAttributes,
+                          &IoStatusBlock,
+                          NULL,
+                          0,
+                          PeerShareAccess,
+                          FILE_OPEN,
+                          FILE_NON_DIRECTORY_FILE,
+                          NULL,
+                          0);
+    if (NT_SUCCESS(Status))
+    {
+        *Handle = CreatedHandle;
+        *PeerHandle = CreatedPeerHandle;
+    } else
+    {
+        NtClose(CreatedHandle);
+    }
+    return Status;
+}
+
+#pragma endregion
+
 #pragma region Find File
 
 #define FILE_FIND_BUFFER_SIZE PAGE_SIZE

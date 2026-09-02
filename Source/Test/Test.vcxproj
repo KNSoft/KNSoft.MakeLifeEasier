@@ -181,6 +181,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IO.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math.c" />
     <ClCompile Include="Registry.c" />

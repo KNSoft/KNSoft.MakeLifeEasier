@@ -6,6 +6,20 @@
 
 EXTERN_C_START
 
+#pragma region Pipe
+
+MLE_API
+NTSTATUS
+NTAPI
+IO_CreatePipe(
+    _In_ HANDLE PipeDirectoryHandle,
+    _Out_ PHANDLE Handle,
+    _Out_ PHANDLE PeerHandle,
+    _In_ ULONG Mode,
+    _In_ ULONG BufferSize);
+
+#pragma endregion
+
 #pragma region Directory
 
 FORCEINLINE
