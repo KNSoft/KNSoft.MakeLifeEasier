@@ -74,6 +74,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "String/Encoding.h"
 #include "String/Format.h"
 #include "String/Hash.h"
+#include "System/CBS.h"
 #include "System/Info.h"
 #include "UI/Control/ListView.h"
 #include "UI/Control/Menu.h"

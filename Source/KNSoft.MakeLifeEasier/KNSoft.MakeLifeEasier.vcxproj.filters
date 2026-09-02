@@ -90,6 +90,9 @@
     <ClCompile Include="System\APIThunks.c">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="System\CBS.c">
+      <Filter>System</Filter>
+    </ClCompile>
     <ClCompile Include="PE\Resolve.c">
       <Filter>PE</Filter>
     </ClCompile>
@@ -245,6 +248,9 @@
       <Filter>Error</Filter>
     </ClInclude>
     <ClInclude Include="System\APIThunks.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\CBS.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="PE\Resolve.h">

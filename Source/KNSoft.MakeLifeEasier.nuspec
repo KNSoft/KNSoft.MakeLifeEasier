@@ -14,7 +14,7 @@
     <tags>Windows Win32 WinSDK</tags>
     <repository type="git" url="https://github.com/KNSoft/KNSoft.MakeLifeEasier" />
     <dependencies>
-      <dependency id="KNSoft.NDK" version="1.2.44-beta" />
+      <dependency id="KNSoft.NDK" version="[1.2.69-beta]" />
     </dependencies>
   </metadata>
   <files>

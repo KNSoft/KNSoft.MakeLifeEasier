@@ -7,6 +7,8 @@
 #pragma comment (lib, "KNSoft.MakeLifeEasier.lib")
 
 TEST_DECL_FUNC(Math_Round);
+TEST_DECL_FUNC(CBS_EnumerateFeatures);
+TEST_DECL_FUNC(CBS_ChangeFeature);
 TEST_DECL_FUNC(IO_Pipe);
 TEST_DECL_FUNC(ShellObject);
 TEST_DECL_FUNC(String_Hash);
@@ -23,6 +25,8 @@ CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_ENTRY(RegistryWin32),
     TEST_DECL_ENTRY(RegistryNT),
 
+    TEST_DECL_MANUAL_ENTRY(CBS_EnumerateFeatures),
+    TEST_DECL_MANUAL_ENTRY(CBS_ChangeFeature),
     TEST_DECL_MANUAL_ENTRY(CreateSuperToken),
     { 0 }
 };
