@@ -73,15 +73,22 @@ jobs:
     - name: Prepare MSBuild
       uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
     - name: Build
+      shell: pwsh
       run: |
-        msbuild .\Source\KNSoft.MakeLifeEasier.sln /restore /m /p:Configuration=Release /p:Platform=x64 /p:RestorePackagesConfig=true
-        msbuild .\Source\KNSoft.MakeLifeEasier.sln /restore /m /p:Configuration=Release /p:Platform=x86 /p:RestorePackagesConfig=true
-        msbuild .\Source\KNSoft.MakeLifeEasier.sln /restore /m /p:Configuration=Release /p:Platform=ARM64 /p:RestorePackagesConfig=true
-        msbuild .\Source\KNSoft.MakeLifeEasier.sln /restore /m /p:Configuration=Release /p:Platform=ARM64EC /p:RestorePackagesConfig=true
+        $PSNativeCommandUseErrorActionPreference = $true
+        foreach ($Configuration in 'Debug', 'Release') {
+          foreach ($Platform in 'x64', 'x86', 'ARM64', 'ARM64EC') {
+            msbuild .\Source\KNSoft.MakeLifeEasier.sln /restore /m /p:Configuration=$Configuration /p:Platform=$Platform /p:RestorePackagesConfig=true
+          }
+        }
     - name: Run Unit Test
+      shell: pwsh
       run: |
-        .\Source\OutDir\x64\Release\Test.exe -Run
-        .\Source\OutDir\x86\Release\Test.exe -Run
+        $PSNativeCommandUseErrorActionPreference = $true
+        foreach ($Configuration in 'Debug', 'Release') {
+          .\Source\OutDir\x64\$Configuration\Test.exe -Run
+          .\Source\OutDir\x86\$Configuration\Test.exe -Run
+        }
     - name: Create NuGet package
       shell: pwsh
       run: |
