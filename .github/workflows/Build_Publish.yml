@@ -86,8 +86,8 @@ jobs:
       run: |
         $PSNativeCommandUseErrorActionPreference = $true
         foreach ($Configuration in 'Debug', 'Release') {
-          .\Source\OutDir\x64\$Configuration\Test.exe -Run
-          .\Source\OutDir\x86\$Configuration\Test.exe -Run
+          & ".\Source\OutDir\x64\$Configuration\Test.exe" -Run
+          & ".\Source\OutDir\x86\$Configuration\Test.exe" -Run
         }
     - name: Create NuGet package
       shell: pwsh
