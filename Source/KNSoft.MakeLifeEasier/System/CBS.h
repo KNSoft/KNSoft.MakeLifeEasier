@@ -2,8 +2,6 @@
 
 #include "../MakeLifeEasier.h"
 
-#include <KNSoft/NDK/Win32/API/CBS/CbsApi.h>
-
 EXTERN_C_START
 
 typedef struct _SYS_CBS_FEATURE_STATE

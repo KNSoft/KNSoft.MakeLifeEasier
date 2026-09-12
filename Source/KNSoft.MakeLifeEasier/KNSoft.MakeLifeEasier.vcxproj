@@ -220,6 +220,7 @@
     <ClCompile Include="System\CBS.c" />
     <ClCompile Include="System\FVE.c" />
     <ClCompile Include="System\Info.c" />
+    <ClCompile Include="System\Session.c" />
     <ClCompile Include="System\APIThunks.c" />
     <ClCompile Include="System\Registry.cpp" />
     <ClCompile Include="Time\Time.c" />
@@ -284,6 +285,7 @@
     <ClInclude Include="System\CBS.h" />
     <ClInclude Include="System\FVE.h" />
     <ClInclude Include="System\Info.h" />
+    <ClInclude Include="System\Session.h" />
     <ClInclude Include="System\APIThunks.h" />
     <ClInclude Include="System\Registry.h" />
     <ClInclude Include="Time\Time.h" />
@@ -319,7 +321,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" />
-    <Import Project="..\packages\KNSoft.NDK.1.2.69-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.69-beta\build\KNSoft.NDK.targets')" />
+    <Import Project="..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -327,6 +329,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props'))" />
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.69-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.69-beta\build\KNSoft.NDK.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets'))" />
   </Target>
 </Project>

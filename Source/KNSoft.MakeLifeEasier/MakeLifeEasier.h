@@ -77,6 +77,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "System/CBS.h"
 #include "System/FVE.h"
 #include "System/Info.h"
+#include "System/Session.h"
 #include "UI/Control/ListView.h"
 #include "UI/Control/Menu.h"
 #include "UI/Control/PropSheet.h"

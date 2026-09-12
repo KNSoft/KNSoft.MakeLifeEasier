@@ -2,8 +2,6 @@
 
 #include "../MakeLifeEasier.h"
 
-#include <KNSoft/NDK/Win32/API/FveApi.h>
-
 EXTERN_C_START
 
 #define SYS_FVE_DISABLE_COUNT_DEFAULT MAXULONG

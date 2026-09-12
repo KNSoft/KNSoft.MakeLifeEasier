@@ -110,6 +110,9 @@
     <ClCompile Include="System\Info.c">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="System\Session.c">
+      <Filter>System</Filter>
+    </ClCompile>
     <ClCompile Include="UI\DPI.c">
       <Filter>UI</Filter>
     </ClCompile>
@@ -271,6 +274,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="System\Info.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Session.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="UI\DPI.h">

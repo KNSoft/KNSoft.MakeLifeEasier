@@ -36,30 +36,6 @@ NT_CreateToken(
     _In_ PTOKEN_GROUPS Groups,
     _In_ PTOKEN_PRIVILEGES Privileges);
 
-FORCEINLINE
-W32ERROR
-NT_GetSessionToken(
-    _Out_ PHANDLE TokenHandle,
-    _In_ DWORD SessionId)
-{
-    ULONG Length;
-    WINSTATIONUSERTOKEN WinStaUserToken;
-
-    WinStaUserToken.ProcessId = NtCurrentProcessId();
-    WinStaUserToken.ThreadId = NtCurrentThreadId();
-    if (WinStationQueryInformationW(SERVERNAME_CURRENT,
-                                    SessionId,
-                                    WinStationUserToken,
-                                    &WinStaUserToken,
-                                    sizeof(WinStaUserToken),
-                                    &Length))
-    {
-        *TokenHandle = WinStaUserToken.UserToken;
-        return ERROR_SUCCESS;
-    }
-    return _Inline_RtlGetLastWin32Error();
-}
-
 #pragma endregion
 
 EXTERN_C_END
