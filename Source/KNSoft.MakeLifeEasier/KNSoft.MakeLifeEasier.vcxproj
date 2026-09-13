@@ -230,6 +230,7 @@
     <ClCompile Include="UI\Control\Menu.c" />
     <ClCompile Include="UI\Control\PropSheet.c" />
     <ClCompile Include="UI\Control\TreeView.c" />
+    <ClCompile Include="UI\ATL\AxHost.cpp" />
     <ClCompile Include="UI\DialogBox\RectEditor.c" />
     <ClCompile Include="UI\DialogBox\ValueEditor.c" />
     <ClCompile Include="UI\DialogBox\WindowPicker.c" />
@@ -299,6 +300,7 @@
     <ClInclude Include="UI\Control\PropSheet.h" />
     <ClInclude Include="UI\Control\TreeView.h" />
     <ClInclude Include="UI\DialogBox\DialogBox.h" />
+    <ClInclude Include="UI\ATL\AxHost.h" />
     <ClInclude Include="UI\DPI.h" />
     <ClInclude Include="UI\GDI.h" />
     <ClInclude Include="UI\Gdip.h" />

@@ -97,6 +97,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "UI/Control/Dialog.h"
 
 #ifdef __cplusplus
+#include "UI/ATL/AxHost.h"
 #include "UI/Gdip.h"
 #endif
 
