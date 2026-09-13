@@ -191,6 +191,7 @@
     <ClCompile Include="I18N.xml.g.c" />
     <ClCompile Include="IO\Hardware.c" />
     <ClCompile Include="IO\File.c" />
+    <ClCompile Include="Data\Json.c" />
     <ClCompile Include="KNSoft\DialogBox.c" />
     <ClCompile Include="KNSoft\I18N.c" />
     <ClCompile Include="Main.c" />
@@ -250,6 +251,7 @@
     <ClInclude Include="I18N.xml.g.h" />
     <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
+    <ClInclude Include="Data\Json.h" />
     <ClInclude Include="KNSoft\AppInfo.h" />
     <ClInclude Include="KNSoft\DialogBox.h" />
     <ClInclude Include="KNSoft\I18N.h" />

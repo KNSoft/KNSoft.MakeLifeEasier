@@ -6,6 +6,7 @@
 
 #pragma comment (lib, "KNSoft.MakeLifeEasier.lib")
 
+TEST_DECL_FUNC(Data_Json);
 TEST_DECL_FUNC(Math_Round);
 TEST_DECL_FUNC(CBS_EnumerateFeatures);
 TEST_DECL_FUNC(CBS_ChangeFeature);
@@ -18,6 +19,7 @@ TEST_DECL_FUNC(RegistryWin32);
 TEST_DECL_FUNC(RegistryNT);
 
 CONST UNITTEST_ENTRY UnitTestList[] = {
+    TEST_DECL_ENTRY(Data_Json),
     TEST_DECL_ENTRY(Math_Round),
     TEST_DECL_ENTRY(IO_Pipe),
     TEST_DECL_ENTRY(ShellObject),

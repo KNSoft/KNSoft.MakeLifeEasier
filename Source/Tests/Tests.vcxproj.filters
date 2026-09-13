@@ -1,6 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{30bfae3b-e8f3-4727-b55f-2be0cdb1d0f3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Data\Json.c">
+      <Filter>Data</Filter>
+    </ClCompile>
     <ClCompile Include="CBS.c" />
     <ClCompile Include="FVE.c" />
     <ClCompile Include="IO.c" />

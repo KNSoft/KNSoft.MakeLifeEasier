@@ -181,6 +181,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Data\Json.c" />
     <ClCompile Include="CBS.c" />
     <ClCompile Include="FVE.c" />
     <ClCompile Include="IO.c" />

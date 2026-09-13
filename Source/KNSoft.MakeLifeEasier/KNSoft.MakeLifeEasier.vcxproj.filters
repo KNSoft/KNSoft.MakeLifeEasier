@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{d86d345b-9cde-4d5d-bf7a-421783379942}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IO">
       <UniqueIdentifier>{e7b41999-cdc9-4123-ae67-e504e872622c}</UniqueIdentifier>
     </Filter>
@@ -71,6 +74,9 @@
     </ClCompile>
     <ClCompile Include="UI\Window.c">
       <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Data\Json.c">
+      <Filter>Data</Filter>
     </ClCompile>
     <ClCompile Include="IO\File.c">
       <Filter>IO</Filter>
@@ -231,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="UI\Window.h">
       <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Data\Json.h">
+      <Filter>Data</Filter>
     </ClInclude>
     <ClInclude Include="IO\File.h">
       <Filter>IO</Filter>

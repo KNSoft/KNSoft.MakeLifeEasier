@@ -90,6 +90,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 /* L3 Header: Depends on above headers */
 #include "Error/Message.h"
 #include "IO/File.h"
+#include "Data/Json.h"
 #include "Process/Process.h"
 #include "Process/Remote/Remote.h"
 #include "UI/Control/Dialog.h"
