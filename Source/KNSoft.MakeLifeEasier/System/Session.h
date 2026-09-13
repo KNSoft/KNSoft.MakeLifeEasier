@@ -8,7 +8,7 @@ MLE_API
 W32ERROR
 NTAPI
 Sys_GetSessionToken(
-    _Out_ PHANDLE TokenHandle,
-    _In_ DWORD SessionId);
+    _In_ DWORD SessionId,
+    _Out_ PHANDLE TokenHandle);
 
 EXTERN_C_END
