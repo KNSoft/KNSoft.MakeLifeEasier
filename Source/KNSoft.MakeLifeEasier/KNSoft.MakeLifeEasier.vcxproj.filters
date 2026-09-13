@@ -63,6 +63,9 @@
     <ClCompile Include="Math\Rand.c">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="IO\Console.c">
+      <Filter>IO</Filter>
+    </ClCompile>
     <ClCompile Include="IO\Hardware.c">
       <Filter>IO</Filter>
     </ClCompile>
@@ -225,6 +228,9 @@
     <ClInclude Include="MakeLifeEasier.h" />
     <ClInclude Include="Math\Rand.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Console.h">
+      <Filter>IO</Filter>
     </ClInclude>
     <ClInclude Include="IO\Hardware.h">
       <Filter>IO</Filter>

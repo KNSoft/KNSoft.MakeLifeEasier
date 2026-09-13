@@ -189,6 +189,7 @@
     <ClCompile Include="Error\Code.c" />
     <ClCompile Include="Error\Message.c" />
     <ClCompile Include="I18N.xml.g.c" />
+    <ClCompile Include="IO\Console.c" />
     <ClCompile Include="IO\Hardware.c" />
     <ClCompile Include="IO\File.c" />
     <ClCompile Include="Data\Json.c" />
@@ -249,6 +250,7 @@
     <ClInclude Include="Error\Code.h" />
     <ClInclude Include="Error\Message.h" />
     <ClInclude Include="I18N.xml.g.h" />
+    <ClInclude Include="IO\Console.h" />
     <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
     <ClInclude Include="Data\Json.h" />

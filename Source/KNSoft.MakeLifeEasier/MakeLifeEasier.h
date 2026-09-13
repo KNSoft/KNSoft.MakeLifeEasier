@@ -58,6 +58,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 
 /* L2 Header: No dependencies yet */
 #include "Crypt/Cert.h"
+#include "IO/Console.h"
 #include "IO/Hardware.h"
 #include "NT/Security.h"
 #include "PE/Resolve.h"
