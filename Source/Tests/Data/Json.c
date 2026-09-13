@@ -25,7 +25,7 @@ QueryJsonOnThread(
         goto Cleanup;
     }
     Result = Object->lpVtbl->QueryInterface(Object,
-                                            &IID___FIMap_2_HSTRING_Windows__CData__CJson__CIJsonValue,
+                                            &IID_IJsonMap,
                                             (PVOID*)&Map);
     Object->lpVtbl->Release(Object);
     if (SUCCEEDED(Result))
@@ -53,6 +53,9 @@ TestUtf8(
         ULONG Length;
     } Cases[] = {
 #define JSON_CASE(text) { text, sizeof(text) - 1 }
+        JSON_CASE(" "),
+        JSON_CASE("\0"),
+        JSON_CASE("\0{}"),
         JSON_CASE("null"),
         JSON_CASE("true"),
         JSON_CASE("12.5"),
@@ -73,7 +76,7 @@ TestUtf8(
         JSON_CASE("\xFF")
 #undef JSON_CASE
     };
-    __x_ABI_CWindows_CData_CJson_CIJsonValueStatics* Factory;
+    IJsonValueStatics* Factory;
     HSTRING_HEADER Header;
     HSTRING ClassName;
     HRESULT Result;
@@ -89,7 +92,7 @@ TestUtf8(
         return;
     }
     Result = RoGetActivationFactory(ClassName,
-                                    &IID___x_ABI_CWindows_CData_CJson_CIJsonValueStatics,
+                                    &IID_IJsonValueStatics,
                                     (PVOID*)&Factory);
     TEST_OK(SUCCEEDED(Result));
     if (FAILED(Result))
@@ -124,7 +127,7 @@ TestUtf8(
             continue;
         }
         ExpectedResult = Factory->lpVtbl->Parse(Factory, Input, &Expected);
-        ActualResult = Data_JsonParseUtf8((const BYTE*)Cases[Index].Text, Cases[Index].Length, &Actual);
+        ActualResult = Data_JsonParseUtf8(Cases[Index].Text, Cases[Index].Length, &Actual);
         TEST_OK(ActualResult == ExpectedResult);
         if (SUCCEEDED(ActualResult) && SUCCEEDED(ExpectedResult))
         {
@@ -166,7 +169,7 @@ VOID
 TestJsonDefaults(
     PUNITTEST_RESULT TEST_PARAMETER_RESULT)
 {
-    static const BYTE Text[] = "{\"wrong\":42}";
+    static const CHAR Text[] = "{\"wrong\":42}";
     IJsonValue* Root;
     IJsonObject* Object;
     IJsonObjectWithDefaultValues* Defaults;
@@ -189,7 +192,7 @@ TestJsonDefaults(
         return;
     }
     Result = Object->lpVtbl->QueryInterface(Object,
-                                            &IID___x_ABI_CWindows_CData_CJson_CIJsonObjectWithDefaultValues,
+                                            &IID_IJsonObjectWithDefaultValues,
                                             (PVOID*)&Defaults);
     Object->lpVtbl->Release(Object);
     TEST_OK(SUCCEEDED(Result));
@@ -254,7 +257,7 @@ TestJsonInputBoundary(
     Pages[PAGE_SIZE - 1] = '}';
     if (VirtualProtect(Pages + PAGE_SIZE, PAGE_SIZE, PAGE_NOACCESS, &OldProtect))
     {
-        Result = Data_JsonParseUtf8(Pages + PAGE_SIZE - 2, 2, &Value);
+        Result = Data_JsonParseUtf8((PCCH)Pages + PAGE_SIZE - 2, 2, &Value);
         TEST_OK(SUCCEEDED(Result));
         if (SUCCEEDED(Result))
         {
@@ -269,7 +272,7 @@ TestJsonInputBoundary(
 
 TEST_FUNC(Data_Json)
 {
-    static const BYTE JsonText[] =
+    static const CHAR JsonText[] =
         "{\"text\":\"\xE4\xB8\xAD\",\"items\":[true,null,12.5],\"empty\":{}}!";
     IJsonValue* Root = NULL;
     IJsonValue* Element = NULL;
@@ -277,8 +280,8 @@ TEST_FUNC(Data_Json)
     IJsonMap* Map = NULL;
     IJsonArray* Array = NULL;
     IJsonVector* Vector = NULL;
-    IJsonIterable* Iterable = NULL;
-    IJsonIterator* Iterator = NULL;
+    IJsonPairIterable* Iterable = NULL;
+    IJsonPairIterator* Iterator = NULL;
     HSTRING_HEADER Header;
     HSTRING Name, String;
     JsonValueType Type;
@@ -306,9 +309,9 @@ TEST_FUNC(Data_Json)
     TestUtf8(TEST_PARAMETER_RESULT);
     TestJsonDefaults(TEST_PARAMETER_RESULT);
     TestJsonInputBoundary(TEST_PARAMETER_RESULT);
-    TEST_OK(Data_JsonParseUtf8(JsonText, 0, &Root) == HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
-    TEST_OK(Data_JsonParseUtf8(NULL, 1, &Root) == E_INVALIDARG);
-    TEST_OK(Data_JsonParseUtf8(JsonText, sizeof(JsonText) - 2, NULL) == E_INVALIDARG);
+    TEST_OK(Data_JsonParse(NULL, &Root) == WEB_E_INVALID_JSON_STRING);
+    TEST_OK(Data_JsonParseUtf8(JsonText, 0, &Root) == WEB_E_INVALID_JSON_STRING);
+    TEST_OK(Data_JsonParseUtf8(NULL, 0, &Root) == WEB_E_INVALID_JSON_STRING);
     Result = Data_JsonParseUtf8(JsonText, sizeof(JsonText) - 2, &Root);
     TEST_OK(SUCCEEDED(Result));
     if (FAILED(Result))
@@ -323,7 +326,7 @@ TEST_FUNC(Data_Json)
         goto Cleanup;
     }
     Result = Object->lpVtbl->QueryInterface(Object,
-                                            &IID___FIMap_2_HSTRING_Windows__CData__CJson__CIJsonValue,
+                                            &IID_IJsonMap,
                                             (PVOID*)&Map);
     TEST_OK(SUCCEEDED(Result));
     if (FAILED(Result))
@@ -365,7 +368,7 @@ TEST_FUNC(Data_Json)
         goto Cleanup;
     }
     Result = Array->lpVtbl->QueryInterface(Array,
-                                           &IID___FIVector_1_Windows__CData__CJson__CIJsonValue,
+                                           &IID_IJsonVector,
                                            (PVOID*)&Vector);
     TEST_OK(SUCCEEDED(Result));
     if (FAILED(Result))
@@ -385,7 +388,7 @@ TEST_FUNC(Data_Json)
     TEST_OK(Vector->lpVtbl->GetAt(Vector, 3, &Element) == E_BOUNDS);
     Result = Object->lpVtbl->QueryInterface(
         Object,
-        &IID___FIIterable_1___FIKeyValuePair_2_HSTRING_Windows__CData__CJson__CIJsonValue,
+        &IID_IJsonPairIterable,
         (PVOID*)&Iterable);
     TEST_OK(SUCCEEDED(Result));
     if (FAILED(Result))
@@ -458,6 +461,7 @@ TEST_FUNC(Data_Json)
         TEST_OK(TempResult != 0);
         if (TempResult != 0)
         {
+            TEST_OK(Data_JsonParseUtf8File(FilePath, 0, &Element) == WEB_E_INVALID_JSON_STRING);
             File = CreateFileW(FilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, NULL);
             TEST_OK(File != INVALID_HANDLE_VALUE);
             if (File != INVALID_HANDLE_VALUE)
@@ -476,6 +480,15 @@ TEST_FUNC(Data_Json)
                 }
                 TEST_OK(Data_JsonParseUtf8File(FilePath, sizeof(JsonText) - 3, &Element) ==
                         HRESULT_FROM_NT(STATUS_FILE_TOO_LARGE));
+                Result = Data_JsonParseUtf8File(FilePath, 0, &Element);
+                TEST_OK(SUCCEEDED(Result));
+                if (SUCCEEDED(Result))
+                {
+                    TEST_OK(SUCCEEDED(Element->lpVtbl->get_ValueType(Element, &Type)) &&
+                            Type == JsonValueType_Object);
+                    Element->lpVtbl->Release(Element);
+                    Element = NULL;
+                }
             }
             TEST_OK(DeleteFileW(FilePath));
         }
