@@ -24,8 +24,8 @@
     <file src="KNSoft.MakeLifeEasier\**\*.h" exclude="KNSoft.MakeLifeEasier\**\*.g.h;Resource.h;Resource.Embedded.h" target="build\Include\KNSoft\MakeLifeEasier\" />
 
     <file src="OutDir\**\*.lib" exclude="OutDir\x86\**" target="build\Lib\" />
-    <file src="OutDir\**\*.pdb" exclude="OutDir\x86\**;OutDir\**\Test.pdb" target="build\Lib\" />
+    <file src="OutDir\**\*.pdb" exclude="OutDir\x86\**;OutDir\**\Tests.pdb;OutDir\**\CreateSuperToken.pdb;OutDir\**\ChildSession.pdb;OutDir\**\AbeDecrypt.pdb" target="build\Lib\" />
     <file src="OutDir\x86\**\*.lib" target="build\Lib\Win32\" />
-    <file src="OutDir\x86\**\*.pdb" exclude="OutDir\x86\**\Test.pdb" target="build\Lib\Win32\" />
+    <file src="OutDir\x86\**\*.pdb" exclude="OutDir\x86\**\Tests.pdb;OutDir\x86\**\CreateSuperToken.pdb;OutDir\x86\**\ChildSession.pdb;OutDir\x86\**\AbeDecrypt.pdb" target="build\Lib\Win32\" />
   </files>
 </package>

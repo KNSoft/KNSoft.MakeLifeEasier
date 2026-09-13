@@ -17,8 +17,6 @@ TEST_DECL_FUNC(String_Hash);
 TEST_DECL_FUNC(RegistryWin32);
 TEST_DECL_FUNC(RegistryNT);
 
-TEST_DECL_FUNC(CreateSuperToken);
-
 CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_ENTRY(Math_Round),
     TEST_DECL_ENTRY(IO_Pipe),
@@ -31,7 +29,6 @@ CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_MANUAL_ENTRY(CBS_ChangeFeature),
     TEST_DECL_MANUAL_ENTRY(FVE_EnumerateVolumes),
     TEST_DECL_MANUAL_ENTRY(FVE_VolumeLifecycle),
-    TEST_DECL_MANUAL_ENTRY(CreateSuperToken),
     { 0 }
 };
 

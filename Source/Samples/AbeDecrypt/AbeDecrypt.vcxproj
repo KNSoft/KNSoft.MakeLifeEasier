@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" />
+  <Import Project="..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
@@ -38,8 +38,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{e86c50ff-b196-4933-9fba-5c31452c445b}</ProjectGuid>
-    <RootNamespace>Test</RootNamespace>
+    <ProjectGuid>{E9850471-B047-46DA-9E6A-EF50F034B0E0}</ProjectGuid>
+    <RootNamespace>AbeDecrypt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -181,33 +181,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CBS.c" />
-    <ClCompile Include="FVE.c" />
-    <ClCompile Include="IO.c" />
-    <ClCompile Include="Main.c" />
-    <ClCompile Include="Math.c" />
-    <ClCompile Include="Registry.c" />
-    <ClCompile Include="Samples\CreateSuperToken.c" />
-    <ClCompile Include="ShellObject.c" />
-    <ClCompile Include="String.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Test.h" />
+    <ClCompile Include="AbeDecrypt.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\KNSoft.MakeLifeEasier\KNSoft.MakeLifeEasier.vcxproj">
+      <Project>{4889E88D-A60F-418F-9737-989D84A1A73E}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" />
-    <Import Project="..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" />
+    <Import Project="..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" />
+    <Import Project="..\..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets" Condition="Exists('..\..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets'))" />
+    <Error Condition="!Exists('..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props'))" />
+    <Error Condition="!Exists('..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets'))" />
+    <Error Condition="!Exists('..\..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\KNSoft.NDK.1.2.71-beta\build\KNSoft.NDK.targets'))" />
   </Target>
 </Project>

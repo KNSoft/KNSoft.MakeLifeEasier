@@ -5,4 +5,4 @@
 
 ## Test
 
-- Run the `Test` project with `Test.exe -Run` to execute all tests.
+- Run the `Tests` project with `Tests.exe -Run` to execute all tests.

@@ -1,0 +1,17 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="ARM64EC" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/CreateSuperToken/CreateSuperToken.vcxproj" Id="61964cfb-c334-4873-87eb-442344c87c15" />
+    <Project Path="Samples/ChildSession/ChildSession.vcxproj" Id="9ae3acf6-559b-4dbd-94ef-ff1bc10976c1" />
+    <Project Path="Samples/AbeDecrypt/AbeDecrypt.vcxproj" Id="e9850471-b047-46da-9e6a-ef50f034b0e0" />
+  </Folder>
+  <Project Path="KNSoft.MakeLifeEasier/KNSoft.MakeLifeEasier.vcxproj" Id="4889e88d-a60f-418f-9737-989d84a1a73e" />
+  <Project Path="Tests/Tests.vcxproj" Id="e86c50ff-b196-4933-9fba-5c31452c445b">
+    <BuildDependency Project="KNSoft.MakeLifeEasier/KNSoft.MakeLifeEasier.vcxproj" />
+  </Project>
+</Solution>

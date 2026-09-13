@@ -6,14 +6,23 @@
  *     - Has highest integrity (SYSTEM)
  *     - Has UIAccess
  *
- * Run: "Test.exe -Run CreateSuperToken", need administrator privilege.
+ * Run: "CreateSuperToken.exe", need administrator privilege.
  */
 
-#include "../Test.h"
+#define MLE_API
+#define _USE_COMMCTL60
 
-TEST_FUNC(CreateSuperToken)
+#include "../../KNSoft.MakeLifeEasier/MakeLifeEasier.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+_cdecl
+wmain(VOID)
 {
     NTSTATUS Status;
+    int Result = EXIT_FAILURE;
 
     /*** Impersonate LSA to obtain SE_CREATE_TOKEN_PRIVILEGE privilege ***/
 
@@ -22,8 +31,8 @@ TEST_FUNC(CreateSuperToken)
     Status = Sys_GetLsaProcessId(&LsaProcessId);
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: Sys_GetLsaProcessId failed with: 0x%08lX\n", __LINE__, Status);
-        return;
+        printf("L%-3lu: Sys_GetLsaProcessId failed with: 0x%08lX\n", __LINE__, Status);
+        return EXIT_FAILURE;
     }
 
     /* Duplicate LSA impersonation token */
@@ -31,27 +40,27 @@ TEST_FUNC(CreateSuperToken)
     Status = PS_DuplicateSystemToken(LsaProcessId, TokenImpersonation, &LsaImpersonateToken);
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: PS_DuplicateSystemToken failed with: 0x%08lX\n", __LINE__, Status);
-        return;
+        printf("L%-3lu: PS_DuplicateSystemToken failed with: 0x%08lX\n", __LINE__, Status);
+        return EXIT_FAILURE;
     }
 
     /* Impersonate LSA */
     Status = PS_Impersonate(LsaImpersonateToken);
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: PS_Impersonate failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: PS_Impersonate failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_0;
     }
     Status = NT_AdjustTokenPrivilege(LsaImpersonateToken, SE_ASSIGNPRIMARYTOKEN_PRIVILEGE, SE_PRIVILEGE_ENABLED);
     if (Status != STATUS_SUCCESS)
     {
-        UnitTest_PrintF("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_1;
     }
     Status = NT_AdjustTokenPrivilege(LsaImpersonateToken, SE_INCREASE_QUOTA_PRIVILEGE, SE_PRIVILEGE_ENABLED);
     if (Status != STATUS_SUCCESS)
     {
-        UnitTest_PrintF("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: NT_AdjustTokenPrivilege failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_1;
     }
 
@@ -64,7 +73,7 @@ TEST_FUNC(CreateSuperToken)
     Status = PS_GetTokenInfo(NtCurrentProcessToken(), TokenLogonSid, &LogonSidGroups);
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: PS_GetTokenInfo failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: PS_GetTokenInfo failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_1;
     }
     for (ULONG i = 0; i < LogonSidGroups->GroupCount; i++)
@@ -83,7 +92,7 @@ TEST_FUNC(CreateSuperToken)
     Mem_Free(LogonSidGroups);
     if (LogonSid == NULL)
     {
-        UnitTest_PrintF("L%-3lu: Current logon ID SID not found\n", __LINE__);
+        printf("L%-3lu: Current logon ID SID not found\n", __LINE__);
         goto _Exit_1;
     }
 
@@ -128,7 +137,7 @@ TEST_FUNC(CreateSuperToken)
                             &Privileges.BaseType);
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: NT_CreateToken failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: NT_CreateToken failed with: 0x%08lX\n", __LINE__, Status);
         goto _Exit_2;
     }
     ULONG UIAccess = TRUE;
@@ -138,12 +147,12 @@ TEST_FUNC(CreateSuperToken)
                                    sizeof(NtCurrentPeb()->SessionId));
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: NtSetInformationToken failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: NtSetInformationToken failed with: 0x%08lX\n", __LINE__, Status);
     }
     Status = NtSetInformationToken(SuperToken, TokenUIAccess, &UIAccess, sizeof(UIAccess));
     if (!NT_SUCCESS(Status))
     {
-        UnitTest_PrintF("L%-3lu: NtSetInformationToken failed with: 0x%08lX\n", __LINE__, Status);
+        printf("L%-3lu: NtSetInformationToken failed with: 0x%08lX\n", __LINE__, Status);
     }
 
     /*** Run cmd.exe ***/
@@ -163,11 +172,12 @@ TEST_FUNC(CreateSuperToken)
                            &ProcessInfo);
     if (Ret != ERROR_SUCCESS)
     {
-        UnitTest_PrintF("L%-3lu: PS_CreateProcess failed with: 0x%08lX\n", __LINE__, Ret);
+        printf("L%-3lu: PS_CreateProcess failed with: 0x%08lX\n", __LINE__, Ret);
         goto _Exit_3;
     }
     NtClose(ProcessInfo.hThread);
     NtClose(ProcessInfo.hProcess);
+    Result = EXIT_SUCCESS;
 
 _Exit_3:
     NtClose(SuperToken);
@@ -177,5 +187,5 @@ _Exit_1:
     PS_Impersonate(NULL);
 _Exit_0:
     NtClose(LsaImpersonateToken);
-    return;
+    return Result;
 }
