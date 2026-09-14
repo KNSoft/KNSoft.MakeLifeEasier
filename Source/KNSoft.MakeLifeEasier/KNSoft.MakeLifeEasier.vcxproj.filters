@@ -52,6 +52,9 @@
     <Filter Include="UI\DialogBox">
       <UniqueIdentifier>{c33347fe-2000-4c97-bd09-132385981b94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\DialogBox\RDP">
+      <UniqueIdentifier>{4b0947ba-0da6-44f9-896c-e27d8651fe07}</UniqueIdentifier>
+    </Filter>
     <Filter Include="UI\Control">
       <UniqueIdentifier>{2aeeba04-9117-436c-ab83-36a0eed7434a}</UniqueIdentifier>
     </Filter>
@@ -170,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="UI\ATL\AxHost.cpp">
       <Filter>UI\ATL</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DialogBox\RDP\RDP.cpp">
+      <Filter>UI\DialogBox\RDP</Filter>
     </ClCompile>
     <ClCompile Include="UI\DialogBox\RectEditor.c">
       <Filter>UI\DialogBox</Filter>
@@ -349,6 +355,9 @@
     </ClInclude>
     <ClInclude Include="UI\ATL\AxHost.h">
       <Filter>UI\ATL</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\DialogBox\RDP\RDP.h">
+      <Filter>UI\DialogBox\RDP</Filter>
     </ClInclude>
     <ClInclude Include="UI\DialogBox\DialogBox.h">
       <Filter>UI\DialogBox</Filter>

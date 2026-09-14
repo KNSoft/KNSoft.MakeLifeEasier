@@ -84,6 +84,7 @@ typedef _Return_type_success_(return == ERROR_SUCCESS) ULONG W32ERROR;
 #include "UI/Control/PropSheet.h"
 #include "UI/Control/TreeView.h"
 #include "UI/DialogBox/DialogBox.h"
+#include "UI/DialogBox/RDP/RDP.h"
 #include "UI/DPI.h"
 #include "UI/Paint.h"
 #include "UI/Window.h"

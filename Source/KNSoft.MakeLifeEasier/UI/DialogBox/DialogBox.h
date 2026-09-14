@@ -2,6 +2,8 @@
 
 #include "../../MakeLifeEasier.h"
 
+#include <CommDlg.h>
+
 EXTERN_C_START
 
 /* Common dialog box */

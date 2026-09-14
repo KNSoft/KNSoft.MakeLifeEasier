@@ -231,6 +231,7 @@
     <ClCompile Include="UI\Control\PropSheet.c" />
     <ClCompile Include="UI\Control\TreeView.c" />
     <ClCompile Include="UI\ATL\AxHost.cpp" />
+    <ClCompile Include="UI\DialogBox\RDP\RDP.cpp" />
     <ClCompile Include="UI\DialogBox\RectEditor.c" />
     <ClCompile Include="UI\DialogBox\ValueEditor.c" />
     <ClCompile Include="UI\DialogBox\WindowPicker.c" />
@@ -301,6 +302,7 @@
     <ClInclude Include="UI\Control\TreeView.h" />
     <ClInclude Include="UI\DialogBox\DialogBox.h" />
     <ClInclude Include="UI\ATL\AxHost.h" />
+    <ClInclude Include="UI\DialogBox\RDP\RDP.h" />
     <ClInclude Include="UI\DPI.h" />
     <ClInclude Include="UI\GDI.h" />
     <ClInclude Include="UI\Gdip.h" />
@@ -327,7 +329,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" />
-    <Import Project="..\packages\KNSoft.NDK.1.2.72-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.72-beta\build\KNSoft.NDK.targets')" />
+    <Import Project="..\packages\KNSoft.NDK.1.2.73-beta\build\KNSoft.NDK.targets" Condition="Exists('..\packages\KNSoft.NDK.1.2.73-beta\build\KNSoft.NDK.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -335,6 +337,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props'))" />
     <Error Condition="!Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.targets'))" />
-    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.72-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.72-beta\build\KNSoft.NDK.targets'))" />
+    <Error Condition="!Exists('..\packages\KNSoft.NDK.1.2.73-beta\build\KNSoft.NDK.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\KNSoft.NDK.1.2.73-beta\build\KNSoft.NDK.targets'))" />
   </Target>
 </Project>
