@@ -10,6 +10,8 @@
 
 #include "../../KNSoft.MakeLifeEasier/MakeLifeEasier.h"
 
+#include "resource.h"
+
 #include <ObjBase.h>
 #include <OcIdl.h>
 #include <OleAuto.h>
@@ -23,21 +25,14 @@
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "OleAut32.lib")
 
-typedef struct _CHILD_SESSION_CONFIGURATION
-{
-    BOOLEAN Enabled;
-    BOOLEAN CredentialDelegation;
-    BOOLEAN HelloOnly;
-} CHILD_SESSION_CONFIGURATION, *PCHILD_SESSION_CONFIGURATION;
-
 static const UNICODE_STRING g_ChildSessionCredentialKey =
     RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SOFTWARE\\Policies\\Microsoft\\Windows\\CredentialsDelegation");
 static const UNICODE_STRING g_ChildSessionCredentialValue = RTL_CONSTANT_STRING(L"2147483647");
 static const UNICODE_STRING g_ChildSessionCredentialTarget = RTL_CONSTANT_STRING(L"TERMSRV/localhost");
-static const UNICODE_STRING g_ChildSessionDefaultCredentialPolicy =
-    RTL_CONSTANT_STRING(L"AllowDefaultCredentials");
-static const UNICODE_STRING g_ChildSessionNtlmCredentialPolicy =
-    RTL_CONSTANT_STRING(L"AllowDefCredentialsWhenNTLMOnly");
+static const UNICODE_STRING g_ChildSessionCredentialPolicies[] = {
+    RTL_CONSTANT_STRING(L"AllowDefaultCredentials"),
+    RTL_CONSTANT_STRING(L"AllowDefCredentialsWhenNTLMOnly")
+};
 static const UNICODE_STRING g_ChildSessionPasswordlessKey =
     RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\PasswordLess\\Device");
 static const UNICODE_STRING g_ChildSessionPasswordlessValue =
@@ -166,7 +161,6 @@ ChildSession_GetChildSessionId(
     ULONG Value;
     W32ERROR Error;
 
-    *SessionId = MAXULONG;
     if (!WinStationGetChildSessionId(&Value))
     {
         Error = Err_GetLastError();
@@ -182,37 +176,11 @@ ChildSession_GetChildSessionId(
 
 static
 W32ERROR
-ChildSession_QueryChildSessionInformation(
-    _Out_ PWINSTATIONINFORMATION Information)
-{
-    ULONG SessionId, ReturnLength;
-    W32ERROR Error;
-
-    Error = ChildSession_GetChildSessionId(&SessionId);
-    if (Error != ERROR_SUCCESS)
-    {
-        return Error;
-    }
-    if (!WinStationQueryInformationW(WINSTATION_CURRENT_SERVER,
-                                     SessionId,
-                                     WinStationInformation,
-                                     Information,
-                                     sizeof(*Information),
-                                     &ReturnLength))
-    {
-        Error = Err_GetLastError();
-        return Error == ERROR_FILE_NOT_FOUND ? ERROR_NOT_FOUND : Error;
-    }
-    return ERROR_SUCCESS;
-}
-
-static
-W32ERROR
 ChildSession_QueryChildSessionCredentialDelegation(
     _Out_ PBOOLEAN Enabled)
 {
     HANDLE Key;
-    BOOLEAN DefaultEnabled, NtlmEnabled;
+    BOOLEAN PolicyEnabled;
     NTSTATUS Status;
 
     *Enabled = FALSE;
@@ -227,20 +195,17 @@ ChildSession_QueryChildSessionCredentialDelegation(
     {
         return ChildSession_SessionStatusToWin32Error(Status);
     }
-    Status = ChildSession_SessionQueryCredentialPolicy(Key,
-                                               &g_ChildSessionDefaultCredentialPolicy,
-                                               &DefaultEnabled);
-    if (NT_SUCCESS(Status))
+    *Enabled = TRUE;
+    for (const auto& Policy : g_ChildSessionCredentialPolicies)
     {
-        Status = ChildSession_SessionQueryCredentialPolicy(Key,
-                                                   &g_ChildSessionNtlmCredentialPolicy,
-                                                   &NtlmEnabled);
+        Status = ChildSession_SessionQueryCredentialPolicy(Key, &Policy, &PolicyEnabled);
+        if (!NT_SUCCESS(Status) || !PolicyEnabled)
+        {
+            *Enabled = FALSE;
+            break;
+        }
     }
     NtClose(Key);
-    if (NT_SUCCESS(Status))
-    {
-        *Enabled = DefaultEnabled && NtlmEnabled;
-    }
     return ChildSession_SessionStatusToWin32Error(Status);
 }
 
@@ -271,14 +236,13 @@ ChildSession_SetChildSessionCredentialDelegation(
     {
         return ChildSession_SessionStatusToWin32Error(Status);
     }
-    Status = ChildSession_SessionSetCredentialPolicy(Key,
-                                             &g_ChildSessionDefaultCredentialPolicy,
-                                             Enabled);
-    if (NT_SUCCESS(Status))
+    for (const auto& Policy : g_ChildSessionCredentialPolicies)
     {
-        Status = ChildSession_SessionSetCredentialPolicy(Key,
-                                                 &g_ChildSessionNtlmCredentialPolicy,
-                                                 Enabled);
+        Status = ChildSession_SessionSetCredentialPolicy(Key, &Policy, Enabled);
+        if (!NT_SUCCESS(Status))
+        {
+            break;
+        }
     }
     NtClose(Key);
     return ChildSession_SessionStatusToWin32Error(Status);
@@ -337,58 +301,30 @@ ChildSession_SetChildSessionHelloOnly(
 
 static
 W32ERROR
-ChildSession_QueryChildSessionConfiguration(
-    _Out_ PCHILD_SESSION_CONFIGURATION Configuration)
+ChildSession_QueryParentInformation(
+    _Out_ PWINSTATIONINFORMATION Information)
 {
-    W32ERROR Error;
-
-    RtlZeroMemory(Configuration, sizeof(*Configuration));
-    if (!WinStationIsChildSessionsEnabled(&Configuration->Enabled))
-    {
-        return Err_GetLastError();
-    }
-    Error = ChildSession_QueryChildSessionCredentialDelegation(&Configuration->CredentialDelegation);
-    if (Error != ERROR_SUCCESS)
-    {
-        return Error;
-    }
-    return ChildSession_QueryChildSessionHelloOnly(&Configuration->HelloOnly);
-}
-
-static
-W32ERROR
-ChildSession_ValidateChildSessionParent(VOID)
-{
-    NTSTATUS Status;
-    WINSTATIONINFORMATION Information;
     ULONG ReturnLength;
 
-    // This demo edits machine-wide settings; elevation alone is not an administrator check.
-    Status = PS_IsCurrentAdminToken();
-    if (Status != STATUS_SUCCESS)
-    {
-        return Err_NtStatusToWin32Error(Status);
-    }
     if (!WinStationQueryInformationW(WINSTATION_CURRENT_SERVER,
                                      WINSTATION_CURRENT_SESSION,
                                      WinStationInformation,
-                                     &Information,
-                                     sizeof(Information),
+                                     Information,
+                                     sizeof(*Information),
                                      &ReturnLength))
     {
         return Err_GetLastError();
     }
-    if (Information.ConnectState != State_Active)
+    if (Information->ConnectState != State_Active)
     {
         return ERROR_CTX_WINSTATION_NOT_FOUND;
     }
-    return Information.UserName[0] != UNICODE_NULL ? ERROR_SUCCESS : ERROR_NOT_LOGGED_ON;
+    return Information->UserName[0] != UNICODE_NULL ? ERROR_SUCCESS : ERROR_NOT_LOGGED_ON;
 }
 
 static
 W32ERROR
-ChildSession_LogoffChildSession(
-    _In_ BOOLEAN Wait)
+ChildSession_LogoffChildSession(VOID)
 {
     ULONG SessionId;
     W32ERROR Error;
@@ -402,26 +338,12 @@ ChildSession_LogoffChildSession(
     {
         return Error;
     }
-    // TRUE waits for reset/disconnect completion; FALSE only submits the request.
-    return WinStationReset(WINSTATION_CURRENT_SERVER, SessionId, Wait) ?
+    return WinStationReset(WINSTATION_CURRENT_SERVER, SessionId, TRUE) ?
                ERROR_SUCCESS :
                Err_GetLastError();
 }
 
-
-#define CHILD_SESSION_CONSOLE_WINDOW_CLASS L"KNSoft.MakeLifeEasier.ChildSession.Console"
-#define CHILD_SESSION_WINDOW_TITLE L"KNSoft Child Session Console"
 #define CHILD_SESSION_RDP_WINDOW_TITLE L"KNSoft Child Session"
-#define CHILD_SESSION_MESSAGE_EVENT (WM_APP + 1)
-#define CHILD_SESSION_MESSAGE_RDP_CLOSE (WM_APP + 2)
-#define CHILD_SESSION_MESSAGE_DESKTOP_SIZE (WM_APP + 3)
-
-#define CHILD_SESSION_BUTTON_REFRESH 1001
-#define CHILD_SESSION_BUTTON_CONNECT 1002
-#define CHILD_SESSION_BUTTON_DISCONNECT 1003
-#define CHILD_SESSION_BUTTON_LOGOFF 1004
-#define CHILD_SESSION_BUTTON_CLOSE 1005
-#define CHILD_SESSION_BUTTON_CONFIGURATION 1010
 
 typedef struct _CHILD_SESSION_RESOLUTION
 {
@@ -439,62 +361,12 @@ static const CHILD_SESSION_RESOLUTION g_ChildSessionResolutions[] = {
     { 2560, 1440, L"2560 x 1440" }
 };
 
-typedef enum _CHILD_SESSION_SETTING
-{
-    ChildSessionSettingEnabled,
-    ChildSessionSettingCredentialDelegation,
-    ChildSessionSettingHelloOnly
-} CHILD_SESSION_SETTING;
-
-static const struct
-{
-    PCWSTR Text;
-    CHILD_SESSION_SETTING Setting;
-    BOOLEAN Enabled;
-} g_ChildSessionConfigurationButtons[] = {
-    { L"Enable child sessions", ChildSessionSettingEnabled, TRUE },
-    { L"Disable child sessions", ChildSessionSettingEnabled, FALSE },
-    { L"Enable localhost credential delegation", ChildSessionSettingCredentialDelegation, TRUE },
-    { L"Remove helper delegation entries", ChildSessionSettingCredentialDelegation, FALSE },
-    { L"Enable Hello-only", ChildSessionSettingHelloOnly, TRUE },
-    { L"Disable Hello-only (allow passwords)", ChildSessionSettingHelloOnly, FALSE }
-};
-
-typedef struct _CHILD_SESSION_CONFIGURATION_STATE
-{
-    CHILD_SESSION_CONFIGURATION Original;
-    BOOLEAN Valid;
-    BOOLEAN EnabledTouched;
-} CHILD_SESSION_CONFIGURATION_STATE, *PCHILD_SESSION_CONFIGURATION_STATE;
-
-typedef struct _CHILD_SESSION_RDP_WINDOW_STATE
-{
-    PUI_RDP_CONTEXT Dialog;
-    HWND OwnerWindow;
-    BOOLEAN Connected;
-    BOOLEAN ConnectPending;
-} CHILD_SESSION_RDP_WINDOW_STATE, *PCHILD_SESSION_RDP_WINDOW_STATE;
-
 typedef struct _CHILD_SESSION_WINDOW_STATE
 {
-    HWND ConfigurationText;
-    HWND SessionText;
-    HWND OperationText;
-    HWND ResolutionText;
-    HWND ResolutionCombo;
-    HWND RefreshButton;
-    HWND ConnectButton;
-    HWND DisconnectButton;
-    HWND LogoffButton;
-    HWND CloseButton;
-    HWND ConfigurationButtons[ARRAYSIZE(g_ChildSessionConfigurationButtons)];
-    HWND ConfigurationNote;
+    HWND Window;
+    PUI_RDP_CONTEXT Dialog;
     HFONT Font;
-    CHILD_SESSION_RDP_WINDOW_STATE RdpWindow;
-    PCHILD_SESSION_CONFIGURATION_STATE Configuration;
-    LONG DisconnectReason;
-    BOOLEAN OwnsChildSession;
-    BOOLEAN SessionExists;
+    BOOLEAN RestoreEnabled;
 } CHILD_SESSION_WINDOW_STATE, *PCHILD_SESSION_WINDOW_STATE;
 
 static
@@ -522,208 +394,65 @@ ChildSession_SetExtendedBoolean(
 }
 
 static
-PCWSTR
-ChildSession_GetStateName(
-    _In_ WINSTATIONSTATECLASS State)
-{
-    switch (State)
-    {
-        case State_Active: return L"Active";
-        case State_Connected: return L"Connected";
-        case State_ConnectQuery: return L"ConnectQuery";
-        case State_Shadow: return L"Shadow";
-        case State_Disconnected: return L"Disconnected";
-        case State_Idle: return L"Idle";
-        case State_Listen: return L"Listen";
-        case State_Reset: return L"Reset";
-        case State_Down: return L"Down";
-        case State_Init: return L"Init";
-        default: return L"Unknown";
-    }
-}
-
-static
 VOID
-ChildSession_SetOperation(
-    _In_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ PCWSTR Text)
-{
-    SetWindowTextW(State->OperationText, Text);
-}
-
-static
-VOID
-ChildSession_ReportOperation(
-    _In_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ _Printf_format_string_ PCWSTR Format,
-    ...)
-{
-    WCHAR Text[256];
-    va_list Arguments;
-
-    va_start(Arguments, Format);
-    Str_VPrintfW(Text, Format, Arguments);
-    va_end(Arguments);
-    ChildSession_SetOperation(State, Text);
-    IO_ConPrintF("%ls\n", Text);
-}
-
-static
-VOID
-ChildSession_SetWin32Error(
-    _In_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ PCWSTR Operation,
-    _In_ W32ERROR Error)
-{
-    ChildSession_ReportOperation(State, L"%s failed: Win32 error %lu", Operation, Error);
-}
-
-static
-VOID
-ChildSession_SetHResult(
-    _In_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ PCWSTR Operation,
-    _In_ HRESULT Result)
-{
-    ChildSession_ReportOperation(State, L"%s failed: HRESULT 0x%08lX", Operation, (ULONG)Result);
-}
-
-static
-W32ERROR
 ChildSession_RefreshWindow(
     _In_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    CHILD_SESSION_CONFIGURATION Configuration;
-    WINSTATIONINFORMATION Information;
-    WCHAR Text[384];
-    W32ERROR ConfigurationError, SessionError;
+    BOOLEAN Connecting = State->Dialog != NULL && State->Dialog->State.ConnectPending;
 
-    for (ULONG Index = 0; Index < ARRAYSIZE(State->ConfigurationButtons); Index++)
+    for (UINT Id = IDC_ENABLED; Id <= IDC_ALLOW_PASSWORD; Id++)
     {
-        EnableWindow(State->ConfigurationButtons[Index], !State->RdpWindow.ConnectPending);
+        EnableWindow(GetDlgItem(State->Window, Id), !Connecting);
     }
-
-    // Session RPCs can wait for logon; keep pumping the ActiveX STA during connection.
-    if (State->RdpWindow.ConnectPending)
-    {
-        SetWindowTextW(State->SessionText,
-                       L"Child session  |  Waiting for logon; status query deferred");
-        EnableWindow(State->ConnectButton, FALSE);
-        EnableWindow(State->DisconnectButton, TRUE);
-        EnableWindow(State->LogoffButton, FALSE);
-        EnableWindow(State->ResolutionCombo, FALSE);
-        return ERROR_SUCCESS;
-    }
-
-    ConfigurationError = ChildSession_QueryChildSessionConfiguration(&Configuration);
-    if (ConfigurationError == ERROR_SUCCESS)
-    {
-        Str_PrintfW(Text,
-                    L"Configuration  |  Child sessions: %s%s  |  Credential delegation: %s  |  Hello-only: %s",
-                    Configuration.Enabled ? L"Enabled" : L"Disabled",
-                    State->Configuration->EnabledTouched ? L" (temporary)" : L"",
-                    Configuration.CredentialDelegation ? L"Enabled" : L"Disabled",
-                    Configuration.HelloOnly ? L"Enabled" : L"Disabled");
-    } else
-    {
-        Str_PrintfW(Text,
-                    L"Configuration unavailable: Win32 error %lu",
-                    ConfigurationError);
-    }
-    SetWindowTextW(State->ConfigurationText, Text);
-
-    SessionError = ChildSession_QueryChildSessionInformation(&Information);
-    if (SessionError == ERROR_SUCCESS)
-    {
-        State->SessionExists = TRUE;
-        if (Information.UserName[0] != UNICODE_NULL)
-        {
-            Str_PrintfW(Text,
-                        Information.Domain[0] != UNICODE_NULL ?
-                            L"Child session  |  ID: %lu  |  State: %s  |  User: %s\\%s" :
-                            L"Child session  |  ID: %lu  |  State: %s  |  User: %s%s",
-                        Information.LogonId,
-                        ChildSession_GetStateName(Information.ConnectState),
-                        Information.Domain,
-                        Information.UserName);
-        } else
-        {
-            Str_PrintfW(Text,
-                        L"Child session  |  ID: %lu  |  State: %s",
-                        Information.LogonId,
-                        ChildSession_GetStateName(Information.ConnectState));
-        }
-    } else if (SessionError == ERROR_NOT_FOUND)
-    {
-        State->SessionExists = FALSE;
-        Str_CopyW(Text,
-                  L"Child session  |  None - select a resolution and click Create / Connect");
-    } else
-    {
-        State->SessionExists = FALSE;
-        Str_PrintfW(Text,
-                    L"Child session unavailable: Win32 error %lu",
-                    SessionError);
-    }
-    SetWindowTextW(State->SessionText, Text);
-    SetWindowTextW(State->ConnectButton,
-                   SessionError == ERROR_NOT_FOUND ? L"Create / Connect" : L"Connect");
-    EnableWindow(State->ConnectButton,
-                 !State->RdpWindow.Connected && !State->RdpWindow.ConnectPending);
-    EnableWindow(State->DisconnectButton,
-                 State->RdpWindow.Dialog != NULL);
-    EnableWindow(State->LogoffButton, State->SessionExists);
-    EnableWindow(State->ResolutionCombo, State->RdpWindow.Dialog == NULL);
-
-    if (ConfigurationError != ERROR_SUCCESS)
-    {
-        return ConfigurationError;
-    }
-    return SessionError == ERROR_NOT_FOUND ? ERROR_SUCCESS : SessionError;
+    EnableWindow(GetDlgItem(State->Window, IDC_CONNECT), State->Dialog == NULL);
+    EnableWindow(GetDlgItem(State->Window, IDC_DISCONNECT), State->Dialog != NULL);
+    EnableWindow(GetDlgItem(State->Window, IDC_RESOLUTION), State->Dialog == NULL);
 }
 
 static
-W32ERROR
-ChildSession_PrepareConfiguration(
-    _Out_ PCHILD_SESSION_CONFIGURATION_STATE State)
+VOID
+ChildSession_QueryConfiguration(
+    _In_ HWND Window,
+    _In_ UINT Id)
 {
+    BOOLEAN Enabled;
     W32ERROR Error;
 
-    RtlZeroMemory(State, sizeof(*State));
-    Error = ChildSession_ValidateChildSessionParent();
-    if (Error != ERROR_SUCCESS)
+    if (Id == IDC_ENABLED)
     {
-        return Error;
-    }
-    Error = ChildSession_QueryChildSessionConfiguration(&State->Original);
-    if (Error != ERROR_SUCCESS)
+        Error = WinStationIsChildSessionsEnabled(&Enabled) ? ERROR_SUCCESS : Err_GetLastError();
+    } else if (Id == IDC_CREDENTIAL_DELEGATION)
     {
-        return Error;
+        Error = ChildSession_QueryChildSessionCredentialDelegation(&Enabled);
+    } else
+    {
+        Error = ChildSession_QueryChildSessionHelloOnly(&Enabled);
     }
-    State->Valid = TRUE;
-    return ERROR_SUCCESS;
+    if (Error == ERROR_SUCCESS)
+    {
+        CheckDlgButton(Window,
+                       Id,
+                       (Id == IDC_ALLOW_PASSWORD ? !Enabled : Enabled) ? BST_CHECKED : BST_UNCHECKED);
+    } else
+    {
+        IO_ConPrintF("Query configuration %u failed: Win32 error %lu\n", Id, Error);
+    }
 }
 
 static
 W32ERROR
 ChildSession_RestoreConfiguration(
-    _In_ PCHILD_SESSION_CONFIGURATION_STATE State)
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    W32ERROR Error, FirstError = ERROR_SUCCESS;
-
-    if (!State->Valid)
+    if (State->RestoreEnabled)
     {
-        return ERROR_SUCCESS;
-    }
-    if (State->EnabledTouched)
-    {
-        Error = (WinStationEnableChildSessions(State->Original.Enabled) ? ERROR_SUCCESS : Err_GetLastError());
-        if (Error != ERROR_SUCCESS)
+        if (!WinStationEnableChildSessions(FALSE))
         {
-            FirstError = Error;
+            return Err_GetLastError();
         }
+        State->RestoreEnabled = FALSE;
     }
-    return FirstError;
+    return ERROR_SUCCESS;
 }
 
 static
@@ -733,37 +462,73 @@ ChildSession_RdpEvent(
     _Inout_ PUI_RDP_CONTEXT Data,
     _In_ DISPID Id,
     _In_ DISPPARAMS* Parameters,
-    _In_opt_ PVOID Context)
+    _In_ PVOID Context)
 {
-    PCHILD_SESSION_RDP_WINDOW_STATE State = (PCHILD_SESSION_RDP_WINDOW_STATE)Context;
-    LONG Error = 0;
+    PCHILD_SESSION_WINDOW_STATE State = (PCHILD_SESSION_WINDOW_STATE)Context;
 
-    switch (Id)
+    if (Id == MSTSCAXEVENT_DISPID_REMOTEDESKTOPSIZECHANGE)
     {
-        case MSTSCAXEVENT_DISPID_REMOTEDESKTOPSIZECHANGE:
-            PostMessageW(State->OwnerWindow,
-                         CHILD_SESSION_MESSAGE_DESKTOP_SIZE,
-                         Parameters->rgvarg[1].lVal,
-                         Parameters->rgvarg[0].lVal);
-            return;
-        case MSTSCAXEVENT_DISPID_DISCONNECTED:
-        case MSTSCAXEVENT_DISPID_FATALERROR:
-        case MSTSCAXEVENT_DISPID_WARNING:
-        case MSTSCAXEVENT_DISPID_LOGONERROR:
-            Error = Parameters->rgvarg[0].lVal;
-            break;
-        case MSTSCAXEVENT_DISPID_CONNECTING:
-        case MSTSCAXEVENT_DISPID_CONNECTED:
-        case MSTSCAXEVENT_DISPID_LOGINCOMPLETE:
-        case MSTSCAXEVENT_DISPID_INTERNALDIALOGDISPLAYED:
-        case MSTSCAXEVENT_DISPID_INTERNALDIALOGDISMISSED:
-            break;
-        default:
-            return;
+        IO_ConPrintF("Remote Desktop size: %lu x %lu\n",
+                     Data->State.DesktopWidth,
+                     Data->State.DesktopHeight);
+    } else if (Id == MSTSCAXEVENT_DISPID_CONNECTED || Id == MSTSCAXEVENT_DISPID_LOGINCOMPLETE)
+    {
+        IO_ConPrintF(Id == MSTSCAXEVENT_DISPID_CONNECTED ?
+                         "Remote Desktop connected; waiting for logon\n" : "Child session is active\n");
+    } else if (Id == MSTSCAXEVENT_DISPID_DISCONNECTED || Id == MSTSCAXEVENT_DISPID_FATALERROR)
+    {
+        IO_ConPrintF(Id == MSTSCAXEVENT_DISPID_FATALERROR ?
+                         "Remote Desktop fatal error: %ld\n" :
+                         "Remote Desktop disconnected: reason %ld\n",
+                     Parameters->rgvarg[0].lVal);
+        // The COM callback borrows Data; destroy this window after returning to the message loop.
+        PostMessageW(Data->Window, WM_CLOSE, 0, 0);
+    } else if (Id == MSTSCAXEVENT_DISPID_CONNECTING || Id == MSTSCAXEVENT_DISPID_WARNING ||
+               Id == MSTSCAXEVENT_DISPID_LOGONERROR || Id == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISPLAYED ||
+               Id == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISMISSED)
+    {
+        PCWSTR Name = Id == MSTSCAXEVENT_DISPID_CONNECTING ? L"Connecting" :
+                      Id == MSTSCAXEVENT_DISPID_WARNING ? L"Warning" :
+                      Id == MSTSCAXEVENT_DISPID_LOGONERROR ? L"Logon event" :
+                      Id == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISPLAYED ?
+                          L"Authentication dialog displayed" : L"Authentication dialog dismissed";
+        LONG Code = Id == MSTSCAXEVENT_DISPID_WARNING || Id == MSTSCAXEVENT_DISPID_LOGONERROR ?
+                        Parameters->rgvarg[0].lVal : 0;
+
+        IO_ConPrintF("Remote Desktop: %ls (code %ld)\n", Name, Code);
+    } else
+    {
+        return;
     }
-    State->Connected = Data->State.Connected;
-    State->ConnectPending = Data->State.ConnectPending;
-    PostMessageW(State->OwnerWindow, CHILD_SESSION_MESSAGE_EVENT, Id, Error);
+    if (Id == MSTSCAXEVENT_DISPID_CONNECTING || Id == MSTSCAXEVENT_DISPID_CONNECTED ||
+        Id == MSTSCAXEVENT_DISPID_LOGINCOMPLETE)
+    {
+        ChildSession_RefreshWindow(State);
+    }
+}
+
+static
+W32ERROR
+ChildSession_Logoff(
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
+{
+    W32ERROR Error;
+
+    Error = ChildSession_LogoffChildSession();
+    if (Error != ERROR_SUCCESS)
+    {
+        IO_ConPrintF("Log off child session failed: Win32 error %lu\n", Error);
+        return Error;
+    }
+    Error = ChildSession_RestoreConfiguration(State);
+    if (Error != ERROR_SUCCESS)
+    {
+        IO_ConPrintF("Restore child-session configuration failed: Win32 error %lu\n", Error);
+        return Error;
+    }
+    IO_ConPrintF("Child session logged off\n");
+    ChildSession_QueryConfiguration(State->Window, IDC_ENABLED);
+    return ERROR_SUCCESS;
 }
 
 static
@@ -779,13 +544,13 @@ ChildSession_RdpWindowSubclassProc(
 {
     if (Message == WM_NCDESTROY)
     {
-        PCHILD_SESSION_RDP_WINDOW_STATE State = (PCHILD_SESSION_RDP_WINDOW_STATE)ReferenceData;
+        PCHILD_SESSION_WINDOW_STATE State = (PCHILD_SESSION_WINDOW_STATE)ReferenceData;
 
         State->Dialog = NULL;
-        State->Connected = FALSE;
-        State->ConnectPending = FALSE;
         RemoveWindowSubclass(Window, ChildSession_RdpWindowSubclassProc, SubclassId);
-        PostMessageW(State->OwnerWindow, CHILD_SESSION_MESSAGE_RDP_CLOSE, 0, 0);
+        // The ActiveX client has already been released during WM_DESTROY.
+        ChildSession_Logoff(State);
+        ChildSession_RefreshWindow(State);
     }
     return DefSubclassProc(Window, Message, WParam, LParam);
 }
@@ -793,7 +558,7 @@ ChildSession_RdpWindowSubclassProc(
 static
 VOID
 ChildSession_RdpWindowDestroy(
-    _Inout_ PCHILD_SESSION_RDP_WINDOW_STATE State)
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
     if (State->Dialog != NULL)
     {
@@ -802,34 +567,47 @@ ChildSession_RdpWindowDestroy(
 }
 
 static
+_Success_(return >= 0)
+_At_(State->Dialog, _Post_notnull_)
 HRESULT
 ChildSession_RdpWindowCreate(
     _In_ HWND OwnerWindow,
     _In_ const CHILD_SESSION_RESOLUTION* Resolution,
-    _Inout_ PCHILD_SESSION_RDP_WINDOW_STATE State)
+    _In_ const WINSTATIONINFORMATION* Information,
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
     MSTSCLib::IMsRdpClient9* Client;
     MSTSCLib::IMsRdpClientAdvancedSettings8* Settings = NULL;
     UI_RDP_OPTIONS Options = { 0 };
     BSTR Server = NULL, UserName = NULL, Domain = NULL;
-    WINSTATIONINFORMATION Information;
-    ULONG ReturnLength;
     MSTSCLib::IMsRdpExtendedSettings* ExtendedSettings = NULL;
     RECT WindowRect;
     MONITORINFO MonitorInfo = { sizeof(MonitorInfo) };
     LONG WindowWidth, WindowHeight;
     HRESULT Result;
 
-    State->OwnerWindow = OwnerWindow;
     SetRect(&WindowRect, 0, 0, (LONG)Resolution->Width, (LONG)Resolution->Height);
-    if (!AdjustWindowRectEx(&WindowRect, WS_OVERLAPPEDWINDOW, FALSE, 0))
+    if (!AdjustWindowRectExForDpi(&WindowRect,
+                                  WS_OVERLAPPEDWINDOW,
+                                  FALSE,
+                                  0,
+                                  GetDpiForWindow(OwnerWindow)) ||
+        !GetMonitorInfoW(MonitorFromWindow(OwnerWindow, MONITOR_DEFAULTTONEAREST), &MonitorInfo))
     {
         return HRESULT_FROM_WIN32(Err_GetLastError());
     }
+    WindowWidth = min(WindowRect.right - WindowRect.left,
+                      MonitorInfo.rcWork.right - MonitorInfo.rcWork.left);
+    WindowHeight = min(WindowRect.bottom - WindowRect.top,
+                       MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top);
     Options.Parent = OwnerWindow;
     Options.Title = CHILD_SESSION_RDP_WINDOW_TITLE;
     Options.Style = WS_OVERLAPPEDWINDOW;
-    SetRect(&Options.Rect, 0, 0, WindowRect.right - WindowRect.left, WindowRect.bottom - WindowRect.top);
+    Options.Rect.left =
+        MonitorInfo.rcWork.left + (MonitorInfo.rcWork.right - MonitorInfo.rcWork.left - WindowWidth) / 2;
+    Options.Rect.top = MonitorInfo.rcWork.top + (MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top - WindowHeight) / 2;
+    Options.Rect.right = Options.Rect.left + WindowWidth;
+    Options.Rect.bottom = Options.Rect.top + WindowHeight;
     Options.Callback = ChildSession_RdpEvent;
     Options.Context = State;
     Result = UI_CreateRdpDialog(&Options, &State->Dialog);
@@ -837,115 +615,32 @@ ChildSession_RdpWindowCreate(
     {
         return Result;
     }
-    if (!SetWindowSubclass(State->Dialog->Window, ChildSession_RdpWindowSubclassProc, 0, (DWORD_PTR)State))
-    {
-        DestroyWindow(State->Dialog->Window);
-        State->Dialog = NULL;
-        return E_FAIL;
-    }
-    SetRect(&WindowRect, 0, 0, (LONG)Resolution->Width, (LONG)Resolution->Height);
-    if (!AdjustWindowRectExForDpi(&WindowRect,
-                                  WS_OVERLAPPEDWINDOW,
-                                  FALSE,
-                                  0,
-                                  GetDpiForWindow(State->Dialog->Window)) ||
-        !GetMonitorInfoW(MonitorFromWindow(State->Dialog->Window, MONITOR_DEFAULTTONEAREST), &MonitorInfo))
-    {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        goto Cleanup;
-    }
-    WindowWidth = min(WindowRect.right - WindowRect.left,
-                      MonitorInfo.rcWork.right - MonitorInfo.rcWork.left);
-    WindowHeight = min(WindowRect.bottom - WindowRect.top,
-                       MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top);
-    if (!SetWindowPos(State->Dialog->Window,
-                      NULL,
-                      MonitorInfo.rcWork.left + (MonitorInfo.rcWork.right - MonitorInfo.rcWork.left - WindowWidth) / 2,
-                      MonitorInfo.rcWork.top + (MonitorInfo.rcWork.bottom - MonitorInfo.rcWork.top - WindowHeight) / 2,
-                      WindowWidth,
-                      WindowHeight,
-                      SWP_NOZORDER | SWP_NOACTIVATE))
-    {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        goto Cleanup;
-    }
     Client = State->Dialog->Client;
-    Result = Client->QueryInterface(IID_PPV_ARGS(&ExtendedSettings));
-    if (FAILED(Result))
+    if (FAILED(Result = Client->QueryInterface(IID_PPV_ARGS(&ExtendedSettings))) ||
+        FAILED(Result = ChildSession_SetExtendedBoolean(ExtendedSettings, L"ConnectToChildSession", VARIANT_TRUE)) ||
+        FAILED(Result = ChildSession_SetExtendedBoolean(ExtendedSettings,
+                                                        L"EnableFrameBufferRedirection",
+                                                        VARIANT_TRUE)))
     {
         goto Cleanup;
     }
-    Result = ChildSession_SetExtendedBoolean(ExtendedSettings, L"ConnectToChildSession", VARIANT_TRUE);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = ChildSession_SetExtendedBoolean(ExtendedSettings, L"EnableFrameBufferRedirection", VARIANT_TRUE);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    // Use the parent session's user, including when the demo was run as another administrator.
-    if (!WinStationQueryInformationW(WINSTATION_CURRENT_SERVER,
-                                    WINSTATION_CURRENT_SESSION,
-                                    WinStationInformation,
-                                    &Information,
-                                    sizeof(Information),
-                                    &ReturnLength))
-    {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        goto Cleanup;
-    }
-    if (Information.UserName[0] == UNICODE_NULL)
-    {
-        Result = HRESULT_FROM_WIN32(ERROR_NOT_LOGGED_ON);
-        goto Cleanup;
-    }
+    // Use the parent session's user, including when run as another administrator.
     Server = SysAllocString(L"localhost");
-    UserName = SysAllocString(Information.UserName);
-    Domain = SysAllocString(Information.Domain);
+    UserName = SysAllocString(Information->UserName);
+    Domain = SysAllocString(Information->Domain);
     if (Server == NULL || UserName == NULL || Domain == NULL)
     {
         Result = E_OUTOFMEMORY;
         goto Cleanup;
     }
-    Result = Client->put_Server(Server);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Client->put_UserName(UserName);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Client->put_Domain(Domain);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Client->put_DesktopWidth((LONG)Resolution->Width);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Client->put_DesktopHeight((LONG)Resolution->Height);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Client->get_AdvancedSettings9(&Settings);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Settings->put_EnableCredSspSupport(VARIANT_TRUE);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    Result = Settings->put_AuthenticationLevel(MSTSCAX_AUTHENTICATION_LEVEL_NONE);
-    if (FAILED(Result))
+    if (FAILED(Result = Client->put_Server(Server)) ||
+        FAILED(Result = Client->put_UserName(UserName)) ||
+        FAILED(Result = Client->put_Domain(Domain)) ||
+        FAILED(Result = Client->put_DesktopWidth((LONG)Resolution->Width)) ||
+        FAILED(Result = Client->put_DesktopHeight((LONG)Resolution->Height)) ||
+        FAILED(Result = Client->get_AdvancedSettings9(&Settings)) ||
+        FAILED(Result = Settings->put_EnableCredSspSupport(VARIANT_TRUE)) ||
+        FAILED(Result = Settings->put_AuthenticationLevel(MSTSCAX_AUTHENTICATION_LEVEL_NONE)))
     {
         goto Cleanup;
     }
@@ -953,6 +648,11 @@ ChildSession_RdpWindowCreate(
     Result = Settings->put_SmartSizing(VARIANT_FALSE);
     if (FAILED(Result))
     {
+        goto Cleanup;
+    }
+    if (!SetWindowSubclass(State->Dialog->Window, ChildSession_RdpWindowSubclassProc, 0, (DWORD_PTR)State))
+    {
+        Result = E_FAIL;
         goto Cleanup;
     }
     UI_RdpDialogSetAutoResize(State->Dialog, TRUE);
@@ -974,25 +674,8 @@ Cleanup:
     }
     if (FAILED(Result))
     {
-        ChildSession_RdpWindowDestroy(State);
-    }
-    return Result;
-}
-
-static
-HRESULT
-ChildSession_RdpWindowConnect(
-    _Inout_ PCHILD_SESSION_RDP_WINDOW_STATE State)
-{
-    HRESULT Result;
-
-    State->ConnectPending = TRUE;
-    IO_ConPrintF("Remote Desktop Connect: entering\n");
-    Result = UI_RdpDialogConnect(State->Dialog);
-    IO_ConPrintF("Remote Desktop Connect: returned 0x%08lX\n", (ULONG)Result);
-    if (FAILED(Result))
-    {
-        State->ConnectPending = FALSE;
+        DestroyWindow(State->Dialog->Window);
+        State->Dialog = NULL;
     }
     return Result;
 }
@@ -1002,7 +685,7 @@ const CHILD_SESSION_RESOLUTION*
 ChildSession_GetSelectedResolution(
     _In_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    LRESULT Index = SendMessageW(State->ResolutionCombo, CB_GETCURSEL, 0, 0);
+    LRESULT Index = SendMessageW(GetDlgItem(State->Window, IDC_RESOLUTION), CB_GETCURSEL, 0, 0);
 
     if (Index < 0 || Index >= ARRAYSIZE(g_ChildSessionResolutions))
     {
@@ -1015,648 +698,230 @@ static
 HRESULT
 ChildSession_Connect(
     _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State)
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    CHILD_SESSION_CONFIGURATION Configuration;
+    BOOLEAN Enabled;
     WINSTATIONINFORMATION Information;
     const CHILD_SESSION_RESOLUTION* Resolution;
+    ULONG SessionId;
     W32ERROR Error;
     HRESULT Result;
-    BOOLEAN CreateChildSession = FALSE;
 
-    if (State->RdpWindow.Connected || State->RdpWindow.ConnectPending)
+    if (State->Dialog != NULL)
     {
         return S_FALSE;
     }
-    Error = ChildSession_ValidateChildSessionParent();
+    Error = ChildSession_QueryParentInformation(&Information);
     if (Error != ERROR_SUCCESS)
     {
-        ChildSession_SetWin32Error(State, L"Validate parent session", Error);
+        IO_ConPrintF("Validate parent session failed: Win32 error %lu\n", Error);
         return HRESULT_FROM_WIN32(Error);
     }
-    Error = ChildSession_QueryChildSessionConfiguration(&Configuration);
+    Error = WinStationIsChildSessionsEnabled(&Enabled) ? ERROR_SUCCESS : Err_GetLastError();
     if (Error != ERROR_SUCCESS)
     {
-        ChildSession_SetWin32Error(State, L"Query configuration", Error);
+        IO_ConPrintF("Query configuration failed: Win32 error %lu\n", Error);
         return HRESULT_FROM_WIN32(Error);
     }
-    if (!Configuration.Enabled)
+    if (!Enabled)
     {
         Error = (WinStationEnableChildSessions(TRUE) ? ERROR_SUCCESS : Err_GetLastError());
         if (Error != ERROR_SUCCESS)
         {
-            ChildSession_SetWin32Error(State, L"Enable child sessions", Error);
+            IO_ConPrintF("Enable child sessions failed: Win32 error %lu\n", Error);
             return HRESULT_FROM_WIN32(Error);
         }
-        State->Configuration->EnabledTouched = TRUE;
+        State->RestoreEnabled = TRUE;
+        ChildSession_QueryConfiguration(Window, IDC_ENABLED);
     }
 
-    Error = ChildSession_QueryChildSessionInformation(&Information);
+    Error = ChildSession_GetChildSessionId(&SessionId);
     if (Error == ERROR_SUCCESS)
     {
-        IO_ConPrintF("Connecting to existing child session ID %lu, state %ls\n",
-                        Information.LogonId,
-                        ChildSession_GetStateName(Information.ConnectState));
-        ChildSession_SetOperation(State, L"Connecting to the existing child session...");
+        IO_ConPrintF("Connecting to existing child session ID %lu\n", SessionId);
     } else if (Error == ERROR_NOT_FOUND)
     {
-        CreateChildSession = TRUE;
-        IO_ConPrintF("Creating and connecting to a child session\n");
-        ChildSession_SetOperation(State, L"Creating and connecting to a child session...");
+        IO_ConPrintF("Creating and connecting to a child session...\n");
     } else
     {
-        ChildSession_SetWin32Error(State, L"Query child session", Error);
-        return HRESULT_FROM_WIN32(Error);
+        IO_ConPrintF("Query child session failed: Win32 error %lu\n", Error);
+        Result = HRESULT_FROM_WIN32(Error);
+        goto Cleanup;
     }
 
-    if (State->RdpWindow.Dialog != NULL)
-    {
-        ChildSession_RdpWindowDestroy(&State->RdpWindow);
-    }
     Resolution = ChildSession_GetSelectedResolution(State);
-    Result = ChildSession_RdpWindowCreate(Window,
-                                          Resolution,
-                                          &State->RdpWindow);
+    Result = ChildSession_RdpWindowCreate(Window, Resolution, &Information, State);
     if (FAILED(Result))
     {
-        ChildSession_SetHResult(State, L"Create Remote Desktop window", Result);
-        ChildSession_RefreshWindow(State);
-        return Result;
+        IO_ConPrintF("Create Remote Desktop window failed: HRESULT 0x%08lX\n", (ULONG)Result);
+        goto Cleanup;
     }
-    Result = ChildSession_RdpWindowConnect(&State->RdpWindow);
+    Result = UI_RdpDialogConnect(State->Dialog);
     if (FAILED(Result))
     {
-        ChildSession_SetHResult(State, L"Remote Desktop connect", Result);
-        ChildSession_RdpWindowDestroy(&State->RdpWindow);
-        ChildSession_RefreshWindow(State);
-        return Result;
-    }
-    State->DisconnectReason = 0;
-    if (CreateChildSession)
-    {
-        State->OwnsChildSession = TRUE;
+        IO_ConPrintF("Remote Desktop connect failed: HRESULT 0x%08lX\n", (ULONG)Result);
+        goto Cleanup;
     }
     IO_ConPrintF("Remote Desktop resolution: %lu x %lu\n",
-                    Resolution->Width,
-                    Resolution->Height);
+                 Resolution->Width,
+                 Resolution->Height);
     ChildSession_RefreshWindow(State);
     return S_OK;
-}
 
-static
-HRESULT
-ChildSession_Disconnect(
-    _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State)
-{
-    if (State->RdpWindow.Dialog == NULL)
-    {
-        return S_FALSE;
-    }
-    ChildSession_RdpWindowDestroy(&State->RdpWindow);
-    ChildSession_SetOperation(State, L"Remote Desktop window closed and disconnected");
-    IO_ConPrintF("Remote Desktop window closed and disconnected\n");
-    ChildSession_RefreshWindow(State);
-    UNREFERENCED_PARAMETER(Window);
-    return S_OK;
-}
-
-static
-W32ERROR
-ChildSession_Logoff(
-    _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State)
-{
-    W32ERROR Error;
-
-    if (State->RdpWindow.Dialog != NULL)
-    {
-        ChildSession_RdpWindowDestroy(&State->RdpWindow);
-    }
-    Error = ChildSession_LogoffChildSession(TRUE);
+Cleanup:
+    ChildSession_RdpWindowDestroy(State);
+    Error = ChildSession_RestoreConfiguration(State);
     if (Error != ERROR_SUCCESS)
     {
-        ChildSession_SetWin32Error(State, L"Log off child session", Error);
-        return Error;
+        IO_ConPrintF("Restore child-session configuration failed: Win32 error %lu\n", Error);
     }
-    State->OwnsChildSession = FALSE;
-    if (State->Configuration->EnabledTouched)
-    {
-        Error = WinStationEnableChildSessions(State->Configuration->Original.Enabled) ?
-                ERROR_SUCCESS : Err_GetLastError();
-        if (Error != ERROR_SUCCESS)
-        {
-            ChildSession_SetWin32Error(State, L"Restore child-session configuration", Error);
-            return Error;
-        }
-        State->Configuration->EnabledTouched = FALSE;
-    }
-    SetWindowTextW(Window, CHILD_SESSION_WINDOW_TITLE);
-    ChildSession_ReportOperation(State, L"Child session logged off");
-    ChildSession_RefreshWindow(State);
-    return ERROR_SUCCESS;
+    ChildSession_QueryConfiguration(Window, IDC_ENABLED);
+    return Result;
 }
 
 static
 VOID
 ChildSession_ChangeConfiguration(
-    _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ ULONG Index)
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State,
+    _In_ UINT Id)
 {
-    W32ERROR Error = ERROR_SUCCESS;
-    BOOLEAN Enabled;
+    W32ERROR Error;
+    BOOLEAN Enabled = IsDlgButtonChecked(State->Window, Id) != BST_CHECKED;
 
-    if (Index >= ARRAYSIZE(State->ConfigurationButtons) || State->RdpWindow.ConnectPending)
+    if (Id == IDC_ENABLED)
     {
-        return;
-    }
-    if (MessageBoxW(Window,
-                    L"Apply this machine-wide configuration change?\n\n"
-                    L"It will remain in effect after this demo closes. Credential delegation permits "
-                    L"default credentials for TERMSRV/localhost; disabling Hello-only allows password sign-in.\n\n"
-                    L"Removing delegation removes only this helper's entries, not other policy entries. "
-                    L"An existing connection may need to be reconnected.",
-                    L"Change child-session configuration",
-                    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) != IDYES)
+        Error = WinStationEnableChildSessions(Enabled) ? ERROR_SUCCESS : Err_GetLastError();
+        if (Error == ERROR_SUCCESS)
+        {
+            // Explicit configuration supersedes the temporary connection-time change.
+            State->RestoreEnabled = FALSE;
+        }
+    } else if (Id == IDC_CREDENTIAL_DELEGATION)
     {
-        return;
-    }
-
-    Enabled = g_ChildSessionConfigurationButtons[Index].Enabled;
-    switch (g_ChildSessionConfigurationButtons[Index].Setting)
-    {
-        case ChildSessionSettingEnabled:
-            Error = (WinStationEnableChildSessions(Enabled) ? ERROR_SUCCESS : Err_GetLastError());
-            if (Error == ERROR_SUCCESS)
-            {
-                // Explicit configuration supersedes the temporary connection-time change.
-                State->Configuration->Original.Enabled = Enabled;
-                State->Configuration->EnabledTouched = FALSE;
-            }
-            break;
-        case ChildSessionSettingCredentialDelegation:
-            Error = ChildSession_SetChildSessionCredentialDelegation(Enabled);
-            break;
-        case ChildSessionSettingHelloOnly:
-            Error = ChildSession_SetChildSessionHelloOnly(Enabled);
-            break;
-    }
-    ChildSession_RefreshWindow(State);
-    if (Error != ERROR_SUCCESS)
-    {
-        ChildSession_SetWin32Error(State, L"Change configuration (refresh shows current state)", Error);
+        Error = ChildSession_SetChildSessionCredentialDelegation(Enabled);
     } else
     {
-        ChildSession_SetOperation(State, L"Configuration saved; reconnect if necessary");
+        Error = ChildSession_SetChildSessionHelloOnly(!Enabled);
+    }
+    ChildSession_QueryConfiguration(State->Window, Id);
+    if (Error != ERROR_SUCCESS)
+    {
+        IO_ConPrintF("Change configuration %u failed: Win32 error %lu\n", Id, Error);
+    } else
+    {
+        IO_ConPrintF("Configuration %u saved; reconnect if necessary\n", Id);
     }
 }
 
 static
-VOID
-ChildSession_UpdateConsoleFont(
-    _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State)
-{
-    HFONT Font;
-
-    if (UI_CreateDefaultFont(&Font, 0) != ERROR_SUCCESS)
-    {
-        return;
-    }
-    for (HWND Control = GetWindow(Window, GW_CHILD); Control != NULL; Control = GetWindow(Control, GW_HWNDNEXT))
-    {
-        UI_SetWindowFont(Control, Font, TRUE);
-    }
-    if (State->Font != NULL)
-    {
-        DeleteObject(State->Font);
-    }
-    State->Font = Font;
-}
-
-static
-VOID
-ChildSession_LayoutWindow(
-    _In_ HWND Window,
-    _In_ PCHILD_SESSION_WINDOW_STATE State)
-{
-    RECT ClientRect;
-    LONG Width, ButtonLeft;
-    const UINT Dpi = GetDpiForWindow(Window);
-    const auto Scale = [Dpi](LONG Value)
-    {
-        return MulDiv(Value, Dpi, 96);
-    };
-    const LONG Margin = Scale(12), TextHeight = Scale(24), ButtonTop = Scale(240);
-    const LONG ButtonWidth = Scale(132), ButtonHeight = Scale(32), ButtonGap = Scale(8);
-
-    if (!GetClientRect(Window, &ClientRect))
-    {
-        return;
-    }
-    Width = max(ClientRect.right - Margin * 2, 0L);
-    ButtonLeft = Margin + Scale(220);
-    if (State->ConfigurationText != NULL)
-    {
-        MoveWindow(State->ConfigurationText, Margin, Scale(10), Width, TextHeight, TRUE);
-        MoveWindow(State->SessionText, Margin, Scale(38), Width, TextHeight, TRUE);
-        MoveWindow(State->OperationText, Margin, Scale(66), Width, TextHeight, TRUE);
-        for (ULONG Index = 0; Index < ARRAYSIZE(State->ConfigurationButtons); Index++)
-        {
-            MoveWindow(State->ConfigurationButtons[Index],
-                       Margin + Scale((Index % 2) * 340), Scale(98 + (Index / 2) * 36),
-                       Scale(328), ButtonHeight, TRUE);
-        }
-        MoveWindow(State->ConfigurationNote, Margin, Scale(208), Width, TextHeight, TRUE);
-        MoveWindow(State->ResolutionText, Margin, ButtonTop + Scale(4), Scale(72), TextHeight, TRUE);
-        MoveWindow(State->ResolutionCombo, Margin + Scale(76), ButtonTop, Scale(132), Scale(180), TRUE);
-        MoveWindow(State->RefreshButton,
-                   ButtonLeft,
-                   ButtonTop,
-                   ButtonWidth,
-                   ButtonHeight,
-                   TRUE);
-        MoveWindow(State->ConnectButton,
-                   ButtonLeft + (ButtonWidth + ButtonGap),
-                   ButtonTop,
-                   ButtonWidth,
-                   ButtonHeight,
-                   TRUE);
-        MoveWindow(State->DisconnectButton,
-                   ButtonLeft + (ButtonWidth + ButtonGap) * 2,
-                   ButtonTop,
-                   ButtonWidth,
-                   ButtonHeight,
-                   TRUE);
-        MoveWindow(State->LogoffButton,
-                   ButtonLeft + (ButtonWidth + ButtonGap) * 3,
-                   ButtonTop,
-                   ButtonWidth,
-                   ButtonHeight,
-                   TRUE);
-        MoveWindow(State->CloseButton,
-                   ButtonLeft + (ButtonWidth + ButtonGap) * 4,
-                   ButtonTop,
-                   ButtonWidth,
-                   ButtonHeight,
-                   TRUE);
-    }
-}
-
-static
-LRESULT
+INT_PTR
 CALLBACK
-ChildSession_WindowProc(
+ChildSession_DialogProc(
     _In_ HWND Window,
     _In_ UINT Message,
     _In_ WPARAM WParam,
     _In_ LPARAM LParam)
 {
-    PCHILD_SESSION_WINDOW_STATE State =
-        (PCHILD_SESSION_WINDOW_STATE)GetWindowLongPtrW(Window, GWLP_USERDATA);
+    PCHILD_SESSION_WINDOW_STATE State = (PCHILD_SESSION_WINDOW_STATE)GetWindowLongPtrW(Window, DWLP_USER);
 
-    if (Message == WM_NCCREATE)
+    if (Message == WM_INITDIALOG)
     {
-        State = (PCHILD_SESSION_WINDOW_STATE)((LPCREATESTRUCTW)LParam)->lpCreateParams;
-        SetWindowLongPtrW(Window, GWLP_USERDATA, (LONG_PTR)State);
-    }
-    if (State != NULL)
-    {
-        switch (Message)
+        State = (PCHILD_SESSION_WINDOW_STATE)LParam;
+        State->Window = Window;
+        SetWindowLongPtrW(Window, DWLP_USER, LParam);
+        if (UI_CreateDefaultFont(&State->Font, 0) == ERROR_SUCCESS)
         {
-            case WM_GETMINMAXINFO:
-                ((PMINMAXINFO)LParam)->ptMinTrackSize.x = MulDiv(1000, GetDpiForWindow(Window), 96);
-                ((PMINMAXINFO)LParam)->ptMinTrackSize.y = MulDiv(360, GetDpiForWindow(Window), 96);
-                return 0;
-            case WM_DPICHANGED:
+            for (HWND Control = GetWindow(Window, GW_CHILD); Control != NULL; Control = GetWindow(Control, GW_HWNDNEXT))
             {
-                const RECT* Rect = (const RECT*)LParam;
-
-                ChildSession_UpdateConsoleFont(Window, State);
-                SetWindowPos(Window, NULL, Rect->left, Rect->top,
-                             Rect->right - Rect->left, Rect->bottom - Rect->top,
-                             SWP_NOZORDER | SWP_NOACTIVATE);
-                ChildSession_LayoutWindow(Window, State);
-                return 0;
+                UI_SetWindowFont(Control, State->Font, FALSE);
             }
-            case CHILD_SESSION_MESSAGE_DESKTOP_SIZE:
-            {
-                WCHAR Text[128];
-
-                Str_PrintfW(Text,
-                            L"Remote Desktop size: %lu x %lu",
-                            (ULONG)WParam,
-                            (ULONG)LParam);
-                ChildSession_SetOperation(State, Text);
-                return 0;
-            }
-            case WM_SIZE:
-                ChildSession_LayoutWindow(Window, State);
-                return 0;
-            case WM_SETFOCUS:
-                SetFocus(State->ConnectButton);
-                return 0;
-            case WM_COMMAND:
-                if (LOWORD(WParam) >= CHILD_SESSION_BUTTON_CONFIGURATION &&
-                    LOWORD(WParam) < CHILD_SESSION_BUTTON_CONFIGURATION + ARRAYSIZE(State->ConfigurationButtons))
-                {
-                    ChildSession_ChangeConfiguration(Window, State,
-                                                     LOWORD(WParam) - CHILD_SESSION_BUTTON_CONFIGURATION);
-                    return 0;
-                }
-                switch (LOWORD(WParam))
-                {
-                    case CHILD_SESSION_BUTTON_REFRESH:
-                    {
-                        W32ERROR Error = ChildSession_RefreshWindow(State);
-
-                        if (Error == ERROR_SUCCESS)
-                        {
-                            ChildSession_SetOperation(State,
-                                                      State->RdpWindow.ConnectPending ?
-                                                          L"Waiting for logon; status query deferred" :
-                                                          L"Status refreshed");
-                        } else
-                        {
-                            ChildSession_SetWin32Error(State, L"Refresh status", Error);
-                        }
-                        return 0;
-                    }
-                    case CHILD_SESSION_BUTTON_CONNECT:
-                        ChildSession_Connect(Window, State);
-                        return 0;
-                    case CHILD_SESSION_BUTTON_DISCONNECT:
-                        ChildSession_Disconnect(Window, State);
-                        return 0;
-                    case CHILD_SESSION_BUTTON_LOGOFF:
-                        ChildSession_Logoff(Window, State);
-                        return 0;
-                    case CHILD_SESSION_BUTTON_CLOSE:
-                        SendMessageW(Window, WM_CLOSE, 0, 0);
-                        return 0;
-                }
-                break;
-            case CHILD_SESSION_MESSAGE_EVENT:
-                if (WParam == MSTSCAXEVENT_DISPID_CONNECTING || WParam == MSTSCAXEVENT_DISPID_WARNING ||
-                    WParam == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISPLAYED ||
-                    WParam == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISMISSED ||
-                    WParam == MSTSCAXEVENT_DISPID_LOGONERROR)
-                {
-                    WCHAR Text[256];
-                    PCWSTR EventName = WParam == MSTSCAXEVENT_DISPID_CONNECTING ? L"Connecting" :
-                                       WParam == MSTSCAXEVENT_DISPID_WARNING ? L"Warning" :
-                                       WParam == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISPLAYED ?
-                                           L"Authentication dialog displayed" :
-                                       WParam == MSTSCAXEVENT_DISPID_INTERNALDIALOGDISMISSED ?
-                                           L"Authentication dialog dismissed" :
-                                                       L"Logon event";
-
-                    Str_PrintfW(Text,
-                                L"Remote Desktop: %s (code %ld)",
-                                EventName,
-                                (LONG)LParam);
-                    ChildSession_SetOperation(State, Text);
-                    IO_ConPrintF("%ls\n", Text);
-                    return 0;
-                }
-                if (WParam == MSTSCAXEVENT_DISPID_CONNECTED || WParam == MSTSCAXEVENT_DISPID_LOGINCOMPLETE)
-                {
-                    SetWindowTextW(Window,
-                                   WParam == MSTSCAXEVENT_DISPID_CONNECTED ?
-                                       CHILD_SESSION_WINDOW_TITLE L" - Connected" :
-                                       CHILD_SESSION_WINDOW_TITLE L" - Active");
-                    ChildSession_SetOperation(State,
-                                              WParam == MSTSCAXEVENT_DISPID_CONNECTED ?
-                                                  L"Remote Desktop connected; waiting for logon" :
-                                                  L"Child session is active");
-                    IO_ConPrintF(WParam == MSTSCAXEVENT_DISPID_CONNECTED ?
-                                        "Remote Desktop connected\n" :
-                                        "Child session is active\n");
-                } else
-                {
-                    WCHAR Text[256];
-
-                    State->DisconnectReason = (LONG)LParam;
-                    SetWindowTextW(Window, CHILD_SESSION_WINDOW_TITLE);
-                    Str_PrintfW(Text,
-                                WParam == MSTSCAXEVENT_DISPID_FATALERROR ?
-                                    L"Remote Desktop fatal error: %ld" :
-                                    L"Remote Desktop disconnected: reason %ld",
-                                State->DisconnectReason);
-                    ChildSession_SetOperation(State, Text);
-                    IO_ConPrintF(WParam == MSTSCAXEVENT_DISPID_FATALERROR ?
-                                        "Remote Desktop fatal error %ld\n" :
-                                        "Remote Desktop disconnected with reason %ld\n",
-                                    State->DisconnectReason);
-                    ChildSession_RdpWindowDestroy(&State->RdpWindow);
-                }
-                ChildSession_RefreshWindow(State);
-                return 0;
-            case CHILD_SESSION_MESSAGE_RDP_CLOSE:
-                ChildSession_ReportOperation(State, L"Remote Desktop window closed and disconnected");
-                ChildSession_RefreshWindow(State);
-                return 0;
-            case WM_TIMER:
-                ChildSession_RefreshWindow(State);
-                return 0;
-            case WM_CLOSE:
-                DestroyWindow(Window);
-                return 0;
-            case WM_DESTROY:
-                KillTimer(Window, 1);
-                PostQuitMessage(0);
-                return 0;
         }
-    }
-    return DefWindowProcW(Window, Message, WParam, LParam);
-}
-
-static
-HRESULT
-ChildSession_CreateControls(
-    _In_ HWND Window,
-    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
-{
-    const struct
-    {
-        HWND* Window;
-        PCWSTR Class;
-        PCWSTR Text;
-        ULONG Style;
-        ULONG Id;
-    } Controls[] = {
-        { &State->ConfigurationText, L"STATIC", L"Configuration: loading...", SS_LEFT, 0 },
-        { &State->SessionText, L"STATIC", L"Child session: loading...", SS_LEFT, 0 },
-        { &State->OperationText, L"STATIC", L"Ready", SS_LEFT, 0 },
-        { &State->ResolutionText, L"STATIC", L"Resolution:", SS_LEFT, 0 },
-        { &State->ResolutionCombo, L"COMBOBOX", NULL, WS_TABSTOP | CBS_DROPDOWNLIST | WS_VSCROLL, 0 },
-        { &State->RefreshButton, L"BUTTON", L"Refresh", WS_TABSTOP, CHILD_SESSION_BUTTON_REFRESH },
-        { &State->ConnectButton, L"BUTTON", L"Connect", WS_TABSTOP | BS_DEFPUSHBUTTON, CHILD_SESSION_BUTTON_CONNECT },
-        { &State->DisconnectButton, L"BUTTON", L"Disconnect", WS_TABSTOP, CHILD_SESSION_BUTTON_DISCONNECT },
-        { &State->LogoffButton, L"BUTTON", L"Log off", WS_TABSTOP, CHILD_SESSION_BUTTON_LOGOFF },
-        { &State->CloseButton, L"BUTTON", L"Close", WS_TABSTOP, CHILD_SESSION_BUTTON_CLOSE }
-    };
-    const auto CreateControl = [Window](HWND* Control, PCWSTR Class, PCWSTR Text, ULONG Style, ULONG Id)
-    {
-        *Control = CreateWindowExW(0,
-                                   Class,
-                                   Text,
-                                   WS_CHILD | WS_VISIBLE | Style,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   Window,
-                                   (HMENU)(ULONG_PTR)Id,
-                                   GetModuleHandleW(NULL),
-                                   NULL);
-        return *Control != NULL ? S_OK : HRESULT_FROM_WIN32(Err_GetLastError());
-    };
-    HRESULT Result;
-
-    for (const auto& Control : Controls)
-    {
-        Result = CreateControl(Control.Window, Control.Class, Control.Text, Control.Style, Control.Id);
-        if (FAILED(Result))
+        for (const auto& Resolution : g_ChildSessionResolutions)
         {
-            return Result;
+            SendDlgItemMessageW(Window, IDC_RESOLUTION, CB_ADDSTRING, 0, (LPARAM)Resolution.Name);
         }
-    }
-    for (ULONG Index = 0; Index < ARRAYSIZE(g_ChildSessionConfigurationButtons); Index++)
-    {
-        Result = CreateControl(&State->ConfigurationButtons[Index],
-                               L"BUTTON",
-                               g_ChildSessionConfigurationButtons[Index].Text,
-                               WS_TABSTOP,
-                               CHILD_SESSION_BUTTON_CONFIGURATION + Index);
-        if (FAILED(Result))
+        SendDlgItemMessageW(Window, IDC_RESOLUTION, CB_SETCURSEL, 3, 0);
+        for (UINT Id = IDC_ENABLED; Id <= IDC_ALLOW_PASSWORD; Id++)
         {
-            return Result;
+            ChildSession_QueryConfiguration(Window, Id);
         }
+        ChildSession_RefreshWindow(State);
+        SetFocus(GetDlgItem(Window, IDC_CONNECT));
+        return FALSE;
     }
-    return CreateControl(&State->ConfigurationNote,
-                         L"STATIC",
-                         L"Configuration buttons save machine-wide changes; closing the demo does not undo them.",
-                         SS_LEFT,
-                         0);
+    if (State == NULL)
+    {
+        return FALSE;
+    }
+    if (Message == WM_COMMAND)
+    {
+        UINT Id = LOWORD(WParam);
+
+        if (Id >= IDC_ENABLED && Id <= IDC_ALLOW_PASSWORD && HIWORD(WParam) == BN_CLICKED)
+        {
+            ChildSession_ChangeConfiguration(State, Id);
+        } else if (Id == IDC_CONNECT)
+        {
+            ChildSession_Connect(Window, State);
+        } else if (Id == IDC_DISCONNECT)
+        {
+            ChildSession_RdpWindowDestroy(State);
+        } else if (Id == IDCANCEL)
+        {
+            DestroyWindow(Window);
+        } else
+        {
+            return FALSE;
+        }
+        return TRUE;
+    } else if (Message == WM_CLOSE)
+    {
+        DestroyWindow(Window);
+        return TRUE;
+    } else if (Message == WM_DESTROY)
+    {
+        PostQuitMessage(0);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 static
 HRESULT
 ChildSession_RunWindow(
-    _In_ PCHILD_SESSION_CONFIGURATION_STATE Configuration)
+    _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    WNDCLASSEXW ConsoleWindowClass = { sizeof(ConsoleWindowClass) };
-    CHILD_SESSION_WINDOW_STATE WindowState = { 0 };
-    HMODULE Instance = GetModuleHandleW(NULL);
-    HWND Window = NULL;
-    DPI_AWARENESS_CONTEXT PreviousDpiContext;
     MSG Message;
     HRESULT Result;
     W32ERROR Error;
     BOOL MessageResult;
-    BOOLEAN Initialized = FALSE;
-    BOOLEAN ConsoleClassRegistered = FALSE;
 
-    WindowState.Configuration = Configuration;
-    IO_ConPrintF("Remote Desktop process PMv2 before initialization: %s\n",
-                    AreDpiAwarenessContextsEqual(GetDpiAwarenessContextForProcess(GetCurrentProcess()),
-                                                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ? "yes" : "no");
-    // RDP-created threads must inherit PMv2 as well as the host UI thread.
-    if (!AreDpiAwarenessContextsEqual(GetDpiAwarenessContextForProcess(GetCurrentProcess()),
-                                     DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) &&
-        !SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
-    {
-        Error = Err_GetLastError();
-        IO_ConPrintF("Set process PMv2 failed with Win32 error %lu\n", Error);
-        return HRESULT_FROM_WIN32(Error);
-    }
-    PreviousDpiContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    if (PreviousDpiContext == NULL)
-    {
-        return HRESULT_FROM_WIN32(Err_GetLastError());
-    }
-    IO_ConPrintF("Remote Desktop DPI context: process PMv2=%s, thread PMv2=%s\n",
-                    AreDpiAwarenessContextsEqual(GetDpiAwarenessContextForProcess(GetCurrentProcess()),
-                                                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ? "yes" : "no",
-                    AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),
-                                                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ? "yes" : "no");
     Result = OleInitialize(NULL);
     if (FAILED(Result))
     {
-        goto Cleanup;
+        return Result;
     }
-    Initialized = TRUE;
-    ConsoleWindowClass.style = CS_HREDRAW | CS_VREDRAW;
-    ConsoleWindowClass.lpfnWndProc = ChildSession_WindowProc;
-    ConsoleWindowClass.hInstance = Instance;
-    ConsoleWindowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    ConsoleWindowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    ConsoleWindowClass.lpszClassName = CHILD_SESSION_CONSOLE_WINDOW_CLASS;
-    if (RegisterClassExW(&ConsoleWindowClass) == 0)
+    if (CreateDialogParamW((HINSTANCE)&__ImageBase,
+                           MAKEINTRESOURCEW(IDD_CHILD_SESSION),
+                           NULL,
+                           ChildSession_DialogProc,
+                           (LPARAM)State) == NULL)
     {
         Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        goto Cleanup;
+        OleUninitialize();
+        return Result;
     }
-    ConsoleClassRegistered = TRUE;
-    Window = CreateWindowExW(0,
-                             CHILD_SESSION_CONSOLE_WINDOW_CLASS,
-                             CHILD_SESSION_WINDOW_TITLE,
-                             WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
-                             CW_USEDEFAULT,
-                             CW_USEDEFAULT,
-                             1120,
-                             360,
-                             NULL,
-                             NULL,
-                             Instance,
-                             &WindowState);
-    if (Window == NULL)
-    {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        goto Cleanup;
-    }
-    Result = ChildSession_CreateControls(Window, &WindowState);
-    if (FAILED(Result))
-    {
-        goto Cleanup;
-    }
-    ChildSession_UpdateConsoleFont(Window, &WindowState);
-    SetWindowPos(Window,
-                 NULL,
-                 0,
-                 0,
-                 MulDiv(1120, GetDpiForWindow(Window), 96),
-                 MulDiv(360, GetDpiForWindow(Window), 96),
-                 SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-    for (ULONG Index = 0; Index < ARRAYSIZE(g_ChildSessionResolutions); Index++)
-    {
-        SendMessageW(WindowState.ResolutionCombo,
-                     CB_ADDSTRING,
-                     0,
-                     (LPARAM)g_ChildSessionResolutions[Index].Name);
-    }
-    SendMessageW(WindowState.ResolutionCombo, CB_SETCURSEL, 3, 0);
-    ChildSession_LayoutWindow(Window, &WindowState);
-    Error = ChildSession_RefreshWindow(&WindowState);
-    if (Error != ERROR_SUCCESS)
-    {
-        ChildSession_SetWin32Error(&WindowState, L"Initial status refresh", Error);
-    }
-    SetTimer(Window, 1, 1000, NULL);
-    ShowWindow(Window, SW_SHOW);
-    UpdateWindow(Window);
-    SetFocus(WindowState.ConnectButton);
+    IO_ConPrintF("Configuration changes are saved immediately and remain after closing this sample.\n");
+    ShowWindow(State->Window, SW_SHOW);
+    UpdateWindow(State->Window);
     while ((MessageResult = GetMessageW(&Message, NULL, 0, 0)) > 0)
     {
-        if (WindowState.RdpWindow.Dialog != NULL &&
-            UI_RdpDialogTranslateMessage(WindowState.RdpWindow.Dialog, &Message))
+        if (State->Dialog != NULL && UI_RdpDialogTranslateMessage(State->Dialog, &Message))
         {
             continue;
         }
-        if ((Message.hwnd != Window && !IsChild(Window, Message.hwnd)) ||
-            !IsDialogMessageW(Window, &Message))
+        if ((Message.hwnd != State->Window && !IsChild(State->Window, Message.hwnd)) ||
+            !IsDialogMessageW(State->Window, &Message))
         {
             TranslateMessage(&Message);
             DispatchMessageW(&Message);
@@ -1667,43 +932,25 @@ ChildSession_RunWindow(
         Result = HRESULT_FROM_WIN32(Err_GetLastError());
     }
 
-Cleanup:
-    ChildSession_RdpWindowDestroy(&WindowState.RdpWindow);
-    if (WindowState.OwnsChildSession)
+    ChildSession_RdpWindowDestroy(State);
+    Error = ChildSession_LogoffChildSession();
+    if (Error != ERROR_SUCCESS)
     {
-        Error = ChildSession_LogoffChildSession(TRUE);
-        if (Error != ERROR_SUCCESS)
+        IO_ConPrintF("Child session cleanup failed with Win32 error %lu\n", Error);
+        if (SUCCEEDED(Result))
         {
-            IO_ConPrintF("Child session cleanup failed with Win32 error %lu\n", Error);
-            if (SUCCEEDED(Result))
-            {
-                Result = HRESULT_FROM_WIN32(Error);
-            }
-        } else
-        {
-            IO_ConPrintF("Sample-created child session logged off during cleanup\n");
+            Result = HRESULT_FROM_WIN32(Error);
         }
     }
-    if (Window != NULL && IsWindow(Window))
+    if (State->Window != NULL && IsWindow(State->Window))
     {
-        DestroyWindow(Window);
+        DestroyWindow(State->Window);
     }
-    if (WindowState.Font != NULL)
+    if (State->Font != NULL)
     {
-        DeleteObject(WindowState.Font);
+        DeleteObject(State->Font);
     }
-    if (ConsoleClassRegistered)
-    {
-        UnregisterClassW(CHILD_SESSION_CONSOLE_WINDOW_CLASS, Instance);
-    }
-    if (Initialized)
-    {
-        OleUninitialize();
-    }
-    if (SetThreadDpiAwarenessContext(PreviousDpiContext) == NULL && SUCCEEDED(Result))
-    {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-    }
+    OleUninitialize();
     return Result;
 }
 
@@ -1713,37 +960,25 @@ wmain(
     _In_ int argc,
     _In_reads_(argc) _Pre_z_ wchar_t** argv)
 {
-    CHILD_SESSION_CONFIGURATION_STATE Configuration;
-    W32ERROR Error, CleanupError;
+    CHILD_SESSION_WINDOW_STATE State = { 0 };
+    W32ERROR Error;
     HRESULT Result;
 
+    UNREFERENCED_PARAMETER(argc);
     UNREFERENCED_PARAMETER(argv);
-    if (argc != 1)
-    {
-        IO_ConPrintF("usage: ChildSession.exe\n");
-        return E_INVALIDARG;
-    }
-    Error = ChildSession_PrepareConfiguration(&Configuration);
-    if (Error != ERROR_SUCCESS)
-    {
-        IO_ConPrintF("Child session preparation failed with Win32 error %lu\n", Error);
-        Result = HRESULT_FROM_WIN32(Error);
-        goto CleanupConfiguration;
-    }
-    Result = ChildSession_RunWindow(&Configuration);
+
+    Result = ChildSession_RunWindow(&State);
     if (FAILED(Result))
     {
         IO_ConPrintF("Child session console failed with HRESULT 0x%08lX\n", (ULONG)Result);
     }
-
-CleanupConfiguration:
-    CleanupError = ChildSession_RestoreConfiguration(&Configuration);
-    if (CleanupError != ERROR_SUCCESS)
+    Error = ChildSession_RestoreConfiguration(&State);
+    if (Error != ERROR_SUCCESS)
     {
-        IO_ConPrintF("Child session configuration restore failed with Win32 error %lu\n", CleanupError);
+        IO_ConPrintF("Child session configuration restore failed with Win32 error %lu\n", Error);
         if (SUCCEEDED(Result))
         {
-            Result = HRESULT_FROM_WIN32(CleanupError);
+            Result = HRESULT_FROM_WIN32(Error);
         }
     }
     return Result;

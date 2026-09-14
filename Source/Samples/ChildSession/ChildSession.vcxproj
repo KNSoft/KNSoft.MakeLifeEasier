@@ -180,8 +180,22 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChildSession.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ChildSession.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="ChildSession.manifest" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
