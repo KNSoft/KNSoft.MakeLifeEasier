@@ -1068,7 +1068,7 @@ ChildSession_DialogProc(
     {
         DestroyWindow(Window);
         return TRUE;
-    } else if (Message == WM_NCDESTROY)
+    } else if (Message == WM_DESTROY)
     {
         PostQuitMessage(0);
         return TRUE;
