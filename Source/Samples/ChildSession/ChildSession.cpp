@@ -28,6 +28,8 @@
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "OleAut32.lib")
 
+#define CHILD_SESSION_RDP_WINDOW_TITLE L"KNSoft Child Session"
+
 static const UNICODE_STRING g_ChildSessionCredentialKey =
     RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SOFTWARE\\Policies\\Microsoft\\Windows\\CredentialsDelegation");
 static const UNICODE_STRING g_ChildSessionCredentialValue = RTL_CONSTANT_STRING(L"2147483647");
@@ -40,23 +42,6 @@ static const UNICODE_STRING g_ChildSessionPasswordlessKey =
     RTL_CONSTANT_STRING(L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\PasswordLess\\Device");
 static const UNICODE_STRING g_ChildSessionPasswordlessValue =
     RTL_CONSTANT_STRING(L"DevicePasswordLessBuildVersion");
-
-static
-BOOLEAN
-ChildSession_SessionIsRegistryValueMissing(
-    _In_ NTSTATUS Status)
-{
-    return Status == STATUS_OBJECT_NAME_NOT_FOUND ||
-           Status == STATUS_OBJECT_PATH_NOT_FOUND;
-}
-
-static
-W32ERROR
-ChildSession_SessionStatusToWin32Error(
-    _In_ NTSTATUS Status)
-{
-    return NT_SUCCESS(Status) ? ERROR_SUCCESS : Err_NtStatusToWin32Error(Status);
-}
 
 static
 NTSTATUS
@@ -72,7 +57,7 @@ ChildSession_SessionQueryCredentialPolicy(
 
     *Enabled = FALSE;
     Status = Sys_RegQueryDword(Key, Policy, &PolicyEnabled);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return STATUS_SUCCESS;
     }
@@ -81,7 +66,7 @@ ChildSession_SessionQueryCredentialPolicy(
         return Status;
     }
     Status = Sys_RegOpenKeyEx(&ListKey, Key, KEY_QUERY_VALUE, Policy);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return STATUS_SUCCESS;
     }
@@ -91,7 +76,7 @@ ChildSession_SessionQueryCredentialPolicy(
     }
     Status = Sys_RegQueryData(ListKey, &g_ChildSessionCredentialValue, &Data);
     NtClose(ListKey);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return STATUS_SUCCESS;
     }
@@ -138,7 +123,7 @@ ChildSession_SessionSetCredentialPolicy(
     } else
     {
         Status = Sys_RegOpenKeyEx(&ListKey, Key, KEY_SET_VALUE, Policy);
-        if (ChildSession_SessionIsRegistryValueMissing(Status))
+        if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
         {
             return STATUS_SUCCESS;
         }
@@ -147,7 +132,7 @@ ChildSession_SessionSetCredentialPolicy(
             return Status;
         }
         Status = NtDeleteValueKey(ListKey, (PUNICODE_STRING)&g_ChildSessionCredentialValue);
-        if (ChildSession_SessionIsRegistryValueMissing(Status))
+        if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
         {
             Status = STATUS_SUCCESS;
         }
@@ -190,13 +175,13 @@ ChildSession_QueryChildSessionCredentialDelegation(
     Status = Sys_RegOpenKey(&Key,
                             KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS,
                             &g_ChildSessionCredentialKey);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return ERROR_SUCCESS;
     }
     if (!NT_SUCCESS(Status))
     {
-        return ChildSession_SessionStatusToWin32Error(Status);
+        return Err_NtStatusToWin32Error(Status);
     }
     *Enabled = TRUE;
     for (const auto& Policy : g_ChildSessionCredentialPolicies)
@@ -209,7 +194,11 @@ ChildSession_QueryChildSessionCredentialDelegation(
         }
     }
     NtClose(Key);
-    return ChildSession_SessionStatusToWin32Error(Status);
+    if (!NT_SUCCESS(Status))
+    {
+        return Err_NtStatusToWin32Error(Status);
+    }
+    return ERROR_SUCCESS;
 }
 
 static
@@ -230,14 +219,14 @@ ChildSession_SetChildSessionCredentialDelegation(
         Status = Sys_RegOpenKey(&Key,
                                 KEY_ENUMERATE_SUB_KEYS,
                                 &g_ChildSessionCredentialKey);
-        if (ChildSession_SessionIsRegistryValueMissing(Status))
+        if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
         {
             return ERROR_SUCCESS;
         }
     }
     if (!NT_SUCCESS(Status))
     {
-        return ChildSession_SessionStatusToWin32Error(Status);
+        return Err_NtStatusToWin32Error(Status);
     }
     for (const auto& Policy : g_ChildSessionCredentialPolicies)
     {
@@ -248,7 +237,11 @@ ChildSession_SetChildSessionCredentialDelegation(
         }
     }
     NtClose(Key);
-    return ChildSession_SessionStatusToWin32Error(Status);
+    if (!NT_SUCCESS(Status))
+    {
+        return Err_NtStatusToWin32Error(Status);
+    }
+    return ERROR_SUCCESS;
 }
 
 static
@@ -262,25 +255,26 @@ ChildSession_QueryChildSessionHelloOnly(
 
     *Enabled = FALSE;
     Status = Sys_RegOpenKey(&Key, KEY_QUERY_VALUE, &g_ChildSessionPasswordlessKey);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return ERROR_SUCCESS;
     }
     if (!NT_SUCCESS(Status))
     {
-        return ChildSession_SessionStatusToWin32Error(Status);
+        return Err_NtStatusToWin32Error(Status);
     }
     Status = Sys_RegQueryDword(Key, &g_ChildSessionPasswordlessValue, &Value);
     NtClose(Key);
-    if (ChildSession_SessionIsRegistryValueMissing(Status))
+    if (Status == STATUS_OBJECT_NAME_NOT_FOUND)
     {
         return ERROR_SUCCESS;
     }
-    if (NT_SUCCESS(Status))
+    if (!NT_SUCCESS(Status))
     {
-        *Enabled = Value == 2;
+        return Err_NtStatusToWin32Error(Status);
     }
-    return ChildSession_SessionStatusToWin32Error(Status);
+    *Enabled = Value == 2;
+    return ERROR_SUCCESS;
 }
 
 static
@@ -295,11 +289,15 @@ ChildSession_SetChildSessionHelloOnly(
     Status = Sys_RegCreateKey(&Key, KEY_SET_VALUE, &g_ChildSessionPasswordlessKey);
     if (!NT_SUCCESS(Status))
     {
-        return ChildSession_SessionStatusToWin32Error(Status);
+        return Err_NtStatusToWin32Error(Status);
     }
     Status = Sys_RegSetDword(Key, &g_ChildSessionPasswordlessValue, Value);
     NtClose(Key);
-    return ChildSession_SessionStatusToWin32Error(Status);
+    if (!NT_SUCCESS(Status))
+    {
+        return Err_NtStatusToWin32Error(Status);
+    }
+    return ERROR_SUCCESS;
 }
 
 static
@@ -345,8 +343,6 @@ ChildSession_LogoffChildSession(VOID)
                ERROR_SUCCESS :
                Err_GetLastError();
 }
-
-#define CHILD_SESSION_RDP_WINDOW_TITLE L"KNSoft Child Session"
 
 typedef struct _CHILD_SESSION_RESOLUTION
 {
@@ -1172,42 +1168,22 @@ wmain(
     CHILD_SESSION_WINDOW_STATE State = { 0 };
     W32ERROR Error;
     HRESULT Result;
-    PCWSTR CommandLine = GetCommandLineW();
-    PWSTR* ProgramArguments = NULL;
-    ULONG ProgramArgumentCount;
+    PWSTR CommandLine = NULL;
 
-    for (int Index = 0; Index < argc; Index++)
+    for (int Index = 1; Index < argc; Index++)
     {
-        // Only skip the sample's options; preserve the program's remaining command line verbatim.
-        BOOLEAN Quoted = FALSE;
-        do
-        {
-            if (*CommandLine == L'"')
-            {
-                Quoted = !Quoted;
-            }
-            CommandLine++;
-        } while (*CommandLine != UNICODE_NULL && (Quoted || (*CommandLine != L' ' && *CommandLine != L'\t')));
-        while (*CommandLine == L' ' || *CommandLine == L'\t')
-        {
-            CommandLine++;
-        }
-        if (Index == 0)
-        {
-            continue;
-        }
         if (_wcsicmp(argv[Index], L"-NoPanel") == 0)
         {
             State.NoPanel = TRUE;
         } else if (_wcsicmp(argv[Index], L"-Run") == 0 && Index + 1 < argc && argv[Index + 1][0] != UNICODE_NULL)
         {
-            State.RunCommandLine = CommandLine;
-            NTSTATUS Status = PS_CommandLineToArgvW(CommandLine, &ProgramArgumentCount, &ProgramArguments);
+            NTSTATUS Status = PS_ArgvToCommandLineW(argc - Index - 1, argv + Index + 1, &CommandLine);
             if (!NT_SUCCESS(Status))
             {
                 return HRESULT_FROM_NT(Status);
             }
-            State.RunProgram = ProgramArguments[0];
+            State.RunCommandLine = CommandLine;
+            State.RunProgram = argv[Index + 1];
             break;
         } else
         {
@@ -1230,9 +1206,9 @@ wmain(
             Result = HRESULT_FROM_WIN32(Error);
         }
     }
-    if (ProgramArguments != NULL)
+    if (CommandLine != NULL)
     {
-        PS_FreeCommandLineArgv(ProgramArguments);
+        PS_FreeCommandLineBuffer(CommandLine);
     }
     return Result;
 }
