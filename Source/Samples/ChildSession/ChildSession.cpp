@@ -2,7 +2,8 @@
  * ChildSession: Host the Remote Desktop ActiveX control and connect it to a
  * child session on the local machine.
  *
- * Run: "ChildSession.exe", need administrator privilege.
+ * Run: ChildSession.exe [-NoPanel] [-Run <program> [arguments...]], requires administrator privilege.
+ * -Run consumes the remaining command line; quote program paths containing spaces.
  */
 
 #define MLE_API
@@ -16,11 +17,13 @@
 #include <OcIdl.h>
 #include <OleAuto.h>
 #include <Ole2.h>
+#include <UserEnv.h>
 
 #import "libid:8C11EFA1-92C3-11D1-BC1E-00C04FA31489" version("1.0") \
     raw_interfaces_only named_guids rename_namespace("MSTSCLib") \
     exclude("wireHWND", "_RemotableHandle", "__MIDL_IWinTypes_0009")
 
+#pragma comment(lib, "Userenv.lib")
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "OleAut32.lib")
@@ -367,6 +370,11 @@ typedef struct _CHILD_SESSION_WINDOW_STATE
     PUI_RDP_CONTEXT Dialog;
     HFONT Font;
     BOOLEAN RestoreEnabled;
+    BOOLEAN NoPanel;
+    BOOLEAN RunPending;
+    ULONG RunRetries;
+    PCWSTR RunCommandLine;
+    PCWSTR RunProgram;
 } CHILD_SESSION_WINDOW_STATE, *PCHILD_SESSION_WINDOW_STATE;
 
 static
@@ -400,6 +408,11 @@ ChildSession_RefreshWindow(
 {
     BOOLEAN Connecting = State->Dialog != NULL && State->Dialog->State.ConnectPending;
 
+    if (State->Window == NULL)
+    {
+        return;
+    }
+
     for (UINT Id = IDC_ENABLED; Id <= IDC_ALLOW_PASSWORD; Id++)
     {
         EnableWindow(GetDlgItem(State->Window, Id), !Connecting);
@@ -412,12 +425,16 @@ ChildSession_RefreshWindow(
 static
 VOID
 ChildSession_QueryConfiguration(
-    _In_ HWND Window,
+    _In_opt_ HWND Window,
     _In_ UINT Id)
 {
     BOOLEAN Enabled;
     W32ERROR Error;
 
+    if (Window == NULL)
+    {
+        return;
+    }
     if (Id == IDC_ENABLED)
     {
         Error = WinStationIsChildSessionsEnabled(&Enabled) ? ERROR_SUCCESS : Err_GetLastError();
@@ -455,6 +472,136 @@ ChildSession_RestoreConfiguration(
     return ERROR_SUCCESS;
 }
 
+#define CHILD_SESSION_RUN_TIMER 0x43535255
+#define CHILD_SESSION_RUN_RETRY_DELAY 250
+#define CHILD_SESSION_RUN_RETRY_COUNT 20
+
+static
+W32ERROR
+ChildSession_RunProgram(
+    _In_ PCHILD_SESSION_WINDOW_STATE State)
+{
+    STARTUPINFOW Startup = { sizeof(Startup) };
+    PROCESS_INFORMATION ProcessInformation;
+    HANDLE SystemToken = NULL, UserToken = NULL;
+    TOKEN_ELEVATION_TYPE ElevationType;
+    TOKEN_LINKED_TOKEN LinkedToken;
+    PVOID Environment = NULL;
+    PWSTR CommandLine = NULL;
+    WCHAR Desktop[] = L"winsta0\\default";
+    ULONG SessionId, LsaProcessId, Length;
+    SIZE_T CommandLineSize = Str_SizeW(State->RunCommandLine) + sizeof(WCHAR);
+    BOOLEAN Impersonating = FALSE;
+    NTSTATUS Status;
+    W32ERROR Error;
+
+    Error = ChildSession_GetChildSessionId(&SessionId);
+    if (Error != ERROR_SUCCESS)
+    {
+        return Error;
+    }
+    Status = PS_AdjustPrivilege(NtCurrentProcess(), SE_DEBUG_PRIVILEGE, TRUE);
+    if (Status != STATUS_SUCCESS)
+    {
+        return Err_NtStatusToWin32Error(Status);
+    }
+    Status = Sys_GetLsaProcessId(&LsaProcessId);
+    if (NT_SUCCESS(Status))
+    {
+        Status = PS_DuplicateSystemToken(LsaProcessId, TokenImpersonation, &SystemToken);
+    }
+    if (NT_SUCCESS(Status))
+    {
+        Status = PS_Impersonate(SystemToken);
+    }
+    if (NT_SUCCESS(Status))
+    {
+        Impersonating = TRUE;
+        Status = NT_AdjustTokenPrivilege(SystemToken, SE_ASSIGNPRIMARYTOKEN_PRIVILEGE, SE_PRIVILEGE_ENABLED);
+    }
+    if (Status == STATUS_SUCCESS)
+    {
+        Status = NT_AdjustTokenPrivilege(SystemToken, SE_INCREASE_QUOTA_PRIVILEGE, SE_PRIVILEGE_ENABLED);
+    }
+    Error = Err_NtStatusToWin32Error(Status);
+    if (Status != STATUS_SUCCESS)
+    {
+        goto Cleanup;
+    }
+    Error = Sys_GetSessionToken(SessionId, &UserToken);
+    if (Error != ERROR_SUCCESS)
+    {
+        goto Cleanup;
+    }
+    // Prefer the linked full token, but allow a session without an elevated token.
+    Status = NtQueryInformationToken(UserToken, TokenElevationType, &ElevationType, sizeof(ElevationType), &Length);
+    if (NT_SUCCESS(Status) && ElevationType == TokenElevationTypeLimited &&
+        NT_SUCCESS(NtQueryInformationToken(UserToken, TokenLinkedToken, &LinkedToken, sizeof(LinkedToken), &Length)))
+    {
+        NtClose(UserToken);
+        UserToken = LinkedToken.LinkedToken;
+    }
+    if (!CreateEnvironmentBlock(&Environment, UserToken, FALSE))
+    {
+        Error = Err_GetLastError();
+        goto Cleanup;
+    }
+    CommandLine = (PWSTR)Mem_Alloc(CommandLineSize);
+    if (CommandLine == NULL)
+    {
+        Error = ERROR_NOT_ENOUGH_MEMORY;
+        goto Cleanup;
+    }
+    RtlCopyMemory(CommandLine, State->RunCommandLine, CommandLineSize);
+    Startup.lpDesktop = Desktop;
+    if (!CreateProcessAsUserW(UserToken,
+                              State->RunProgram,
+                              CommandLine,
+                              NULL,
+                              NULL,
+                              FALSE,
+                              CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT,
+                              Environment,
+                              NULL,
+                              &Startup,
+                              &ProcessInformation))
+    {
+        Error = Err_GetLastError();
+        goto Cleanup;
+    }
+    IO_ConPrintF("Started process %lu in child session %lu\n", ProcessInformation.dwProcessId, SessionId);
+    NtClose(ProcessInformation.hThread);
+    NtClose(ProcessInformation.hProcess);
+
+Cleanup:
+    if (CommandLine != NULL)
+    {
+        Mem_Free(CommandLine);
+    }
+    if (Environment != NULL)
+    {
+        DestroyEnvironmentBlock(Environment);
+    }
+    if (UserToken != NULL)
+    {
+        NtClose(UserToken);
+    }
+    if (Impersonating)
+    {
+        Status = PS_Impersonate(NULL);
+        if (!NT_SUCCESS(Status))
+        {
+            // Do not continue the UI message loop while impersonating SYSTEM.
+            RtlExitUserProcess(Status);
+        }
+    }
+    if (SystemToken != NULL)
+    {
+        NtClose(SystemToken);
+    }
+    return Error;
+}
+
 static
 VOID
 CALLBACK
@@ -481,6 +628,8 @@ ChildSession_RdpEvent(
                          "Remote Desktop fatal error: %ld\n" :
                          "Remote Desktop disconnected: reason %ld\n",
                      Parameters->rgvarg[0].lVal);
+        State->RunPending = FALSE;
+        State->RunRetries = MAXULONG;
         // The COM callback borrows Data; destroy this window after returning to the message loop.
         PostMessageW(Data->Window, WM_CLOSE, 0, 0);
     } else if (Id == MSTSCAXEVENT_DISPID_CONNECTING || Id == MSTSCAXEVENT_DISPID_WARNING ||
@@ -504,6 +653,11 @@ ChildSession_RdpEvent(
         Id == MSTSCAXEVENT_DISPID_LOGINCOMPLETE)
     {
         ChildSession_RefreshWindow(State);
+    }
+    if (Id == MSTSCAXEVENT_DISPID_LOGINCOMPLETE && State->RunPending)
+    {
+        State->RunPending = FALSE;
+        PostMessageW(Data->Window, WM_TIMER, CHILD_SESSION_RUN_TIMER, 0);
     }
 }
 
@@ -542,15 +696,47 @@ ChildSession_RdpWindowSubclassProc(
     _In_ UINT_PTR SubclassId,
     _In_ DWORD_PTR ReferenceData)
 {
-    if (Message == WM_NCDESTROY)
-    {
-        PCHILD_SESSION_WINDOW_STATE State = (PCHILD_SESSION_WINDOW_STATE)ReferenceData;
+    PCHILD_SESSION_WINDOW_STATE State = (PCHILD_SESSION_WINDOW_STATE)ReferenceData;
 
+    if (Message == WM_TIMER && WParam == CHILD_SESSION_RUN_TIMER)
+    {
+        if (State->RunRetries == MAXULONG)
+        {
+            return 0;
+        }
+        KillTimer(Window, CHILD_SESSION_RUN_TIMER);
+        W32ERROR Error = ChildSession_RunProgram(State);
+
+        if (Error == ERROR_NO_TOKEN && State->RunRetries++ < CHILD_SESSION_RUN_RETRY_COUNT)
+        {
+            if (SetTimer(Window, CHILD_SESSION_RUN_TIMER, CHILD_SESSION_RUN_RETRY_DELAY, NULL) != 0)
+            {
+                return 0;
+            }
+            Error = Err_GetLastError();
+        }
+        State->RunRetries = MAXULONG;
+        if (Error != ERROR_SUCCESS)
+        {
+            IO_ConPrintF("Start program failed: Win32 error %lu\n", Error);
+        }
+        return 0;
+    } else if (Message == WM_DESTROY)
+    {
+        State->RunPending = FALSE;
+        State->RunRetries = MAXULONG;
+        KillTimer(Window, CHILD_SESSION_RUN_TIMER);
+    } else if (Message == WM_NCDESTROY)
+    {
         State->Dialog = NULL;
         RemoveWindowSubclass(Window, ChildSession_RdpWindowSubclassProc, SubclassId);
         // The ActiveX client has already been released during WM_DESTROY.
         ChildSession_Logoff(State);
         ChildSession_RefreshWindow(State);
+        if (State->NoPanel)
+        {
+            PostQuitMessage(0);
+        }
     }
     return DefSubclassProc(Window, Message, WParam, LParam);
 }
@@ -571,7 +757,7 @@ _Success_(return >= 0)
 _At_(State->Dialog, _Post_notnull_)
 HRESULT
 ChildSession_RdpWindowCreate(
-    _In_ HWND OwnerWindow,
+    _In_opt_ HWND OwnerWindow,
     _In_ const CHILD_SESSION_RESOLUTION* Resolution,
     _In_ const WINSTATIONINFORMATION* Information,
     _Inout_ PCHILD_SESSION_WINDOW_STATE State)
@@ -583,6 +769,8 @@ ChildSession_RdpWindowCreate(
     MSTSCLib::IMsRdpExtendedSettings* ExtendedSettings = NULL;
     RECT WindowRect;
     MONITORINFO MonitorInfo = { sizeof(MonitorInfo) };
+    HMONITOR Monitor = OwnerWindow != NULL ? MonitorFromWindow(OwnerWindow, MONITOR_DEFAULTTONEAREST) :
+        MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
     LONG WindowWidth, WindowHeight;
     HRESULT Result;
 
@@ -591,8 +779,8 @@ ChildSession_RdpWindowCreate(
                                   WS_OVERLAPPEDWINDOW,
                                   FALSE,
                                   0,
-                                  GetDpiForWindow(OwnerWindow)) ||
-        !GetMonitorInfoW(MonitorFromWindow(OwnerWindow, MONITOR_DEFAULTTONEAREST), &MonitorInfo))
+                                  OwnerWindow != NULL ? GetDpiForWindow(OwnerWindow) : GetDpiForSystem()) ||
+        !GetMonitorInfoW(Monitor, &MonitorInfo))
     {
         return HRESULT_FROM_WIN32(Err_GetLastError());
     }
@@ -685,7 +873,8 @@ const CHILD_SESSION_RESOLUTION*
 ChildSession_GetSelectedResolution(
     _In_ PCHILD_SESSION_WINDOW_STATE State)
 {
-    LRESULT Index = SendMessageW(GetDlgItem(State->Window, IDC_RESOLUTION), CB_GETCURSEL, 0, 0);
+    LRESULT Index = State->Window != NULL ?
+        SendMessageW(GetDlgItem(State->Window, IDC_RESOLUTION), CB_GETCURSEL, 0, 0) : 3;
 
     if (Index < 0 || Index >= ARRAYSIZE(g_ChildSessionResolutions))
     {
@@ -697,7 +886,7 @@ ChildSession_GetSelectedResolution(
 static
 HRESULT
 ChildSession_Connect(
-    _In_ HWND Window,
+    _In_opt_ HWND Window,
     _Inout_ PCHILD_SESSION_WINDOW_STATE State)
 {
     BOOLEAN Enabled;
@@ -717,22 +906,25 @@ ChildSession_Connect(
         IO_ConPrintF("Validate parent session failed: Win32 error %lu\n", Error);
         return HRESULT_FROM_WIN32(Error);
     }
-    Error = WinStationIsChildSessionsEnabled(&Enabled) ? ERROR_SUCCESS : Err_GetLastError();
-    if (Error != ERROR_SUCCESS)
+    if (!State->NoPanel)
     {
-        IO_ConPrintF("Query configuration failed: Win32 error %lu\n", Error);
-        return HRESULT_FROM_WIN32(Error);
-    }
-    if (!Enabled)
-    {
-        Error = (WinStationEnableChildSessions(TRUE) ? ERROR_SUCCESS : Err_GetLastError());
+        Error = WinStationIsChildSessionsEnabled(&Enabled) ? ERROR_SUCCESS : Err_GetLastError();
         if (Error != ERROR_SUCCESS)
         {
-            IO_ConPrintF("Enable child sessions failed: Win32 error %lu\n", Error);
+            IO_ConPrintF("Query configuration failed: Win32 error %lu\n", Error);
             return HRESULT_FROM_WIN32(Error);
         }
-        State->RestoreEnabled = TRUE;
-        ChildSession_QueryConfiguration(Window, IDC_ENABLED);
+        if (!Enabled)
+        {
+            Error = (WinStationEnableChildSessions(TRUE) ? ERROR_SUCCESS : Err_GetLastError());
+            if (Error != ERROR_SUCCESS)
+            {
+                IO_ConPrintF("Enable child sessions failed: Win32 error %lu\n", Error);
+                return HRESULT_FROM_WIN32(Error);
+            }
+            State->RestoreEnabled = TRUE;
+            ChildSession_QueryConfiguration(Window, IDC_ENABLED);
+        }
     }
 
     Error = ChildSession_GetChildSessionId(&SessionId);
@@ -756,6 +948,8 @@ ChildSession_Connect(
         IO_ConPrintF("Create Remote Desktop window failed: HRESULT 0x%08lX\n", (ULONG)Result);
         goto Cleanup;
     }
+    State->RunPending = State->RunCommandLine != NULL;
+    State->RunRetries = 0;
     Result = UI_RdpDialogConnect(State->Dialog);
     if (FAILED(Result))
     {
@@ -783,10 +977,10 @@ static
 VOID
 ChildSession_ChangeConfiguration(
     _Inout_ PCHILD_SESSION_WINDOW_STATE State,
-    _In_ UINT Id)
+    _In_ UINT Id,
+    _In_ BOOLEAN Enabled)
 {
     W32ERROR Error;
-    BOOLEAN Enabled = IsDlgButtonChecked(State->Window, Id) != BST_CHECKED;
 
     if (Id == IDC_ENABLED)
     {
@@ -859,7 +1053,7 @@ ChildSession_DialogProc(
 
         if (Id >= IDC_ENABLED && Id <= IDC_ALLOW_PASSWORD && HIWORD(WParam) == BN_CLICKED)
         {
-            ChildSession_ChangeConfiguration(State, Id);
+            ChildSession_ChangeConfiguration(State, Id, IsDlgButtonChecked(Window, Id) != BST_CHECKED);
         } else if (Id == IDC_CONNECT)
         {
             ChildSession_Connect(Window, State);
@@ -878,7 +1072,7 @@ ChildSession_DialogProc(
     {
         DestroyWindow(Window);
         return TRUE;
-    } else if (Message == WM_DESTROY)
+    } else if (Message == WM_NCDESTROY)
     {
         PostQuitMessage(0);
         return TRUE;
@@ -901,26 +1095,41 @@ ChildSession_RunWindow(
     {
         return Result;
     }
-    if (CreateDialogParamW((HINSTANCE)&__ImageBase,
-                           MAKEINTRESOURCEW(IDD_CHILD_SESSION),
-                           NULL,
-                           ChildSession_DialogProc,
-                           (LPARAM)State) == NULL)
+    if (State->NoPanel)
     {
-        Result = HRESULT_FROM_WIN32(Err_GetLastError());
-        OleUninitialize();
-        return Result;
+        for (UINT Id = IDC_ENABLED; Id <= IDC_ALLOW_PASSWORD; Id++)
+        {
+            ChildSession_ChangeConfiguration(State, Id, TRUE);
+        }
+        Result = ChildSession_Connect(NULL, State);
+        if (FAILED(Result))
+        {
+            OleUninitialize();
+            return Result;
+        }
+    } else
+    {
+        if (CreateDialogParamW((HINSTANCE)&__ImageBase,
+                               MAKEINTRESOURCEW(IDD_CHILD_SESSION),
+                               NULL,
+                               ChildSession_DialogProc,
+                               (LPARAM)State) == NULL)
+        {
+            Result = HRESULT_FROM_WIN32(Err_GetLastError());
+            OleUninitialize();
+            return Result;
+        }
+        IO_ConPrintF("Configuration changes are saved immediately and remain after closing this sample.\n");
+        ShowWindow(State->Window, SW_SHOW);
+        UpdateWindow(State->Window);
     }
-    IO_ConPrintF("Configuration changes are saved immediately and remain after closing this sample.\n");
-    ShowWindow(State->Window, SW_SHOW);
-    UpdateWindow(State->Window);
     while ((MessageResult = GetMessageW(&Message, NULL, 0, 0)) > 0)
     {
         if (State->Dialog != NULL && UI_RdpDialogTranslateMessage(State->Dialog, &Message))
         {
             continue;
         }
-        if ((Message.hwnd != State->Window && !IsChild(State->Window, Message.hwnd)) ||
+        if (State->Window == NULL || (Message.hwnd != State->Window && !IsChild(State->Window, Message.hwnd)) ||
             !IsDialogMessageW(State->Window, &Message))
         {
             TranslateMessage(&Message);
@@ -963,9 +1172,49 @@ wmain(
     CHILD_SESSION_WINDOW_STATE State = { 0 };
     W32ERROR Error;
     HRESULT Result;
+    PCWSTR CommandLine = GetCommandLineW();
+    PWSTR* ProgramArguments = NULL;
+    ULONG ProgramArgumentCount;
 
-    UNREFERENCED_PARAMETER(argc);
-    UNREFERENCED_PARAMETER(argv);
+    for (int Index = 0; Index < argc; Index++)
+    {
+        // Only skip the sample's options; preserve the program's remaining command line verbatim.
+        BOOLEAN Quoted = FALSE;
+        do
+        {
+            if (*CommandLine == L'"')
+            {
+                Quoted = !Quoted;
+            }
+            CommandLine++;
+        } while (*CommandLine != UNICODE_NULL && (Quoted || (*CommandLine != L' ' && *CommandLine != L'\t')));
+        while (*CommandLine == L' ' || *CommandLine == L'\t')
+        {
+            CommandLine++;
+        }
+        if (Index == 0)
+        {
+            continue;
+        }
+        if (_wcsicmp(argv[Index], L"-NoPanel") == 0)
+        {
+            State.NoPanel = TRUE;
+        } else if (_wcsicmp(argv[Index], L"-Run") == 0 && Index + 1 < argc && argv[Index + 1][0] != UNICODE_NULL)
+        {
+            State.RunCommandLine = CommandLine;
+            NTSTATUS Status = PS_CommandLineToArgvW(CommandLine, &ProgramArgumentCount, &ProgramArguments);
+            if (!NT_SUCCESS(Status))
+            {
+                return HRESULT_FROM_NT(Status);
+            }
+            State.RunProgram = ProgramArguments[0];
+            break;
+        } else
+        {
+            IO_ConPrintF("Usage: ChildSession.exe [-NoPanel] [-Run <program> [arguments...]]\n");
+            return E_INVALIDARG;
+        }
+    }
 
     Result = ChildSession_RunWindow(&State);
     if (FAILED(Result))
@@ -980,6 +1229,10 @@ wmain(
         {
             Result = HRESULT_FROM_WIN32(Error);
         }
+    }
+    if (ProgramArguments != NULL)
+    {
+        PS_FreeCommandLineArgv(ProgramArguments);
     }
     return Result;
 }
