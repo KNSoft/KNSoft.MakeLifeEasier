@@ -15,6 +15,7 @@
 - Use concise, technical comments only when needed.
 
 ## Rules
+- Keep `NTDDI_VERSION` at the latest DDI level to control API, type, and constant visibility and mark DDI version boundaries; `NT_VERSION_MIN` declares the minimum supported NT runtime version.
 - Some files are auto-generated and usually end with `.g.*` (for example, `I18N.xml.g.c` and `I18N.xml.g.h`); do not modify them manually.
 - The output directory is usually named `OutDir` and is located next to the solution file; the exact path depends on `.props` files and project settings.
 
