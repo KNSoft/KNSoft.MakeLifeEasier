@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props" Condition="Exists('..\packages\KNSoft.Precomp4C.1.0.19-alpha\build\KNSoft.Precomp4C.props')" />
   <ItemGroup Label="ProjectConfigurations">
@@ -197,6 +197,7 @@
     <ClCompile Include="IO\Hardware.c" />
     <ClCompile Include="IO\File.c" />
     <ClCompile Include="Data\Json.c" />
+    <ClCompile Include="Net\Browser.c" />
     <ClCompile Include="KNSoft\DialogBox.c" />
     <ClCompile Include="KNSoft\I18N.c" />
     <ClCompile Include="Main.c" />
@@ -260,6 +261,7 @@
     <ClInclude Include="IO\Hardware.h" />
     <ClInclude Include="IO\File.h" />
     <ClInclude Include="Data\Json.h" />
+    <ClInclude Include="Net\Browser.h" />
     <ClInclude Include="KNSoft\AppInfo.h" />
     <ClInclude Include="KNSoft\DialogBox.h" />
     <ClInclude Include="KNSoft\I18N.h" />

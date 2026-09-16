@@ -3,7 +3,7 @@
 *.aps
 
 /packages
-/OutDir
+OutDir
 IntDir
 
 /*.nupkg

@@ -1,6 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Net">
+      <UniqueIdentifier>{7e5c1a94-2c6d-4f0a-9b31-8a3f0d5c2e11}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Data">
       <UniqueIdentifier>{d86d345b-9cde-4d5d-bf7a-421783379942}</UniqueIdentifier>
     </Filter>
@@ -86,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="Data\Json.c">
       <Filter>Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\Browser.c">
+      <Filter>Net</Filter>
     </ClCompile>
     <ClCompile Include="IO\File.c">
       <Filter>IO</Filter>
@@ -258,6 +264,9 @@
     </ClInclude>
     <ClInclude Include="Data\Json.h">
       <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Net\Browser.h">
+      <Filter>Net</Filter>
     </ClInclude>
     <ClInclude Include="IO\File.h">
       <Filter>IO</Filter>
