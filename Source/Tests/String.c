@@ -19,3 +19,45 @@ TEST_FUNC(String_Hash)
         TEST_SKIP("RtlHashUnicodeString failed with 0x%08lX\n", Status);
     }
 }
+
+TEST_FUNC(String_Case)
+{
+    CHAR Ansi[] = "Hello, World! 123";
+    WCHAR Wide[] = L"Hello, World! 123";
+    CHAR EmptyA[] = "";
+    WCHAR EmptyW[] = L"";
+
+    Str_UpperA(Ansi);
+    TEST_OK(Str_EqualA(Ansi, "HELLO, WORLD! 123"));
+    Str_LowerA(Ansi);
+    TEST_OK(Str_EqualA(Ansi, "hello, world! 123"));
+    Str_UpperW(Wide);
+    TEST_OK(Str_EqualW(Wide, L"HELLO, WORLD! 123"));
+    Str_LowerW(Wide);
+    TEST_OK(Str_EqualW(Wide, L"hello, world! 123"));
+
+    TEST_OK(Str_UpperCharA('a') == 'A' && Str_UpperCharA('A') == 'A' && Str_UpperCharA('0') == '0');
+    TEST_OK(Str_LowerCharA('Z') == 'z' && Str_LowerCharA('z') == 'z' && Str_LowerCharA('0') == '0');
+    TEST_OK(Str_UpperCharW(L'a') == L'A' && Str_LowerCharW(L'Z') == L'z');
+    TEST_OK(Str_UpperCharA((CHAR)0xE9) == (CHAR)0xE9 && Str_LowerCharA((CHAR)0xC9) == (CHAR)0xC9);
+    TEST_OK(Str_UpperCharW(L'\x00E9') == L'\x00C9' && Str_LowerCharW(L'\x00C9') == L'\x00E9');
+
+    TEST_OK(Str_IEqualA("Abc123", "aBC123"));
+    TEST_OK(!Str_IEqualA("Abc123", "aBC124"));
+    TEST_OK(Str_IEqualW(L"Abc123", L"aBC123"));
+    TEST_OK(!Str_IEqualW(L"Abc123", L"aBC124"));
+
+    TEST_OK(Str_IStrA(EmptyA, "") == EmptyA);
+    TEST_OK(Str_IStrW(EmptyW, L"") == EmptyW);
+    TEST_OK(Str_IStrA(Ansi, "") == Ansi);
+    TEST_OK(Str_IStrW(Wide, L"") == Wide);
+    TEST_OK(Str_IStrA(EmptyA, "a") == NULL);
+    TEST_OK(Str_IStrW(EmptyW, L"a") == NULL);
+
+    TEST_OK(Str_IStrA("Hello, World!", "WORLD") != NULL);
+    TEST_OK(Str_IStrA("Hello, World!", "xyz") == NULL);
+    TEST_OK(Str_IStrA("Hello", "Hello, World!") == NULL);
+    TEST_OK(Str_IStrW(L"Hello, World!", L"wOrLd") != NULL);
+    TEST_OK(Str_IStrW(L"Hello, World!", L"xyz") == NULL);
+    TEST_OK(Str_IStrW(L"Hello", L"Hello, World!") == NULL);
+}

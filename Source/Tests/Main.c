@@ -15,6 +15,7 @@ TEST_DECL_FUNC(FVE_VolumeLifecycle);
 TEST_DECL_FUNC(IO_Pipe);
 TEST_DECL_FUNC(ShellObject);
 TEST_DECL_FUNC(String_Hash);
+TEST_DECL_FUNC(String_Case);
 TEST_DECL_FUNC(RegistryWin32);
 TEST_DECL_FUNC(RegistryNT);
 
@@ -24,6 +25,7 @@ CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_ENTRY(IO_Pipe),
     TEST_DECL_ENTRY(ShellObject),
     TEST_DECL_ENTRY(String_Hash),
+    TEST_DECL_ENTRY(String_Case),
     TEST_DECL_ENTRY(RegistryWin32),
     TEST_DECL_ENTRY(RegistryNT),
 

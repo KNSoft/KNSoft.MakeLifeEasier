@@ -2,6 +2,97 @@
 
 #include <KNSoft/NDK/Package/StrSafe.inl>
 #include <KNSoft/NDK/NDK.h>
+#include <KNSoft/NDK/NT/Nls.inl>
+
+#pragma region Case Conversion
+
+/* ASCII only */
+
+FORCEINLINE
+CHAR
+Str_UpperCharA(
+    _In_ CHAR Char)
+{
+    return (CHAR)_Inline_NLS_UPCASE(NULL, (UCHAR)Char);
+}
+
+FORCEINLINE
+CHAR
+Str_LowerCharA(
+    _In_ CHAR Char)
+{
+    return (CHAR)_Inline_NLS_DOWNCASE(NULL, (UCHAR)Char);
+}
+
+/* Non-ASCII characters are folded by RtlUpcase/DowncaseUnicodeChar */
+
+FORCEINLINE
+WCHAR
+Str_UpperCharW(
+    _In_ WCHAR Char)
+{
+    return Char < 0x80 ? (WCHAR)Str_UpperCharA((CHAR)Char) : RtlUpcaseUnicodeChar(Char);
+}
+
+FORCEINLINE
+WCHAR
+Str_LowerCharW(
+    _In_ WCHAR Char)
+{
+    return Char < 0x80 ? (WCHAR)Str_LowerCharA((CHAR)Char) : RtlDowncaseUnicodeChar(Char);
+}
+
+/* In-place string conversion */
+
+FORCEINLINE
+VOID
+Str_UpperA(
+    _Inout_z_ PSTR String)
+{
+    while (*String != ANSI_NULL)
+    {
+        *String = Str_UpperCharA(*String);
+        String++;
+    }
+}
+
+FORCEINLINE
+VOID
+Str_LowerA(
+    _Inout_z_ PSTR String)
+{
+    while (*String != ANSI_NULL)
+    {
+        *String = Str_LowerCharA(*String);
+        String++;
+    }
+}
+
+FORCEINLINE
+VOID
+Str_UpperW(
+    _Inout_z_ PWSTR String)
+{
+    while (*String != UNICODE_NULL)
+    {
+        *String = Str_UpperCharW(*String);
+        String++;
+    }
+}
+
+FORCEINLINE
+VOID
+Str_LowerW(
+    _Inout_z_ PWSTR String)
+{
+    while (*String != UNICODE_NULL)
+    {
+        *String = Str_LowerCharW(*String);
+        String++;
+    }
+}
+
+#pragma endregion
 
 #pragma region Basic Operations
 
@@ -41,6 +132,88 @@ Str_EqualW(
     _In_ PCWSTR String2)
 {
     return wcscmp(String1, String2) == 0;
+}
+
+/* Str_IEqual (case-insensitive) */
+
+FORCEINLINE
+LOGICAL
+Str_IEqualA(
+    _In_z_ PCSTR String1,
+    _In_z_ PCSTR String2)
+{
+    while (*String1 != ANSI_NULL && Str_UpperCharA(*String1) == Str_UpperCharA(*String2))
+    {
+        String1++;
+        String2++;
+    }
+    return Str_UpperCharA(*String1) == Str_UpperCharA(*String2);
+}
+
+FORCEINLINE
+LOGICAL
+Str_IEqualW(
+    _In_z_ PCWSTR String1,
+    _In_z_ PCWSTR String2)
+{
+    while (*String1 != UNICODE_NULL && Str_UpperCharW(*String1) == Str_UpperCharW(*String2))
+    {
+        String1++;
+        String2++;
+    }
+    return Str_UpperCharW(*String1) == Str_UpperCharW(*String2);
+}
+
+/* Str_IStr: case-insensitive substring search, returns NULL if not found */
+
+_Success_(return != NULL)
+FORCEINLINE
+PSTR
+Str_IStrA(
+    _In_z_ PCSTR String,
+    _In_z_ PCSTR SubString)
+{
+    SIZE_T i, j;
+
+    if (*SubString == ANSI_NULL)
+    {
+        return (PSTR)String;
+    }
+
+    for (i = 0; String[i] != ANSI_NULL; i++)
+    {
+        for (j = 0; ; j++)
+        {
+            if (SubString[j] == ANSI_NULL) return (PSTR)(String + i);
+            if (Str_UpperCharA(String[i + j]) != Str_UpperCharA(SubString[j])) break;
+        }
+    }
+    return NULL;
+}
+
+_Success_(return != NULL)
+FORCEINLINE
+PWSTR
+Str_IStrW(
+    _In_z_ PCWSTR String,
+    _In_z_ PCWSTR SubString)
+{
+    SIZE_T i, j;
+
+    if (*SubString == UNICODE_NULL)
+    {
+        return (PWSTR)String;
+    }
+
+    for (i = 0; String[i] != UNICODE_NULL; i++)
+    {
+        for (j = 0; ; j++)
+        {
+            if (SubString[j] == UNICODE_NULL) return (PWSTR)(String + i);
+            if (Str_UpperCharW(String[i + j]) != Str_UpperCharW(SubString[j])) break;
+        }
+    }
+    return NULL;
 }
 
 /* Str_[Index/StartsWith] */
