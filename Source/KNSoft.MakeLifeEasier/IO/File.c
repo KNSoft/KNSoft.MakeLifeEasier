@@ -179,6 +179,111 @@ IO_BeginFindFile(
 
 #pragma endregion
 
+#pragma region File Operations
+
+static
+NTSTATUS
+IO_ReadFileHandleToBuffer(
+    _In_ HANDLE FileHandle,
+    _Outptr_result_bytebuffer_maybenull_(*BufferSize) PVOID* Buffer,
+    _Out_ PULONG BufferSize)
+{
+    NTSTATUS Status;
+    ULONGLONG FileSize;
+    PVOID Data;
+    ULONG BytesRead;
+
+    Status = IO_GetFileSize(FileHandle, &FileSize);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    if (FileSize > MAXULONG)
+    {
+        return STATUS_FILE_TOO_LARGE;
+    }
+    if (FileSize == 0)
+    {
+        *Buffer = NULL;
+        *BufferSize = 0;
+        return STATUS_SUCCESS;
+    }
+
+    Data = Mem_Alloc((SIZE_T)FileSize);
+    if (Data == NULL)
+    {
+        return STATUS_NO_MEMORY;
+    }
+    Status = IO_ReadFile(FileHandle, NULL, Data, (ULONG)FileSize, &BytesRead);
+    if (!NT_SUCCESS(Status))
+    {
+        goto _Exit;
+    }
+    if (BytesRead != FileSize)
+    {
+        Status = STATUS_END_OF_FILE;
+        goto _Exit;
+    }
+
+    *Buffer = Data;
+    *BufferSize = BytesRead;
+    return STATUS_SUCCESS;
+
+_Exit:
+    Mem_Free(Data);
+    return Status;
+}
+
+NTSTATUS
+NTAPI
+IO_ReadFileToBuffer(
+    _In_ PUNICODE_STRING FileName,
+    _Outptr_result_bytebuffer_maybenull_(*BufferSize) PVOID* Buffer,
+    _Out_ PULONG BufferSize)
+{
+    NTSTATUS Status;
+    HANDLE FileHandle;
+
+    Status = IO_OpenFile(&FileHandle,
+                         FileName,
+                         NULL,
+                         FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    Status = IO_ReadFileHandleToBuffer(FileHandle, Buffer, BufferSize);
+    NtClose(FileHandle);
+    return Status;
+}
+
+NTSTATUS
+NTAPI
+IO_ReadWin32FileToBuffer(
+    _In_z_ PCWSTR FileName,
+    _Outptr_result_bytebuffer_maybenull_(*BufferSize) PVOID* Buffer,
+    _Out_ PULONG BufferSize)
+{
+    NTSTATUS Status;
+    HANDLE FileHandle;
+
+    Status = IO_OpenWin32File(&FileHandle,
+                              FileName,
+                              NULL,
+                              FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+    Status = IO_ReadFileHandleToBuffer(FileHandle, Buffer, BufferSize);
+    NtClose(FileHandle);
+    return Status;
+}
+
+#pragma endregion
+
 #pragma region File Map
 
 NTSTATUS

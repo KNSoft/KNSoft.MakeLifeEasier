@@ -37,3 +37,39 @@ TEST_FUNC(IO_Pipe)
                           4096) == STATUS_INVALID_PARAMETER);
     NtClose(Directory);
 }
+
+TEST_FUNC(IO_ReadFileToBufferTest)
+{
+    PCUNICODE_STRING ImagePath = &NtCurrentPeb()->ProcessParameters->ImagePathName;
+    UNICODE_STRING NtPath;
+    PVOID Buffer;
+    ULONG BufferSize;
+    NTSTATUS Status;
+
+    Status = IO_ReadWin32FileToBuffer(ImagePath->Buffer, &Buffer, &BufferSize);
+    TEST_OK(NT_SUCCESS(Status));
+    if (!NT_SUCCESS(Status))
+    {
+        return;
+    }
+    TEST_OK(BufferSize >= sizeof(IMAGE_DOS_HEADER));
+    TEST_OK(((PIMAGE_DOS_HEADER)Buffer)->e_magic == IMAGE_DOS_SIGNATURE);
+    Mem_Free(Buffer);
+
+    Status = NT_Win32PathToNtPath(ImagePath->Buffer, NULL, &NtPath);
+    TEST_OK(NT_SUCCESS(Status));
+    if (!NT_SUCCESS(Status))
+    {
+        return;
+    }
+    Status = IO_ReadFileToBuffer(&NtPath, &Buffer, &BufferSize);
+    NT_FreeNtPath(&NtPath);
+    TEST_OK(NT_SUCCESS(Status));
+    if (!NT_SUCCESS(Status))
+    {
+        return;
+    }
+    TEST_OK(BufferSize >= sizeof(IMAGE_DOS_HEADER));
+    TEST_OK(((PIMAGE_DOS_HEADER)Buffer)->e_magic == IMAGE_DOS_SIGNATURE);
+    Mem_Free(Buffer);
+}

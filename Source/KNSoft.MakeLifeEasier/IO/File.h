@@ -391,6 +391,24 @@ IO_WriteFile(
     return Status;
 }
 
+/* Reads the whole file into a new allocated buffer, caller frees it by Mem_Free;
+   an empty file succeeds with *Buffer == NULL and *BufferSize == 0 */
+MLE_API
+NTSTATUS
+NTAPI
+IO_ReadFileToBuffer(
+    _In_ PUNICODE_STRING FileName,
+    _Outptr_result_bytebuffer_maybenull_(*BufferSize) PVOID* Buffer,
+    _Out_ PULONG BufferSize);
+
+MLE_API
+NTSTATUS
+NTAPI
+IO_ReadWin32FileToBuffer(
+    _In_z_ PCWSTR FileName,
+    _Outptr_result_bytebuffer_maybenull_(*BufferSize) PVOID* Buffer,
+    _Out_ PULONG BufferSize);
+
 FORCEINLINE
 NTSTATUS
 IO_GetFileSize(
