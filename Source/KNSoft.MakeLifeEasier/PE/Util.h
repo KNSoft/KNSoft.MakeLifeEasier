@@ -64,11 +64,11 @@ PE_RelocateImage(
     ULONG ImageSize, DirectoryCount, DirectorySize, Remaining, BlockSize, Count, i, Offset, Width, Step;
     USHORT Type, Machine;
 
-    NtHeader = RtlImageNtHeader(Image);
-    if (NtHeader == NULL)
+    if (Delta == 0)
     {
-        return STATUS_INVALID_IMAGE_FORMAT;
+        return STATUS_SUCCESS;
     }
+    NtHeader = (PIMAGE_NT_HEADERS)Add2Ptr(Image, ((PIMAGE_DOS_HEADER)Image)->e_lfanew);
     if (NtHeader->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
     {
         PIMAGE_OPTIONAL_HEADER64 OptionalHeader = &((PIMAGE_NT_HEADERS64)NtHeader)->OptionalHeader;
@@ -98,10 +98,6 @@ PE_RelocateImage(
     } else
     {
         return STATUS_INVALID_IMAGE_FORMAT;
-    }
-    if (Delta == 0)
-    {
-        return STATUS_SUCCESS;
     }
     if (DirectoryCount <= IMAGE_DIRECTORY_ENTRY_BASERELOC ||
         NtHeader->FileHeader.SizeOfOptionalHeader < DirectorySize ||
