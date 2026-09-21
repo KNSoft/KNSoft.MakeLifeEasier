@@ -42,22 +42,22 @@ TEST_FUNC(String_Case)
     TEST_OK(Str_UpperCharA((CHAR)0xE9) == (CHAR)0xE9 && Str_LowerCharA((CHAR)0xC9) == (CHAR)0xC9);
     TEST_OK(Str_UpperCharW(L'\x00E9') == L'\x00C9' && Str_LowerCharW(L'\x00C9') == L'\x00E9');
 
-    TEST_OK(Str_IEqualA("Abc123", "aBC123"));
-    TEST_OK(!Str_IEqualA("Abc123", "aBC124"));
-    TEST_OK(Str_IEqualW(L"Abc123", L"aBC123"));
-    TEST_OK(!Str_IEqualW(L"Abc123", L"aBC124"));
+    TEST_OK(Str_EqualIA("Abc123", "aBC123"));
+    TEST_OK(!Str_EqualIA("Abc123", "aBC124"));
+    TEST_OK(Str_EqualIW(L"Abc123", L"aBC123"));
+    TEST_OK(!Str_EqualIW(L"Abc123", L"aBC124"));
 
-    TEST_OK(Str_IStrA(EmptyA, "") == EmptyA);
-    TEST_OK(Str_IStrW(EmptyW, L"") == EmptyW);
-    TEST_OK(Str_IStrA(Ansi, "") == Ansi);
-    TEST_OK(Str_IStrW(Wide, L"") == Wide);
-    TEST_OK(Str_IStrA(EmptyA, "a") == NULL);
-    TEST_OK(Str_IStrW(EmptyW, L"a") == NULL);
+    TEST_OK(Str_StrIA(EmptyA, "") == EmptyA);
+    TEST_OK(Str_StrIW(EmptyW, L"") == EmptyW);
+    TEST_OK(Str_StrIA(Ansi, "") == Ansi);
+    TEST_OK(Str_StrIW(Wide, L"") == Wide);
+    TEST_OK(Str_StrIA(EmptyA, "a") == NULL);
+    TEST_OK(Str_StrIW(EmptyW, L"a") == NULL);
 
-    TEST_OK(Str_IStrA("Hello, World!", "WORLD") != NULL);
-    TEST_OK(Str_IStrA("Hello, World!", "xyz") == NULL);
-    TEST_OK(Str_IStrA("Hello", "Hello, World!") == NULL);
-    TEST_OK(Str_IStrW(L"Hello, World!", L"wOrLd") != NULL);
-    TEST_OK(Str_IStrW(L"Hello, World!", L"xyz") == NULL);
-    TEST_OK(Str_IStrW(L"Hello", L"Hello, World!") == NULL);
+    TEST_OK(Str_StrIA("Hello, World!", "WORLD") != NULL);
+    TEST_OK(Str_StrIA("Hello, World!", "xyz") == NULL);
+    TEST_OK(Str_StrIA("Hello", "Hello, World!") == NULL);
+    TEST_OK(Str_StrIW(L"Hello, World!", L"wOrLd") != NULL);
+    TEST_OK(Str_StrIW(L"Hello, World!", L"xyz") == NULL);
+    TEST_OK(Str_StrIW(L"Hello", L"Hello, World!") == NULL);
 }

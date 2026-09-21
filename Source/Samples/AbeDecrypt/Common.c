@@ -21,7 +21,7 @@ AbeFindBrowserEntry(
 
     for (i = 0; i < ARRAYSIZE(AbeBrowsers); i++)
     {
-        if (Str_IEqualW(AbeBrowsers[i].Vendor, Vendor)) return &AbeBrowsers[i];
+        if (Str_EqualIW(AbeBrowsers[i].Vendor, Vendor)) return &AbeBrowsers[i];
     }
     return NULL;
 }

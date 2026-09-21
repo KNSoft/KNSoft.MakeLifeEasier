@@ -134,11 +134,11 @@ Str_EqualW(
     return wcscmp(String1, String2) == 0;
 }
 
-/* Str_IEqual (case-insensitive) */
+/* Str_EqualI (case-insensitive) */
 
 FORCEINLINE
 LOGICAL
-Str_IEqualA(
+Str_EqualIA(
     _In_z_ PCSTR String1,
     _In_z_ PCSTR String2)
 {
@@ -152,7 +152,7 @@ Str_IEqualA(
 
 FORCEINLINE
 LOGICAL
-Str_IEqualW(
+Str_EqualIW(
     _In_z_ PCWSTR String1,
     _In_z_ PCWSTR String2)
 {
@@ -164,12 +164,12 @@ Str_IEqualW(
     return Str_UpperCharW(*String1) == Str_UpperCharW(*String2);
 }
 
-/* Str_IStr: case-insensitive substring search, returns NULL if not found */
+/* Str_StrI: case-insensitive substring search, returns NULL if not found */
 
 _Success_(return != NULL)
 FORCEINLINE
 PSTR
-Str_IStrA(
+Str_StrIA(
     _In_z_ PCSTR String,
     _In_z_ PCSTR SubString)
 {
@@ -194,7 +194,7 @@ Str_IStrA(
 _Success_(return != NULL)
 FORCEINLINE
 PWSTR
-Str_IStrW(
+Str_StrIW(
     _In_z_ PCWSTR String,
     _In_z_ PCWSTR SubString)
 {

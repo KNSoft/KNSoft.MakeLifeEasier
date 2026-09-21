@@ -56,7 +56,7 @@ AbeGetKeyDrop(
     RtlCopyMemory(Dir, Browser->ExePath, Length * sizeof(WCHAR));
     Dir[Length] = UNICODE_NULL;
     Str_PrintfExW(Copy, MAX_PATH, L"%ls\\%ls", Dir, wcsrchr(Self, L'\\') + 1);
-    if (!Str_IEqualW(Self, Copy) && !CopyFileW(Self, Copy, FALSE))
+    if (!Str_EqualIW(Self, Copy) && !CopyFileW(Self, Copy, FALSE))
     {
         AbeLog(L"Drop: failed to copy into browser directory, gle=%lu (admin required?)\r\n", Err_GetLastError());
         return FALSE;
@@ -70,7 +70,7 @@ AbeGetKeyDrop(
     {
         AbeLog(L"Drop: failed to create pipe\r\n");
         if (PipeDir != NULL) NtClose(PipeDir);
-        if (!Str_IEqualW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+        if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
         return FALSE;
     }
     NtClose(PipeDir);
@@ -107,7 +107,7 @@ AbeGetKeyDrop(
         AbeLog(L"Drop: failed to create child process, gle=%lu\r\n", Err_GetLastError());
         NtClose(ReadPipe);
         NtClose(WritePipe);
-        if (!Str_IEqualW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+        if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
         return FALSE;
     }
     NtClose(WritePipe);
@@ -126,7 +126,7 @@ AbeGetKeyDrop(
     NtClose(ReadPipe);
     NtClose(Pi.hThread);
     NtClose(Pi.hProcess);
-    if (!Str_IEqualW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+    if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
 
     /* locate "KEY=" byte-wise: the stream may embed NUL terminators */
     for (i = 0; i + 4 + ABE_KEY_SIZE * 2 <= Total; i++)

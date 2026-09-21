@@ -130,7 +130,7 @@ AbeIsDropChild(
     ULONG Count, i, j;
     BOOL Found = FALSE;
 
-    if (Cmd == NULL || Str_IStrW(Cmd, L"Drop") == NULL ||
+    if (Cmd == NULL || Str_StrIW(Cmd, L"Drop") == NULL ||
         !NT_CopyStringW(&NtCurrentPeb()->ProcessParameters->ImagePathName, Self, MAX_PATH))
     {
         return FALSE;
@@ -141,10 +141,10 @@ AbeIsDropChild(
     }
     for (i = 0; i < ARRAYSIZE(Markers) && !Found; i++)
     {
-        if (Str_IStrW(Self, Markers[i]) == NULL) continue;
+        if (Str_StrIW(Self, Markers[i]) == NULL) continue;
         for (j = 0; j < Count; j++)
         {
-            if (Str_IEqualW(List[j].Vendor, AbeBrowsers[i].Vendor))
+            if (Str_EqualIW(List[j].Vendor, AbeBrowsers[i].Vendor))
             {
                 *Browser = List[j];
                 Found = TRUE;
