@@ -6,6 +6,7 @@
 
 /* maps a relocated copy of our image into the target process; the copy is
    RX except the payload data section (RW), then flushed */
+_Success_(return)
 BOOL
 AbeMapSelf(
     _In_ HANDLE Process,
@@ -22,7 +23,6 @@ AbeMapSelf(
     ULONG i, OldProtect;
     BOOL Ok = FALSE;
 
-    *Mapped = NULL;
     Nt = NtGetImageNtHeader();
     Size = Nt->OptionalHeader.SizeOfImage;
     RegionSize = Size;
@@ -72,11 +72,14 @@ AbeMapSelf(
         {
             ProtectBase = (PBYTE)Remote + Section[i].VirtualAddress;
             ProtectSize = (SIZE_T)ALIGN_UP_BY(Section[i].Misc.VirtualSize, PAGE_SIZE);
-            NtProtectVirtualMemory(Process,
-                                   &ProtectBase,
-                                   &ProtectSize,
-                                   PAGE_READWRITE,
-                                   &OldProtect);
+            if (!NT_SUCCESS(NtProtectVirtualMemory(Process,
+                                                   &ProtectBase,
+                                                   &ProtectSize,
+                                                   PAGE_READWRITE,
+                                                   &OldProtect)))
+            {
+                goto Cleanup;
+            }
             break;
         }
     }
@@ -132,18 +135,22 @@ AbeWaitRemoteResult(
             break;
         }
     }
-    NtReadVirtualMemory(Process,
-                        RemoteCode,
-                        &Code,
-                        sizeof(Code),
-                        NULL);
-    if (Code == 0)
+    if (!NT_SUCCESS(NtReadVirtualMemory(Process,
+                                        RemoteCode,
+                                        &Code,
+                                        sizeof(Code),
+                                        NULL)))
     {
-        NtReadVirtualMemory(Process,
-                            RemoteKey,
-                            Key,
-                            ABE_KEY_SIZE,
-                            NULL);
+        return (LONG)E_FAIL;
+    }
+    if (Code == 0 &&
+        !NT_SUCCESS(NtReadVirtualMemory(Process,
+                                        RemoteKey,
+                                        Key,
+                                        ABE_KEY_SIZE,
+                                        NULL)))
+    {
+        return (LONG)E_FAIL;
     }
     return Code;
 }

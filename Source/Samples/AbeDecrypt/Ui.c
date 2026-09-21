@@ -92,7 +92,6 @@ AbeLoadProfiles(
     HWND Combo = GetDlgItem(g_MainWindow, IDC_PROFILE_COMBO);
     NTSTATUS Status;
     ULONG i;
-    INT Index;
 
     SendMessageW(Combo, CB_RESETCONTENT, 0, 0);
     Mem_Free(g_Profiles);
@@ -106,8 +105,7 @@ AbeLoadProfiles(
     }
     for (i = 0; i < g_ProfileCount; i++)
     {
-        Index = (INT)SendMessageW(Combo, CB_ADDSTRING, 0, (LPARAM)g_Profiles[i].Name);
-        SendMessageW(Combo, CB_SETITEMDATA, Index, (LPARAM)&g_Profiles[i]);
+        SendMessageW(Combo, CB_ADDSTRING, 0, (LPARAM)g_Profiles[i].Name);
     }
     SendMessageW(Combo, CB_SETCURSEL, 0, 0);
 }
@@ -124,11 +122,17 @@ AbeLayout(
     INT Top = AbeScale(44), Gap = AbeScale(8);
     INT ListWidth, ListHeight, StatusHeight = AbeScale(100);
 
-    if (CookieList == NULL || PasswordList == NULL || Status == NULL) return;
+    if (CookieList == NULL || PasswordList == NULL || Status == NULL)
+    {
+        return;
+    }
 
     ListWidth = ClientWidth - Gap * 2;
     ListHeight = (ClientHeight - Top - StatusHeight - Gap * 3) / 2;
-    if (ListHeight < AbeScale(32)) ListHeight = AbeScale(32);
+    if (ListHeight < AbeScale(32))
+    {
+        ListHeight = AbeScale(32);
+    }
     SetWindowPos(CookieList, NULL, Gap, Top, ListWidth, ListHeight, SWP_NOZORDER);
     SetWindowPos(PasswordList, NULL, Gap, Top + ListHeight + Gap, ListWidth, ListHeight, SWP_NOZORDER);
     SetWindowPos(Status,
@@ -222,7 +226,6 @@ AbeDialogProc(
                 case IDC_GO_BUTTON:
                 {
                     PABE_JOB Job;
-                    const ABE_BROWSER* Entry;
                     ULONG BrowserIndex, ProfileIndex, MethodIndex;
                     HWND Combo;
 
@@ -232,9 +235,8 @@ AbeDialogProc(
                     ProfileIndex = (ULONG)SendMessageW(Combo, CB_GETCURSEL, 0, 0);
                     Combo = GetDlgItem(Window, IDC_METHOD_COMBO);
                     MethodIndex = (ULONG)SendMessageW(Combo, CB_GETCURSEL, 0, 0);
-                    Entry = BrowserIndex < g_BrowserCount ?
-                        AbeFindBrowserEntry(g_Browsers[BrowserIndex].Vendor) : NULL;
-                    if (Entry == NULL || ProfileIndex >= g_ProfileCount || MethodIndex >= MethodMax)
+                    if (BrowserIndex >= g_BrowserCount || ProfileIndex >= g_ProfileCount ||
+                        MethodIndex >= MethodMax)
                     {
                         MessageBoxW(Window,
                                     L"Select a browser, a profile and a method first",
@@ -242,11 +244,20 @@ AbeDialogProc(
                                     MB_ICONWARNING);
                         break;
                     }
+                    /* allocate everything the worker needs up front, so it can
+                       always report back and re-enable the UI */
                     Job = Mem_Alloc(sizeof(*Job));
-                    if (Job == NULL) break;
+                    if (Job == NULL)
+                    {
+                        break;
+                    }
+                    Job->Result = Mem_Alloc(sizeof(*Job->Result));
+                    if (Job->Result == NULL)
+                    {
+                        Mem_Free(Job);
+                        break;
+                    }
                     Job->Browser = g_Browsers[BrowserIndex];
-                    Job->Entry = *Entry;
-                    Job->BrowserIndex = (ULONG)(Entry - AbeBrowsers);
                     Job->Method = (ABE_METHOD)MethodIndex;
                     Str_CopyExW(Job->Profile, MAX_PATH, g_Profiles[ProfileIndex].Directory);
 
@@ -255,6 +266,7 @@ AbeDialogProc(
                     if (!QueueUserWorkItem(AbeWorker, Job, WT_EXECUTELONGFUNCTION))
                     {
                         EnableWindow(GetDlgItem(Window, IDC_GO_BUTTON), TRUE);
+                        Mem_Free(Job->Result);
                         Mem_Free(Job);
                     }
                     break;
@@ -299,7 +311,6 @@ AbeDialogProc(
             return TRUE;
         case WM_DESTROY:
             Mem_Free(g_Profiles);
-            g_Profiles = NULL;
             PostQuitMessage(0);
             return TRUE;
         default:

