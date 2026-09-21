@@ -7,14 +7,15 @@
 /* known Chromium-based browsers */
 static const struct
 {
+    NET_BROWSER_TYPE Type;
     PCWSTR Name;
     PCWSTR Vendor;
     PCWSTR ExeName;
 }
 Browser_Table[] =
 {
-    { L"Chrome", L"Google\\Chrome", L"chrome.exe" },
-    { L"Edge",   L"Microsoft\\Edge", L"msedge.exe" },
+    { NetBrowserChrome, L"Chrome", L"Google\\Chrome", L"chrome.exe" },
+    { NetBrowserEdge, L"Edge", L"Microsoft\\Edge", L"msedge.exe" },
 };
 
 /* static reference HSTRING, valid while Name lives */
@@ -140,6 +141,7 @@ Net_BrowserEnumerate(
             continue;
         }
 
+        Info->Type = Browser_Table[i].Type;
         Info->Name = Browser_Table[i].Name;
         Info->Vendor = Browser_Table[i].Vendor;
         Info->ExeName = Browser_Table[i].ExeName;

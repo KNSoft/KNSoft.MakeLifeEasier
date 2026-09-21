@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../MakeLifeEasier.h"
 
@@ -6,8 +6,16 @@ EXTERN_C_START
 
 #pragma region Browser
 
+typedef enum _NET_BROWSER_TYPE
+{
+    NetBrowserEdge,
+    NetBrowserChrome,
+    NetBrowserMax
+} NET_BROWSER_TYPE;
+
 typedef struct _NET_BROWSER_INFO
 {
+    NET_BROWSER_TYPE Type;
     PCWSTR Name;                    /* display name, e.g. L"Chrome" */
     PCWSTR Vendor;                  /* directory under LOCALAPPDATA */
     PCWSTR ExeName;                 /* chrome.exe / msedge.exe */
