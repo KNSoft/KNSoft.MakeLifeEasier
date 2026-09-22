@@ -147,7 +147,6 @@ AbeUnwrapInnerPayload(
     if (PayloadLength == ABE_V3_ENVELOPE_SIZE && Payload[0] == 3)
     {
         /* V3: the CNG unwrap must run as SYSTEM */
-        *EnvelopeVersion = 3;
         if (!NT_SUCCESS(PS_Impersonate(SystemToken)))
         {
             return FALSE;
@@ -156,14 +155,22 @@ AbeUnwrapInnerPayload(
             BOOL Ok = AbeV3Unwrap(Entry, Payload, Key);
 
             PS_Impersonate(NULL);
+            if (Ok)
+            {
+                *EnvelopeVersion = 3;
+            }
             return Ok;
         }
     }
     if (PayloadLength == ABE_V12_ENVELOPE_SIZE && Payload[0] >= 1 && Payload[0] <= 2)
     {
         /* V1/V2: fixed embedded key, any context */
+        if (!AbeV1V2Unwrap(Payload[0], Payload, Key))
+        {
+            return FALSE;
+        }
         *EnvelopeVersion = Payload[0];
-        return AbeV1V2Unwrap(Payload[0], Payload, Key);
+        return TRUE;
     }
     if (PayloadLength == ABE_KEY_SIZE)
     {

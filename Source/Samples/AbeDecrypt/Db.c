@@ -62,9 +62,6 @@ AbeReadLockedDatabase(
     NTSTATUS Status;
     BOOL Found = FALSE;
 
-    *RawDb = NULL;
-    *RawSize = 0;
-
     /* an attributes-only open succeeds even while the browser holds the DB busy */
     Status = IO_OpenWin32File(&File,
                               DbPath,
@@ -199,13 +196,20 @@ AbeReadLockedDatabase(
                     FileSize > 0 && FileSize < 64 * 1024 * 1024 &&
                     NT_SUCCESS(IO_MapReadOnlyFile(Dup, &Map)))
                 {
-                    *RawDb = Mem_Alloc((SIZE_T)FileSize);
-                    if (*RawDb != NULL)
+                    PBYTE Data;
+
+                    Data = Mem_Alloc((SIZE_T)FileSize);
+                    if (Data == NULL)
                     {
-                        RtlCopyMemory(*RawDb, Map.BaseAddress, (SIZE_T)FileSize);
-                        *RawSize = (ULONG)FileSize;
-                        Found = TRUE;
+                        Status = STATUS_NO_MEMORY;
+                        IO_UnmapFile(&Map);
+                        Mem_Free(Name);
+                        goto _Exit;
                     }
+                    RtlCopyMemory(Data, Map.BaseAddress, (SIZE_T)FileSize);
+                    *RawDb = Data;
+                    *RawSize = (ULONG)FileSize;
+                    Found = TRUE;
                     IO_UnmapFile(&Map);
                 }
             }
@@ -250,14 +254,16 @@ AbeAppendRecord(
     if (*Count == *Capacity)
     {
         PABE_RECORD NewArray;
+        ULONG NewCapacity;
 
-        *Capacity = *Capacity != 0 ? *Capacity * 2 : 64;
-        NewArray = Mem_ReAlloc(*Array, *Capacity * sizeof(**Array));
+        NewCapacity = *Capacity != 0 ? *Capacity * 2 : 64;
+        NewArray = Mem_ReAlloc(*Array, NewCapacity * sizeof(**Array));
         if (NewArray == NULL)
         {
             return NULL;
         }
         *Array = NewArray;
+        *Capacity = NewCapacity;
     }
     RtlZeroMemory(&(*Array)[*Count], sizeof(**Array));
     (*Count)++;
@@ -387,7 +393,10 @@ AbeCollectRecords(
                 {
                     sqlite3_finalize(St);
                 }
-                sqlite3_close(Db);
+                if (Db != NULL)
+                {
+                    sqlite3_close(Db);
+                }
                 Db = NULL;
                 Mem_Free(RawDb);
                 RawDb = NULL;
@@ -463,7 +472,7 @@ AbeCollectRecords(
         }
 
         /* cookie values since schema 24 carry SHA256(host_key) in front */
-        Skip = IsCookie && Length > 3 + 12 + 16 + 32 ? 32 : 0;
+        Skip = IsCookie && Length >= 3 + 12 + 16 + 32 ? 32 : 0;
         PlainLength = Length - 3 - 12 - 16 - Skip;
         Status = RtlUTF8ToUnicodeN(Record->Value,
                                    sizeof(Record->Value) - sizeof(UNICODE_NULL),
