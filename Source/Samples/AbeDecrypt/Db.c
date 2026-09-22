@@ -359,9 +359,13 @@ AbeCollectRecords(
     const char *Site, *Name;
     DWORD Length, Skip, PlainLength;
     ULONG Translated;
+    ULONG Rows = 0, StartCount;
     NTSTATUS Status;
+    ULONGLONG TotalStep, Step;
     int ResultCode;
 
+    TotalStep = AbeStepStart();
+    StartCount = *RecordCount;
     Str_PrintfExW(DbPath,
                   MAX_PATH,
                   L"%ls\\%ls\\%hs",
@@ -372,11 +376,28 @@ AbeCollectRecords(
     {
         FILE_NETWORK_OPEN_INFORMATION Attributes;
 
-        if (!NT_SUCCESS(IO_GetWin32FileAttributes(DbPath, NULL, &Attributes)) ||
-            BooleanFlagOn(Attributes.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
+        Step = AbeStepStart();
+        Status = IO_GetWin32FileAttributes(DbPath, NULL, &Attributes);
+        if (!NT_SUCCESS(Status))
         {
+            AbeLog(L"%hs: check database file: skipped, status=0x%08lX (%I64ums)\r\n",
+                   DbFile,
+                   (ULONG)Status,
+                   AbeStepMs(Step));
             return;
         }
+        if (BooleanFlagOn(Attributes.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
+        {
+            AbeLog(L"%hs: check database file: skipped directory, status=0x%08lX (%I64ums)\r\n",
+                   DbFile,
+                   (ULONG)Status,
+                   AbeStepMs(Step));
+            return;
+        }
+        AbeLog(L"%hs: check database file: OK, status=0x%08lX (%I64ums)\r\n",
+               DbFile,
+               (ULONG)Status,
+               AbeStepMs(Step));
     }
 
     /* try: mode=ro&nolock=1 → immutable → duplicate the owner's handle + deserialize.
@@ -389,10 +410,14 @@ AbeCollectRecords(
         PCSTR Sql = IsCookie ? CookieSql : PasswordSql;
         PSTR Query;
 
+        Step = AbeStepStart();
         if (Str_W2U(Utf8, DbPath) == 0 ||
             Str_SizeA(Utf8) > ARRAYSIZE(Uri) - sizeof("file:") - sizeof("?mode=ro&nolock=1"))
         {
-            AbeLog(L"%hs: database unavailable (path)\r\n", DbFile);
+            AbeLog(L"%hs: build sqlite URI: failed, hr=0x%08lX (%I64ums)\r\n",
+                   DbFile,
+                   (ULONG)HRESULT_FROM_WIN32(ERROR_BAD_PATHNAME),
+                   AbeStepMs(Step));
             return;
         }
         Str_PrintfExA(Uri, ARRAYSIZE(Uri), "file:%hs", Utf8);
@@ -403,59 +428,99 @@ AbeCollectRecords(
                 *Query = '/';
             }
         }
+        AbeLog(L"%hs: build sqlite URI: OK (%I64ums)\r\n", DbFile, AbeStepMs(Step));
 
         Str_PrintfExA(Query, ARRAYSIZE(Uri) - (ULONG)(Query - Uri), "?mode=ro&nolock=1");
+        Step = AbeStepStart();
         ResultCode = AbeSqliteOpenPrepare(Uri, Sql, &Db, &St);
+        AbeLog(L"%hs: open sqlite nolock: %ls, sqlite=%d (%I64ums)\r\n",
+               DbFile,
+               ResultCode == SQLITE_OK ? L"OK" : L"failed",
+               ResultCode,
+               AbeStepMs(Step));
         if (ResultCode != SQLITE_OK)
         {
             Str_PrintfExA(Query, ARRAYSIZE(Uri) - (ULONG)(Query - Uri), "?immutable=1");
+            Step = AbeStepStart();
             ResultCode = AbeSqliteOpenPrepare(Uri, Sql, &Db, &St);
+            AbeLog(L"%hs: open sqlite immutable: %ls, sqlite=%d (%I64ums)\r\n",
+                   DbFile,
+                   ResultCode == SQLITE_OK ? L"OK" : L"failed",
+                   ResultCode,
+                   AbeStepMs(Step));
         }
-        if (ResultCode != SQLITE_OK && NT_SUCCESS(AbeReadLockedDatabase(DbPath, &RawDb, &RawSize)))
+        if (ResultCode != SQLITE_OK)
         {
-            ResultCode = sqlite3_open_v2(":memory:", &Db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-            if (ResultCode == SQLITE_OK)
+            Step = AbeStepStart();
+            Status = AbeReadLockedDatabase(DbPath, &RawDb, &RawSize);
+            AbeLog(L"%hs: copy locked database: %ls, status=0x%08lX, bytes=%lu (%I64ums)\r\n",
+                   DbFile,
+                   NT_SUCCESS(Status) ? L"OK" : L"failed",
+                   (ULONG)Status,
+                   RawSize,
+                   AbeStepMs(Step));
+            if (NT_SUCCESS(Status))
             {
-                ResultCode = sqlite3_deserialize(Db,
-                                                 "main",
-                                                 RawDb,
-                                                 (sqlite3_int64)RawSize,
-                                                 (sqlite3_int64)RawSize,
-                                                 SQLITE_DESERIALIZE_READONLY);
+                Step = AbeStepStart();
+                ResultCode = sqlite3_open_v2(":memory:", &Db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
                 if (ResultCode == SQLITE_OK)
                 {
-                    ResultCode = sqlite3_prepare_v2(Db, Sql, -1, &St, NULL);
+                    ResultCode = sqlite3_deserialize(Db,
+                                                     "main",
+                                                     RawDb,
+                                                     (sqlite3_int64)RawSize,
+                                                     (sqlite3_int64)RawSize,
+                                                     SQLITE_DESERIALIZE_READONLY);
+                    if (ResultCode == SQLITE_OK)
+                    {
+                        ResultCode = sqlite3_prepare_v2(Db, Sql, -1, &St, NULL);
+                    }
                 }
-            }
-            if (ResultCode != SQLITE_OK)
-            {
-                if (St != NULL)
+                AbeLog(L"%hs: open copied database: %ls, sqlite=%d (%I64ums)\r\n",
+                       DbFile,
+                       ResultCode == SQLITE_OK ? L"OK" : L"failed",
+                       ResultCode,
+                       AbeStepMs(Step));
+                if (ResultCode != SQLITE_OK)
                 {
-                    sqlite3_finalize(St);
+                    if (St != NULL)
+                    {
+                        sqlite3_finalize(St);
+                    }
+                    if (Db != NULL)
+                    {
+                        sqlite3_close(Db);
+                    }
+                    Db = NULL;
+                    Mem_Free(RawDb);
+                    RawDb = NULL;
                 }
-                if (Db != NULL)
-                {
-                    sqlite3_close(Db);
-                }
-                Db = NULL;
-                Mem_Free(RawDb);
-                RawDb = NULL;
             }
         }
     }
     if (ResultCode != SQLITE_OK || St == NULL)
     {
-        AbeLog(L"%hs: database unavailable (%d)\r\n", DbFile, ResultCode);
+        AbeLog(L"%hs: collect records: failed, sqlite=%d (%I64ums)\r\n",
+               DbFile,
+               ResultCode,
+               AbeStepMs(TotalStep));
         return;
     }
 
-    while (sqlite3_step(St) == SQLITE_ROW)
+    Step = AbeStepStart();
+    for (;;)
     {
         PABE_RECORD Record;
         const BYTE* Key = NULL;
         PCSTR Ver = NULL;
         CHAR Version[16];
 
+        ResultCode = sqlite3_step(St);
+        if (ResultCode != SQLITE_ROW)
+        {
+            break;
+        }
+        Rows++;
         Site = (const char*)sqlite3_column_text(St, 0);
         Name = (const char*)sqlite3_column_text(St, 1);
         Blob = (const BYTE*)sqlite3_column_blob(St, 2);
@@ -484,6 +549,7 @@ AbeCollectRecords(
         Record = AbeAppendRecord(Records, RecordCount, Capacity);
         if (Record == NULL)
         {
+            ResultCode = SQLITE_NOMEM;
             break;
         }
         if (Str_EqualA(Ver, "v20") && V20EnvelopeVersion != 0)
@@ -542,6 +608,19 @@ AbeCollectRecords(
             (*RecordCount)--;   /* already known from the main store */
         }
     }
+    AbeLog(L"%hs: scan %ls: %ls, sqlite=%d, rows=%lu, added=%lu (%I64ums)\r\n",
+           DbFile,
+           IsCookie ? L"cookies" : L"passwords",
+           ResultCode == SQLITE_DONE ? L"OK" : L"failed",
+           ResultCode,
+           Rows,
+           *RecordCount - StartCount,
+           AbeStepMs(Step));
+    AbeLog(L"%hs: collect records: %ls, total added=%lu (%I64ums)\r\n",
+           DbFile,
+           ResultCode == SQLITE_DONE ? L"OK" : L"failed",
+           *RecordCount - StartCount,
+           AbeStepMs(TotalStep));
     sqlite3_finalize(St);
     sqlite3_close(Db);
     Mem_Free(RawDb);

@@ -29,13 +29,19 @@ AbeV1V2Unwrap(
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key)
 {
     NTSTATUS Status;
+    ULONGLONG Step;
 
+    Step = AbeStepStart();
     Status = EnvelopeVersion == 1 ?
         AbeAesGcmOpen(AbeV1Key, Envelope + 1, Envelope + 13, ABE_KEY_SIZE, Envelope + 45, Key) :
         AbeChaChaPoly1305Open(AbeV2Key, Envelope + 1, Envelope + 13, ABE_KEY_SIZE, Envelope + 45, Key);
+    AbeLog(L"Elevate: unwrap V%lu envelope: %ls, status=0x%08lX (%I64ums)\r\n",
+           EnvelopeVersion,
+           NT_SUCCESS(Status) ? L"OK" : L"failed",
+           (ULONG)Status,
+           AbeStepMs(Step));
     if (!NT_SUCCESS(Status))
     {
-        AbeLog(L"V%lu: AEAD envelope unwrap failed, 0x%08lX\r\n", EnvelopeVersion, Status);
         return FALSE;
     }
     return TRUE;
@@ -55,23 +61,31 @@ AbeV3Unwrap(
     DWORD Length;
     SECURITY_STATUS St;
     NTSTATUS Status;
+    ULONGLONG Step;
     ULONG i;
 
+    Step = AbeStepStart();
     St = NCryptOpenStorageProvider(&Provider, MS_KEY_STORAGE_PROVIDER, 0);
+    AbeLogStepHr(L"Elevate", L"V3 open CNG provider", (HRESULT)St, Step);
     if (FAILED(St))
     {
-        AbeLog(L"V3: NCryptOpenStorageProvider failed, 0x%08lX\r\n", (unsigned long)St);
         return FALSE;
     }
+    Step = AbeStepStart();
     St = NCryptOpenKey(Provider, &CngKey, Entry->CngKey, 0, 0);
+    AbeLog(L"Elevate: V3 open CNG key %ls: %ls, status=0x%08lX (%I64ums)\r\n",
+           Entry->CngKey,
+           FAILED(St) ? L"failed" : L"OK",
+           (ULONG)St,
+           AbeStepMs(Step));
     if (FAILED(St))
     {
-        AbeLog(L"V3: NCryptOpenKey(%ls) failed, 0x%08lX\r\n", Entry->CngKey, (unsigned long)St);
         NCryptFreeObject(Provider);
         return FALSE;
     }
 
     /* raw 32->32 decrypt, as done by the browsers' elevation service and ChatGPT's importer */
+    Step = AbeStepStart();
     St = NCryptDecrypt(CngKey,
                        (PBYTE)Envelope + 1,
                        ABE_KEY_SIZE,
@@ -80,24 +94,27 @@ AbeV3Unwrap(
                        sizeof(Derived),
                        &Length,
                        NCRYPT_SILENT_FLAG);
+    AbeLogStepHr(L"Elevate", L"V3 CNG decrypt block", (HRESULT)St, Step);
     NCryptFreeObject(CngKey);
     NCryptFreeObject(Provider);
     if (FAILED(St))
     {
-        AbeLog(L"V3: NCryptDecrypt failed, 0x%08lX\r\n", (unsigned long)St);
         return FALSE;
     }
+    Step = AbeStepStart();
     if (Length != ABE_KEY_SIZE)
     {
-        AbeLog(L"V3: NCryptDecrypt returned %lu bytes\r\n", Length);
+        AbeLogStepHr(L"Elevate", L"V3 validate CNG block length", HRESULT_FROM_WIN32(ERROR_INVALID_DATA), Step);
         return FALSE;
     }
+    AbeLogStepHr(L"Elevate", L"V3 validate CNG block length", S_OK, Step);
 
     for (i = 0; i < ABE_KEY_SIZE; i++)
     {
         Derived[i] ^= AbeV3Mask[i];
     }
     /* Envelope: version[1] + cng_block[32] + nonce[12] + ciphertext[32] + tag[16] */
+    Step = AbeStepStart();
     Status = AbeAesGcmOpen(Derived,
                            Envelope + 33,
                            Envelope + 45,
@@ -105,9 +122,9 @@ AbeV3Unwrap(
                            Envelope + 77,
                            Key);
     RtlSecureZeroMemory(Derived, sizeof(Derived));
+    AbeLogStepNt(L"Elevate", L"V3 AES-GCM verify key", Status, Step);
     if (!NT_SUCCESS(Status))
     {
-        AbeLog(L"V3: AES-256-GCM verification failed, 0x%08lX (bad tag?)\r\n", Status);
         return FALSE;
     }
     return TRUE;
@@ -126,8 +143,10 @@ AbeUnwrapInnerPayload(
 {
     ULONG ValidationLength, PayloadLength;
     const BYTE* Payload;
+    ULONGLONG Step;
 
     /* every subtraction below is guarded by the previous check, no overflow */
+    Step = AbeStepStart();
     if (Size < 8)
     {
         goto _Malformed;
@@ -143,18 +162,29 @@ AbeUnwrapInnerPayload(
     {
         goto _Malformed;
     }
+    AbeLogStepHr(L"Elevate", L"parse inner payload", S_OK, Step);
 
+    Step = AbeStepStart();
     if (PayloadLength == ABE_V3_ENVELOPE_SIZE && Payload[0] == 3)
     {
+        NTSTATUS Status;
+
+        AbeLogStepHr(L"Elevate", L"select V3 envelope", S_OK, Step);
         /* V3: the CNG unwrap must run as SYSTEM */
-        if (!NT_SUCCESS(PS_Impersonate(SystemToken)))
+        Step = AbeStepStart();
+        Status = PS_Impersonate(SystemToken);
+        AbeLogStepNt(L"Elevate", L"impersonate SYSTEM for V3", Status, Step);
+        if (!NT_SUCCESS(Status))
         {
             return FALSE;
         }
         {
             BOOL Ok = AbeV3Unwrap(Entry, Payload, Key);
 
-            PS_Impersonate(NULL);
+            Step = AbeStepStart();
+            Status = PS_Impersonate(NULL);
+            AbeLogStepNt(L"Elevate", L"revert V3 SYSTEM impersonation", Status, Step);
+            Ok = Ok && NT_SUCCESS(Status);
             if (Ok)
             {
                 *EnvelopeVersion = 3;
@@ -164,6 +194,7 @@ AbeUnwrapInnerPayload(
     }
     if (PayloadLength == ABE_V12_ENVELOPE_SIZE && Payload[0] >= 1 && Payload[0] <= 2)
     {
+        AbeLogStepHr(L"Elevate", L"select V1/V2 envelope", S_OK, Step);
         /* V1/V2: fixed embedded key, any context */
         if (!AbeV1V2Unwrap(Payload[0], Payload, Key))
         {
@@ -174,15 +205,22 @@ AbeUnwrapInnerPayload(
     }
     if (PayloadLength == ABE_KEY_SIZE)
     {
+        AbeLogStepHr(L"Elevate", L"select raw inner key", S_OK, Step);
         *EnvelopeVersion = 0;
         RtlCopyMemory(Key, Payload, ABE_KEY_SIZE);
         return TRUE;
     }
-    AbeLog(L"Elevate: unsupported payload (%lu bytes)\r\n", PayloadLength);
+    AbeLog(L"Elevate: select inner payload format: failed, hr=0x%08lX, payload=%lu bytes (%I64ums)\r\n",
+           (ULONG)HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED),
+           PayloadLength,
+           AbeStepMs(Step));
     return FALSE;
 
 _Malformed:
-    AbeLog(L"Elevate: malformed inner data (%lu bytes)\r\n", Size);
+    AbeLog(L"Elevate: parse inner payload: failed, hr=0x%08lX, size=%lu bytes (%I64ums)\r\n",
+           (ULONG)HRESULT_FROM_WIN32(ERROR_INVALID_DATA),
+           Size,
+           AbeStepMs(Step));
     return FALSE;
 }
 
@@ -199,47 +237,69 @@ AbeGetKeyElevate(
     ULONG LsaProcessId, Envelope;
     HANDLE SystemToken = NULL;
     NTSTATUS Status;
+    HRESULT Hr;
+    W32ERROR Error;
+    ULONGLONG Step;
     BOOL Ok = FALSE;
 
-    if (!AbeReadOsCryptBlob(Browser->UserDataDir,
+    Step = AbeStepStart();
+    Ok = AbeReadOsCryptBlob(Browser->UserDataDir,
                             L"app_bound_encrypted_key",
                             Blob,
                             sizeof(Blob),
-                            &BlobLength) ||
-        BlobLength <= 4 || memcmp(Blob, "APPB", 4) != 0)
+                            &BlobLength,
+                            &Hr);
+    AbeLogStepHr(L"Elevate", L"read app_bound_encrypted_key", Hr, Step);
+    if (!Ok)
     {
-        AbeLog(L"Elevate: failed to read app_bound_encrypted_key\r\n");
         return FALSE;
     }
+    Step = AbeStepStart();
+    Hr = BlobLength > 4 && memcmp(Blob, "APPB", 4) == 0 ? S_OK : HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+    AbeLogStepHr(L"Elevate", L"validate APPB blob", Hr, Step);
+    if (FAILED(Hr))
+    {
+        return FALSE;
+    }
+    Ok = FALSE;
 
     /* duplicate the SYSTEM impersonation token from lsass (admin needed) */
+    Step = AbeStepStart();
     Status = Sys_GetLsaProcessId(&LsaProcessId);
+    AbeLogStepNt(L"Elevate", L"find LSASS process", Status, Step);
     if (NT_SUCCESS(Status))
     {
+        Step = AbeStepStart();
         Status = PS_DuplicateSystemToken(LsaProcessId, TokenImpersonation, &SystemToken);
+        AbeLogStepNt(L"Elevate", L"duplicate SYSTEM token", Status, Step);
     }
     if (!NT_SUCCESS(Status))
     {
-        AbeLog(L"Elevate: cannot obtain SYSTEM token, 0x%08lX (admin required)\r\n", Status);
         return FALSE;
     }
 
     /* layer 1: SYSTEM DPAPI */
     In.pbData = Blob + 4;
     In.cbData = BlobLength - 4;
+    Step = AbeStepStart();
     Status = PS_Impersonate(SystemToken);
+    AbeLogStepNt(L"Elevate", L"impersonate SYSTEM", Status, Step);
     if (!NT_SUCCESS(Status))
     {
-        AbeLog(L"Elevate: impersonating SYSTEM failed, 0x%08lX\r\n", Status);
         goto _Exit;
     }
-    if (!CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out))
+    Step = AbeStepStart();
+    Ok = CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out);
+    Error = Ok ? ERROR_SUCCESS : Err_GetLastError();
+    AbeLogStepWin32(L"Elevate", L"SYSTEM DPAPI decrypt", Error, Step);
+    Step = AbeStepStart();
+    Status = PS_Impersonate(NULL);
+    AbeLogStepNt(L"Elevate", L"revert SYSTEM impersonation", Status, Step);
+    if (!Ok || !NT_SUCCESS(Status))
     {
-        PS_Impersonate(NULL);
-        AbeLog(L"Elevate: SYSTEM DPAPI decrypt failed, gle=%lu\r\n", Err_GetLastError());
+        Ok = FALSE;
         goto _Exit;
     }
-    PS_Impersonate(NULL);
 
     /* layer 2: user DPAPI, then unwrap the innermost structure */
     In.pbData = Out.pbData;
@@ -247,17 +307,23 @@ AbeGetKeyElevate(
     {
         DATA_BLOB Final = { 0 };        /* Final is freed on all paths below */
 
-        if (!CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Final))
+        Step = AbeStepStart();
+        Ok = CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Final);
+        Error = Ok ? ERROR_SUCCESS : Err_GetLastError();
+        AbeLogStepWin32(L"Elevate", L"user DPAPI decrypt", Error, Step);
+        if (!Ok)
         {
-            AbeLog(L"Elevate: user DPAPI decrypt failed, gle=%lu\r\n", Err_GetLastError());
+            Ok = FALSE;
         } else
         {
+            Step = AbeStepStart();
             Ok = AbeUnwrapInnerPayload(&AbeBrowsers[Browser->Type],
                                        Final.pbData,
                                        Final.cbData,
                                        SystemToken,
                                        Key,
                                        &Envelope);
+            AbeLogStepBool(L"Elevate", L"unwrap inner payload", Ok, Step);
             RtlSecureZeroMemory(Final.pbData, Final.cbData);
         }
         LocalFree(Final.pbData);

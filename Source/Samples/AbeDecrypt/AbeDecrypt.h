@@ -45,6 +45,7 @@
 /*** constants ***/
 
 #define ABE_KEY_SIZE           32
+#define ABE_STATUS_CCH         16384
 #define ABE_LOCAL_STATE_MAX    (1 << 20)
 #define ABE_REQUEST_BLOB_SIZE  2048
 #define ABE_POLL_COUNT         2000
@@ -95,7 +96,7 @@ typedef struct _ABE_RECORD
 typedef struct _ABE_RESULT
 {
     BOOL Ok;
-    WCHAR Status[4096];
+    WCHAR Status[ABE_STATUS_CCH];
     PABE_RECORD Cookies;
     ULONG CookieCount;
     ULONG CookieCapacity;
@@ -146,6 +147,84 @@ AbeLog(
     {
         Mem_Free(Text);
     }
+}
+
+FORCEINLINE
+ULONGLONG
+AbeStepStart(VOID)
+{
+    return Time_StopWatchStart();
+}
+
+FORCEINLINE
+ULONGLONG
+AbeStepMs(
+    _In_ ULONGLONG Start)
+{
+    return Time_StopWatchStop(Start, 1000);
+}
+
+FORCEINLINE
+VOID
+AbeLogStepBool(
+    _In_ PCWSTR Area,
+    _In_ PCWSTR Step,
+    _In_ BOOL Ok,
+    _In_ ULONGLONG Start)
+{
+    AbeLog(L"%ls: %ls: %ls (%I64ums)\r\n",
+           Area,
+           Step,
+           Ok ? L"OK" : L"failed",
+           AbeStepMs(Start));
+}
+
+FORCEINLINE
+VOID
+AbeLogStepWin32(
+    _In_ PCWSTR Area,
+    _In_ PCWSTR Step,
+    _In_ W32ERROR Error,
+    _In_ ULONGLONG Start)
+{
+    AbeLog(L"%ls: %ls: %ls, gle=%lu (%I64ums)\r\n",
+           Area,
+           Step,
+           Error == ERROR_SUCCESS ? L"OK" : L"failed",
+           Error,
+           AbeStepMs(Start));
+}
+
+FORCEINLINE
+VOID
+AbeLogStepHr(
+    _In_ PCWSTR Area,
+    _In_ PCWSTR Step,
+    _In_ HRESULT Hr,
+    _In_ ULONGLONG Start)
+{
+    AbeLog(L"%ls: %ls: %ls, hr=0x%08lX (%I64ums)\r\n",
+           Area,
+           Step,
+           SUCCEEDED(Hr) ? L"OK" : L"failed",
+           (ULONG)Hr,
+           AbeStepMs(Start));
+}
+
+FORCEINLINE
+VOID
+AbeLogStepNt(
+    _In_ PCWSTR Area,
+    _In_ PCWSTR Step,
+    _In_ NTSTATUS Status,
+    _In_ ULONGLONG Start)
+{
+    AbeLog(L"%ls: %ls: %ls, status=0x%08lX (%I64ums)\r\n",
+           Area,
+           Step,
+           NT_SUCCESS(Status) ? L"OK" : L"failed",
+           (ULONG)Status,
+           AbeStepMs(Start));
 }
 
 /* formats a key as 64 hex digits plus the terminator */
@@ -273,8 +352,8 @@ AbeInjectEntry(LPVOID Param);
 
 /*** self-map (SelfMap.c) ***/
 
-_Success_(return != FALSE)
-BOOL
+_Success_(NT_SUCCESS(return))
+NTSTATUS
 AbeMapSelf(
     _In_ HANDLE Process,
     _Out_ PVOID* Mapped);
@@ -359,7 +438,8 @@ AbeReadOsCryptBlob(
     _In_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
-    _Inout_ PULONG BlobLength);
+    _Inout_ PULONG BlobLength,
+    _Out_opt_ HRESULT* Error);
 
 /* v10 key (user DPAPI, always available) */
 _Success_(return != FALSE)

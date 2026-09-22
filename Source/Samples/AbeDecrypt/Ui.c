@@ -3,17 +3,91 @@
 /*** UI helpers ***/
 
 HWND g_MainWindow;
-static UINT g_Dpi = USER_DEFAULT_SCREEN_DPI;
 PNET_BROWSER_INFO g_Browsers;
 ULONG g_BrowserCount;
 static PNET_BROWSER_PROFILE g_Profiles;
 static ULONG g_ProfileCount;
 
-static INT
-AbeScale(
-    _In_ INT Value)
+typedef struct _ABE_LAYOUT
 {
-    return MulDiv(Value, g_Dpi, USER_DEFAULT_SCREEN_DPI);
+    BOOL Ready;
+    INT ClientWidth;
+    INT ClientHeight;
+    INT MinTrackWidth;
+    INT MinTrackHeight;
+} ABE_LAYOUT;
+
+static ABE_LAYOUT g_Layout;
+
+static INT
+AbeRectWidth(
+    _In_ const RECT* Rect)
+{
+    return Rect->right - Rect->left;
+}
+
+static INT
+AbeRectHeight(
+    _In_ const RECT* Rect)
+{
+    return Rect->bottom - Rect->top;
+}
+
+static BOOL
+AbeGetChildRect(
+    _In_ HWND Window,
+    _In_ INT Id,
+    _Out_ RECT* Rect)
+{
+    HWND Child = GetDlgItem(Window, Id);
+
+    if (Child == NULL || !GetWindowRect(Child, Rect))
+    {
+        return FALSE;
+    }
+    MapWindowPoints(NULL, Window, (POINT*)Rect, 2);
+    return TRUE;
+}
+
+static VOID
+AbeMoveChild(
+    _In_ INT Id,
+    _In_ INT Left,
+    _In_ INT Top,
+    _In_ INT Width,
+    _In_ INT Height)
+{
+    HWND Child = GetDlgItem(g_MainWindow, Id);
+
+    if (Child != NULL)
+    {
+        SetWindowPos(Child,
+                     NULL,
+                     Left,
+                     Top,
+                     Width,
+                     Height,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
+static VOID
+AbeCaptureLayout(
+    _In_ HWND Window)
+{
+    RECT ClientRect, WindowRect;
+
+    RtlZeroMemory(&g_Layout, sizeof(g_Layout));
+    if (!GetClientRect(Window, &ClientRect) || !GetWindowRect(Window, &WindowRect))
+    {
+        return;
+    }
+
+    g_Layout.ClientWidth = AbeRectWidth(&ClientRect);
+    g_Layout.ClientHeight = AbeRectHeight(&ClientRect);
+    g_Layout.MinTrackWidth = AbeRectWidth(&WindowRect);
+    g_Layout.MinTrackHeight = AbeRectHeight(&WindowRect);
+    g_Layout.Ready = TRUE;
 }
 
 static VOID
@@ -36,7 +110,7 @@ AbeInitList(
         RtlZeroMemory(&Column, sizeof(Column));
         Column.mask = LVCF_TEXT | LVCF_WIDTH;
         Column.pszText = (PWSTR)Columns[i];
-        Column.cx = AbeScale(Widths[i]);
+        Column.cx = Widths[i];
         SendMessageW(List, LVM_INSERTCOLUMNW, i, (LPARAM)&Column);
     }
 }
@@ -110,38 +184,76 @@ AbeLoadProfiles(
     SendMessageW(Combo, CB_SETCURSEL, 0, 0);
 }
 
-/* anchor the two lists and the status control to the client area */
+/* keep the RC-designed layout and distribute resize deltas over the data panes */
 static VOID
 AbeLayout(
     _In_ INT ClientWidth,
     _In_ INT ClientHeight)
 {
-    HWND CookieList = GetDlgItem(g_MainWindow, IDC_COOKIE_LIST);
-    HWND PasswordList = GetDlgItem(g_MainWindow, IDC_PASSWORD_LIST);
-    HWND Status = GetDlgItem(g_MainWindow, IDC_STATUS_EDIT);
-    INT Top = AbeScale(44), Gap = AbeScale(8);
-    INT ListWidth, ListHeight, StatusHeight = AbeScale(100);
+    RECT Button, CookieList, PasswordList, Status;
+    INT DeltaWidth, DeltaHeight, Gap1, Gap2;
+    INT Width;
+    INT CookieHeight, PasswordHeight, StatusHeight, Remainder;
+    INT PasswordTop, StatusTop;
 
-    if (CookieList == NULL || PasswordList == NULL || Status == NULL)
+    if (!g_Layout.Ready ||
+        !AbeGetChildRect(g_MainWindow, IDC_GO_BUTTON, &Button) ||
+        !AbeGetChildRect(g_MainWindow, IDC_COOKIE_LIST, &CookieList) ||
+        !AbeGetChildRect(g_MainWindow, IDC_PASSWORD_LIST, &PasswordList) ||
+        !AbeGetChildRect(g_MainWindow, IDC_STATUS_EDIT, &Status))
     {
         return;
     }
 
-    ListWidth = ClientWidth - Gap * 2;
-    ListHeight = (ClientHeight - Top - StatusHeight - Gap * 3) / 2;
-    if (ListHeight < AbeScale(32))
+    DeltaWidth = ClientWidth - g_Layout.ClientWidth;
+    DeltaHeight = ClientHeight - g_Layout.ClientHeight;
+    if (DeltaWidth == 0 && DeltaHeight == 0)
     {
-        ListHeight = AbeScale(32);
+        return;
     }
-    SetWindowPos(CookieList, NULL, Gap, Top, ListWidth, ListHeight, SWP_NOZORDER);
-    SetWindowPos(PasswordList, NULL, Gap, Top + ListHeight + Gap, ListWidth, ListHeight, SWP_NOZORDER);
-    SetWindowPos(Status,
-                 NULL,
-                 Gap,
-                 Top + (ListHeight + Gap) * 2,
-                 ListWidth,
-                 StatusHeight,
-                 SWP_NOZORDER);
+
+    AbeMoveChild(IDC_GO_BUTTON,
+                 Button.left + DeltaWidth,
+                 Button.top,
+                 AbeRectWidth(&Button),
+                 AbeRectHeight(&Button));
+
+    Width = AbeRectWidth(&CookieList) + DeltaWidth;
+    if (Width < 1)
+    {
+        Width = 1;
+    }
+
+    Gap1 = PasswordList.top - CookieList.bottom;
+    Gap2 = Status.top - PasswordList.bottom;
+    CookieHeight = AbeRectHeight(&CookieList) + DeltaHeight / 3;
+    PasswordHeight = AbeRectHeight(&PasswordList) + DeltaHeight / 3;
+    StatusHeight = AbeRectHeight(&Status) + DeltaHeight / 3;
+    Remainder = DeltaHeight % 3;
+    if (Remainder > 0)
+    {
+        CookieHeight++;
+        if (Remainder > 1)
+        {
+            PasswordHeight++;
+        }
+    } else if (Remainder < 0)
+    {
+        StatusHeight--;
+        if (Remainder < -1)
+        {
+            PasswordHeight--;
+        }
+    }
+
+    PasswordTop = CookieList.top + CookieHeight + Gap1;
+    StatusTop = PasswordTop + PasswordHeight + Gap2;
+
+    AbeMoveChild(IDC_COOKIE_LIST, CookieList.left, CookieList.top, Width, CookieHeight);
+    AbeMoveChild(IDC_PASSWORD_LIST, PasswordList.left, PasswordTop, Width, PasswordHeight);
+    AbeMoveChild(IDC_STATUS_EDIT, Status.left, StatusTop, Width, StatusHeight);
+    g_Layout.ClientWidth = ClientWidth;
+    g_Layout.ClientHeight = ClientHeight;
 }
 
 INT_PTR CALLBACK
@@ -159,25 +271,13 @@ AbeDialogProc(
             static const INT CookieWidths[] = { 60, 180, 140, 400 };
             static const PCWSTR PasswordColumns[] = { L"Version", L"Site", L"Username", L"Password", NULL };
             static const INT PasswordWidths[] = { 60, 220, 140, 300 };
-            RECT WindowRect;
             ULONG i;
 
             g_MainWindow = Window;
-            g_Dpi = GetDpiForWindow(Window);
-            if (g_Dpi != USER_DEFAULT_SCREEN_DPI)
-            {
-                GetWindowRect(Window, &WindowRect);
-                SetWindowPos(Window,
-                             NULL,
-                             0,
-                             0,
-                             MulDiv(WindowRect.right - WindowRect.left, g_Dpi, USER_DEFAULT_SCREEN_DPI),
-                             MulDiv(WindowRect.bottom - WindowRect.top, g_Dpi, USER_DEFAULT_SCREEN_DPI),
-                             SWP_NOMOVE | SWP_NOZORDER);
-            }
 
             AbeInitList(GetDlgItem(Window, IDC_COOKIE_LIST), CookieColumns, CookieWidths);
             AbeInitList(GetDlgItem(Window, IDC_PASSWORD_LIST), PasswordColumns, PasswordWidths);
+            AbeCaptureLayout(Window);
 
             {
                 HWND Combo = GetDlgItem(Window, IDC_METHOD_COMBO);
@@ -321,8 +421,11 @@ AbeDialogProc(
         {
             MINMAXINFO* Info = (MINMAXINFO*)lParam;
 
-            Info->ptMinTrackSize.x = AbeScale(430);
-            Info->ptMinTrackSize.y = AbeScale(300);
+            if (g_Layout.Ready)
+            {
+                Info->ptMinTrackSize.x = g_Layout.MinTrackWidth;
+                Info->ptMinTrackSize.y = g_Layout.MinTrackHeight;
+            }
             return TRUE;
         }
         case WM_CLOSE:

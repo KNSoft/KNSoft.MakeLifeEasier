@@ -157,7 +157,8 @@ AbeReadOsCryptBlob(
     _In_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
-    _Inout_ PULONG BlobLength)
+    _Inout_ PULONG BlobLength,
+    _Out_opt_ HRESULT* Error)
 {
     IJsonValue* Root = NULL;
     IJsonObject* RootObject = NULL, * OsCrypt = NULL;
@@ -166,21 +167,43 @@ AbeReadOsCryptBlob(
     HSTRING Key, FieldStr;
     WCHAR LocalState[MAX_PATH];
     PCWSTR Wide;
+    HRESULT Hr;
     BOOL Ok = FALSE;
 
     Str_PrintfExW(LocalState, MAX_PATH, L"%ls\\Local State", UserDataDir);
-    if (FAILED(Data_JsonParseUtf8File(LocalState, ABE_LOCAL_STATE_MAX, &Root)) ||
-        FAILED(Root->lpVtbl->GetObject(Root, &RootObject)) ||
-        FAILED(_Inline_WindowsCreateStringReference(L"os_crypt",
-                                                    ARRAYSIZE(L"os_crypt") - 1,
-                                                    &KeyHeader,
-                                                    &Key)) ||
-        FAILED(RootObject->lpVtbl->GetNamedObject(RootObject, Key, &OsCrypt)) ||
-        FAILED(_Inline_WindowsCreateStringReference(Field,
-                                                    (ULONG)(Str_SizeW(Field) / sizeof(WCHAR)),
-                                                    &FieldHeader,
-                                                    &FieldStr)) ||
-        FAILED(OsCrypt->lpVtbl->GetNamedString(OsCrypt, FieldStr, &Value)))
+    Hr = Data_JsonParseUtf8File(LocalState, ABE_LOCAL_STATE_MAX, &Root);
+    if (FAILED(Hr))
+    {
+        goto Cleanup;
+    }
+    Hr = Root->lpVtbl->GetObject(Root, &RootObject);
+    if (FAILED(Hr))
+    {
+        goto Cleanup;
+    }
+    Hr = _Inline_WindowsCreateStringReference(L"os_crypt",
+                                              ARRAYSIZE(L"os_crypt") - 1,
+                                              &KeyHeader,
+                                              &Key);
+    if (FAILED(Hr))
+    {
+        goto Cleanup;
+    }
+    Hr = RootObject->lpVtbl->GetNamedObject(RootObject, Key, &OsCrypt);
+    if (FAILED(Hr))
+    {
+        goto Cleanup;
+    }
+    Hr = _Inline_WindowsCreateStringReference(Field,
+                                              (ULONG)(Str_SizeW(Field) / sizeof(WCHAR)),
+                                              &FieldHeader,
+                                              &FieldStr);
+    if (FAILED(Hr))
+    {
+        goto Cleanup;
+    }
+    Hr = OsCrypt->lpVtbl->GetNamedString(OsCrypt, FieldStr, &Value);
+    if (FAILED(Hr))
     {
         goto Cleanup;
     }
@@ -192,8 +215,13 @@ AbeReadOsCryptBlob(
                               BlobLength,
                               NULL,
                               NULL);
+    Hr = Ok ? S_OK : HRESULT_FROM_WIN32(Err_GetLastError());
 
 Cleanup:
+    if (Error != NULL)
+    {
+        *Error = Hr;
+    }
     if (Value != NULL)
     {
         _Inline_WindowsDeleteString(Value);
@@ -222,23 +250,45 @@ AbeGetV10Key(
     static BYTE Blob[2048];
     DATA_BLOB In, Out = { 0 };          /* Out is freed on failure paths */
     ULONG BlobLength = sizeof(Blob);    /* in/out capacity */
+    HRESULT Hr;
+    ULONGLONG Step;
+    W32ERROR Error;
     BOOL Ok;
 
-    if (!AbeReadOsCryptBlob(Browser->UserDataDir,
+    Step = AbeStepStart();
+    Ok = AbeReadOsCryptBlob(Browser->UserDataDir,
                             L"encrypted_key",
                             Blob,
                             sizeof(Blob),
-                            &BlobLength) ||
-        BlobLength <= 5 || memcmp(Blob, "DPAPI", 5) != 0)
+                            &BlobLength,
+                            &Hr);
+    AbeLogStepHr(L"v10 key", L"read encrypted_key", Hr, Step);
+    if (!Ok)
+    {
+        return FALSE;
+    }
+
+    Step = AbeStepStart();
+    Hr = BlobLength > 5 && memcmp(Blob, "DPAPI", 5) == 0 ? S_OK : HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+    AbeLogStepHr(L"v10 key", L"validate DPAPI blob", Hr, Step);
+    if (FAILED(Hr))
     {
         return FALSE;
     }
     In.pbData = Blob + 5;
     In.cbData = BlobLength - 5;
+    Step = AbeStepStart();
     Ok = CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out);
+    Error = Ok ? ERROR_SUCCESS : Err_GetLastError();
+    AbeLogStepWin32(L"v10 key", L"user DPAPI decrypt", Error, Step);
     if (Ok)
     {
+        Step = AbeStepStart();
         Ok = Out.cbData == ABE_KEY_SIZE;
+        AbeLogStepHr(L"v10 key",
+                     L"validate key length",
+                     Ok ? S_OK : HRESULT_FROM_WIN32(ERROR_INVALID_DATA),
+                     Step);
         if (Ok)
         {
             RtlCopyMemory(Key, Out.pbData, ABE_KEY_SIZE);

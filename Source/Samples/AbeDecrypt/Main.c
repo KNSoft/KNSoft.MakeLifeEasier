@@ -16,22 +16,29 @@ AbeWorker(
     ULONG V20Envelope = 0, i;
     BOOL HaveV10, HaveV20;
     HRESULT RoHr;
+    ULONGLONG TotalStep, Step;
 
     RtlZeroMemory(Result, sizeof(*Result));
+    g_AbeResult = Result;
+    TotalStep = AbeStepStart();
+    Step = AbeStepStart();
     RoHr = RoInitialize(RO_INIT_MULTITHREADED);
+    AbeLogStepHr(L"Worker", L"RoInitialize", RoHr, Step);
     if (FAILED(RoHr))
     {
         /* Local State parsing uses WinRT JSON */
-        Str_PrintfW(Result->Status, L"RoInitialize failed: 0x%08lX\r\n", RoHr);
         PostMessageW(g_MainWindow, ABE_WM_RESULT, 0, (LPARAM)Result);
+        g_AbeResult = NULL;
         Mem_Free(Job);
         return 0;
     }
-    g_AbeResult = Result;
 
+    Step = AbeStepStart();
     HaveV10 = AbeGetV10Key(&Job->Browser, V10Key);
+    AbeLogStepBool(L"Worker", L"get v10 key", HaveV10, Step);
     AbeLog(L"v10 key (DPAPI): %ls\r\n", HaveV10 ? L"OK" : L"failed");
 
+    Step = AbeStepStart();
     switch (Job->Method)
     {
         case MethodDrop:
@@ -47,6 +54,7 @@ AbeWorker(
             HaveV20 = AbeGetKeyHijack(&Job->Browser, V20Key);
             break;
     }
+    AbeLogStepBool(AbeMethodNames[Job->Method], L"method complete", HaveV20, Step);
     if (Job->Method == MethodElevate && V20Envelope != 0)
     {
         AbeLog(L"v20 private envelope version: v%lu\r\n", V20Envelope);
@@ -66,6 +74,7 @@ AbeWorker(
         const BYTE* V10 = HaveV10 ? V10Key : NULL;
         const BYTE* V20 = HaveV20 ? V20Key : NULL;
 
+        Step = AbeStepStart();
         AbeCollectRecords(&Job->Browser,
                           Job->Profile,
                           "Network\\Cookies",
@@ -75,9 +84,11 @@ AbeWorker(
                           V20Envelope,
                           FALSE,
                           Result);
+        AbeLog(L"Worker: collect cookies finished (%I64ums)\r\n", AbeStepMs(Step));
         for (i = 0; i < ARRAYSIZE(DbFiles); i++)
         {
             /* the account store may hold additional signed-in passwords */
+            Step = AbeStepStart();
             AbeCollectRecords(&Job->Browser,
                               Job->Profile,
                               DbFiles[i],
@@ -87,10 +98,14 @@ AbeWorker(
                               V20Envelope,
                               i != 0,
                               Result);
+            AbeLog(L"Worker: collect %hs finished (%I64ums)\r\n",
+                   DbFiles[i],
+                   AbeStepMs(Step));
         }
     }
 
     Result->Ok = HaveV20 || HaveV10;
+    AbeLogStepBool(L"Worker", L"total decrypt run", Result->Ok, TotalStep);
     if (Result->Ok)
     {
         Str_CatExW(Result->Status, ARRAYSIZE(Result->Status), L"\r\nDone: cookies ");
@@ -178,7 +193,6 @@ wWinMain(
         }
     }
 
-    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     InitCommonControlsEx(&(INITCOMMONCONTROLSEX){ sizeof(INITCOMMONCONTROLSEX),
                          ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES });
 

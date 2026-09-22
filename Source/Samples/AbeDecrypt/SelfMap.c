@@ -6,8 +6,8 @@
 
 /* maps a relocated copy of our image into the target process; the copy is
    RX except the payload data section (RW), then flushed */
-_Success_(return != FALSE)
-BOOL
+_Success_(NT_SUCCESS(return))
+NTSTATUS
 AbeMapSelf(
     _In_ HANDLE Process,
     _Out_ PVOID* Mapped)
@@ -21,34 +21,42 @@ AbeMapSelf(
     SIZE_T Size, RegionSize, ProtectSize;
     LONG64 Delta;
     ULONG i, OldProtect;
-    BOOL Ok = FALSE;
+    NTSTATUS Status;
 
     Nt = NtGetImageNtHeader();
     Size = Nt->OptionalHeader.SizeOfImage;
     RegionSize = Size;
-    if (!NT_SUCCESS(NtAllocateVirtualMemory(NtCurrentProcess(),
-                                            &Copy,
-                                            0,
-                                            &RegionSize,
-                                            MEM_COMMIT | MEM_RESERVE,
-                                            PAGE_READWRITE)) ||
-        !NT_SUCCESS(NtAllocateVirtualMemory(Process,
-                                            &Remote,
-                                            0,
-                                            &RegionSize,
-                                            MEM_COMMIT | MEM_RESERVE,
-                                            PAGE_READWRITE)))
+    *Mapped = NULL;
+    Status = NtAllocateVirtualMemory(NtCurrentProcess(),
+                                     &Copy,
+                                     0,
+                                     &RegionSize,
+                                     MEM_COMMIT | MEM_RESERVE,
+                                     PAGE_READWRITE);
+    if (!NT_SUCCESS(Status))
+    {
+        goto Cleanup;
+    }
+    Status = NtAllocateVirtualMemory(Process,
+                                     &Remote,
+                                     0,
+                                     &RegionSize,
+                                     MEM_COMMIT | MEM_RESERVE,
+                                     PAGE_READWRITE);
+    if (!NT_SUCCESS(Status))
     {
         goto Cleanup;
     }
 
     RtlCopyMemory(Copy, Self, Size);
     Delta = (LONG64)((ULONG64)(ULONG_PTR)Remote - (ULONG64)(ULONG_PTR)Self);
-    if (!NT_SUCCESS(PE_RelocateImage(Copy, Delta)))
+    Status = PE_RelocateImage(Copy, Delta);
+    if (!NT_SUCCESS(Status))
     {
         goto Cleanup;
     }
-    if (!NT_SUCCESS(NtWriteVirtualMemory(Process, Remote, Copy, Size, NULL)))
+    Status = NtWriteVirtualMemory(Process, Remote, Copy, Size, NULL);
+    if (!NT_SUCCESS(Status))
     {
         goto Cleanup;
     }
@@ -57,11 +65,12 @@ AbeMapSelf(
        re-open just the payload data section for writing */
     ProtectBase = Remote;
     ProtectSize = RegionSize;
-    if (!NT_SUCCESS(NtProtectVirtualMemory(Process,
-                                           &ProtectBase,
-                                           &ProtectSize,
-                                           PAGE_EXECUTE_READ,
-                                           &OldProtect)))
+    Status = NtProtectVirtualMemory(Process,
+                                    &ProtectBase,
+                                    &ProtectSize,
+                                    PAGE_EXECUTE_READ,
+                                    &OldProtect);
+    if (!NT_SUCCESS(Status))
     {
         goto Cleanup;
     }
@@ -72,20 +81,25 @@ AbeMapSelf(
         {
             ProtectBase = (PBYTE)Remote + Section[i].VirtualAddress;
             ProtectSize = (SIZE_T)ALIGN_UP_BY(Section[i].Misc.VirtualSize, PAGE_SIZE);
-            if (!NT_SUCCESS(NtProtectVirtualMemory(Process,
-                                                   &ProtectBase,
-                                                   &ProtectSize,
-                                                   PAGE_READWRITE,
-                                                   &OldProtect)))
+            Status = NtProtectVirtualMemory(Process,
+                                            &ProtectBase,
+                                            &ProtectSize,
+                                            PAGE_READWRITE,
+                                            &OldProtect);
+            if (!NT_SUCCESS(Status))
             {
                 goto Cleanup;
             }
             break;
         }
     }
-    NtFlushInstructionCache(Process, Remote, Size);
+    Status = NtFlushInstructionCache(Process, Remote, Size);
+    if (!NT_SUCCESS(Status))
+    {
+        goto Cleanup;
+    }
     *Mapped = Remote;
-    Ok = TRUE;
+    Status = STATUS_SUCCESS;
 
 Cleanup:
     if (Copy != NULL)
@@ -93,12 +107,12 @@ Cleanup:
         RegionSize = 0;
         NtFreeVirtualMemory(NtCurrentProcess(), &Copy, &RegionSize, MEM_RELEASE);
     }
-    if (!Ok && Remote != NULL)
+    if (!NT_SUCCESS(Status) && Remote != NULL)
     {
         RegionSize = 0;
         NtFreeVirtualMemory(Process, &Remote, &RegionSize, MEM_RELEASE);
     }
-    return Ok;
+    return Status;
 }
 
 /* polls g_Pending in the mapped copy, then copies out g_Code/g_Key */

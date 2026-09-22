@@ -26,15 +26,28 @@ AbePrepareRequest(
     _In_ const NET_BROWSER_INFO* Browser)
 {
     ULONG BlobLength = sizeof(g_Request.Blob);  /* in/out capacity */
+    HRESULT Hr;
+    ULONGLONG Step;
+    BOOL Ok;
 
-    if (!AbeReadOsCryptBlob(Browser->UserDataDir,
+    Step = AbeStepStart();
+    Ok = AbeReadOsCryptBlob(Browser->UserDataDir,
                             L"app_bound_encrypted_key",
                             (PBYTE)g_Request.Blob,
                             sizeof(g_Request.Blob),
-                            &BlobLength) ||
-        BlobLength <= 4)
+                            &BlobLength,
+                            &Hr);
+    AbeLogStepHr(L"v20 request", L"read app_bound_encrypted_key", Hr, Step);
+    if (!Ok)
     {
-        AbeLog(L"failed to read app_bound_encrypted_key\r\n");
+        return FALSE;
+    }
+    Step = AbeStepStart();
+    Hr = BlobLength > 4 && memcmp((PVOID)g_Request.Blob, "APPB", 4) == 0 ?
+        S_OK : HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+    AbeLogStepHr(L"v20 request", L"validate APPB blob", Hr, Step);
+    if (FAILED(Hr))
+    {
         return FALSE;
     }
     g_Request.BrowserType = Browser->Type;

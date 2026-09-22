@@ -20,6 +20,9 @@
     <ResourceCompile Include="AbeDecrypt.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Manifest Include="AbeDecrypt.manifest" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
 </Project>
