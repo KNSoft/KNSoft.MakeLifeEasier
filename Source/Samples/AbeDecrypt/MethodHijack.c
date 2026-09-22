@@ -2,7 +2,7 @@
 
 /*** method: Hijack (suspended browser initial thread redirected to our payload) ***/
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyHijack(
     _In_ const NET_BROWSER_INFO* Browser,

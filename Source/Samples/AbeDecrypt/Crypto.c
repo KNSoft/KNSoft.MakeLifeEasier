@@ -11,8 +11,8 @@
 
 static NTSTATUS
 AbeAeadOpen(
-    _In_z_ PCWSTR Algorithm,
-    _In_z_ PCWSTR ChainingMode,
+    _In_ PCWSTR Algorithm,
+    _In_ PCWSTR ChainingMode,
     _In_reads_bytes_(32) const BYTE* Key,
     _In_reads_bytes_(12) const BYTE* Nonce,
     _In_reads_bytes_(Length) const BYTE* CipherText,
@@ -23,7 +23,7 @@ AbeAeadOpen(
     BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO Auth;
     BCRYPT_ALG_HANDLE Alg = NULL;
     BCRYPT_KEY_HANDLE Cipher = NULL;
-    static BYTE Object[1024];
+    PBYTE Object = NULL;
     ULONG ObjLen, Done, Result;
     NTSTATUS Status;
 
@@ -47,9 +47,14 @@ AbeAeadOpen(
                                sizeof(ObjLen),
                                &Done,
                                0);
-    if (!NT_SUCCESS(Status) || ObjLen > sizeof(Object))
+    if (!NT_SUCCESS(Status))
     {
-        Status = !NT_SUCCESS(Status) ? Status : STATUS_INSUFFICIENT_RESOURCES;
+        goto _Exit;
+    }
+    Object = Mem_Alloc(ObjLen);
+    if (Object == NULL)
+    {
+        Status = STATUS_NO_MEMORY;
         goto _Exit;
     }
     Status = BCryptGenerateSymmetricKey(Alg, &Cipher, Object, ObjLen, (PUCHAR)Key, 32, 0);
@@ -76,6 +81,11 @@ _Exit:
     if (Cipher != NULL)
     {
         BCryptDestroyKey(Cipher);
+    }
+    if (Object != NULL)
+    {
+        RtlSecureZeroMemory(Object, ObjLen);
+        Mem_Free(Object);
     }
     BCryptCloseAlgorithmProvider(Alg, 0);
     return Status;
@@ -126,7 +136,7 @@ AbeGcmDecrypt(
     _In_ DWORD Length,
     _Out_writes_bytes_(Length) PBYTE Plain)
 {
-    if (Length <= 3 + 12 + 16)
+    if (Length < 3 + 12 + 16)
     {
         return STATUS_DATA_ERROR;
     }
@@ -140,11 +150,11 @@ AbeGcmDecrypt(
 
 /*** Local State os_crypt blobs ***/
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeReadOsCryptBlob(
-    _In_z_ PCWSTR UserDataDir,
-    _In_z_ PCWSTR Field,
+    _In_ PCWSTR UserDataDir,
+    _In_ PCWSTR Field,
     _Out_writes_bytes_(BlobSize) PBYTE Blob,
     _In_ ULONG BlobSize,
     _Inout_ PULONG BlobLength)
@@ -203,7 +213,7 @@ Cleanup:
     return Ok;
 }
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetV10Key(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -225,11 +235,14 @@ AbeGetV10Key(
     }
     In.pbData = Blob + 5;
     In.cbData = BlobLength - 5;
-    Ok = CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out) &&
-         Out.cbData == ABE_KEY_SIZE;
+    Ok = CryptUnprotectData(&In, NULL, NULL, NULL, NULL, 0, &Out);
     if (Ok)
     {
-        RtlCopyMemory(Key, Out.pbData, ABE_KEY_SIZE);
+        Ok = Out.cbData == ABE_KEY_SIZE;
+        if (Ok)
+        {
+            RtlCopyMemory(Key, Out.pbData, ABE_KEY_SIZE);
+        }
         RtlSecureZeroMemory(Out.pbData, Out.cbData);
     }
     LocalFree(Out.pbData);

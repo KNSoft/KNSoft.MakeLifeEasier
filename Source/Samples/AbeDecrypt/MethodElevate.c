@@ -186,7 +186,7 @@ _Malformed:
     return FALSE;
 }
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyElevate(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -262,6 +262,7 @@ AbeGetKeyElevate(
         }
         LocalFree(Final.pbData);
     }
+    RtlSecureZeroMemory(Out.pbData, Out.cbData);
     LocalFree(Out.pbData);
 
 _Exit:

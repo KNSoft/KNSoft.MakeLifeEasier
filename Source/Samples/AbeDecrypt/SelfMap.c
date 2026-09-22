@@ -6,7 +6,7 @@
 
 /* maps a relocated copy of our image into the target process; the copy is
    RX except the payload data section (RW), then flushed */
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeMapSelf(
     _In_ HANDLE Process,

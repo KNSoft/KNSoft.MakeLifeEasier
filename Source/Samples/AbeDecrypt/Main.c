@@ -4,6 +4,8 @@
 
 static const PCSTR DbFiles[] = { "Login Data", "Login Data For Account" };
 
+PABE_RESULT g_AbeResult;
+
 DWORD WINAPI
 AbeWorker(
     _In_ LPVOID Parameter)
@@ -13,10 +15,19 @@ AbeWorker(
     BYTE V10Key[ABE_KEY_SIZE], V20Key[ABE_KEY_SIZE];
     ULONG V20Envelope = 0, i;
     BOOL HaveV10, HaveV20;
+    HRESULT RoHr;
 
     RtlZeroMemory(Result, sizeof(*Result));
-    g_Log[0] = UNICODE_NULL;
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    RoHr = RoInitialize(RO_INIT_MULTITHREADED);
+    if (FAILED(RoHr))
+    {
+        /* Local State parsing uses WinRT JSON */
+        Str_PrintfW(Result->Status, L"RoInitialize failed: 0x%08lX\r\n", RoHr);
+        PostMessageW(g_MainWindow, ABE_WM_RESULT, 0, (LPARAM)Result);
+        Mem_Free(Job);
+        return 0;
+    }
+    g_AbeResult = Result;
 
     HaveV10 = AbeGetV10Key(&Job->Browser, V10Key);
     AbeLog(L"v10 key (DPAPI): %ls\r\n", HaveV10 ? L"OK" : L"failed");
@@ -80,7 +91,6 @@ AbeWorker(
     }
 
     Result->Ok = HaveV20 || HaveV10;
-    Str_CopyExW(Result->Status, ARRAYSIZE(Result->Status), g_Log);
     if (Result->Ok)
     {
         Str_CatExW(Result->Status, ARRAYSIZE(Result->Status), L"\r\nDone: cookies ");
@@ -97,7 +107,8 @@ AbeWorker(
 
     RtlSecureZeroMemory(V10Key, sizeof(V10Key));
     RtlSecureZeroMemory(V20Key, sizeof(V20Key));
-    CoUninitialize();
+    RoUninitialize();
+    g_AbeResult = NULL;
     PostMessageW(g_MainWindow, ABE_WM_RESULT, 0, (LPARAM)Result);
     Mem_Free(Job);
     return 0;
@@ -170,7 +181,6 @@ wWinMain(
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     InitCommonControlsEx(&(INITCOMMONCONTROLSEX){ sizeof(INITCOMMONCONTROLSEX),
                          ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES });
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
     g_MainWindow = CreateDialogParamW(Instance,
                                       MAKEINTRESOURCEW(IDD_MAIN),
@@ -182,7 +192,7 @@ wWinMain(
         return 1;
     }
     ShowWindow(g_MainWindow, ShowCmd);
-    UI_MessageLoop(g_MainWindow, TRUE, NULL, NULL);
+    UI_MessageLoop(NULL, TRUE, NULL, NULL);
 
     Mem_Free(g_Browsers);
     return 0;

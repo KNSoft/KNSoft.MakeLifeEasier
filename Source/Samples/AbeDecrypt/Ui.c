@@ -190,13 +190,32 @@ AbeDialogProc(
             }
 
             /* browsers; no default selection - profiles load on selection only */
-            if (NT_SUCCESS(Net_BrowserEnumerate(&g_Browsers, &g_BrowserCount)))
             {
+                NTSTATUS Status = Net_BrowserEnumerate(&g_Browsers, &g_BrowserCount);
                 HWND Combo = GetDlgItem(Window, IDC_BROWSER_COMBO);
 
-                for (i = 0; i < g_BrowserCount; i++)
+                if (NT_SUCCESS(Status))
                 {
-                    SendMessageW(Combo, CB_ADDSTRING, 0, (LPARAM)g_Browsers[i].Name);
+                    for (i = 0; i < g_BrowserCount; i++)
+                    {
+                        SendMessageW(Combo, CB_ADDSTRING, 0, (LPARAM)g_Browsers[i].Name);
+                    }
+                    if (g_BrowserCount == 0)
+                    {
+                        UI_SetDlgItemTextW(Window, IDC_STATUS_EDIT, L"No supported browser installations found");
+                    } else
+                    {
+                        WCHAR Text[64];
+
+                        Str_PrintfExW(Text, ARRAYSIZE(Text), L"Browsers found: %lu", g_BrowserCount);
+                        UI_SetDlgItemTextW(Window, IDC_STATUS_EDIT, Text);
+                    }
+                } else
+                {
+                    WCHAR Text[96];
+
+                    Str_PrintfExW(Text, ARRAYSIZE(Text), L"Browser enumeration failed: 0x%08lX", Status);
+                    UI_SetDlgItemTextW(Window, IDC_STATUS_EDIT, Text);
                 }
             }
             return TRUE;

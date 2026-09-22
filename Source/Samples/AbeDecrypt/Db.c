@@ -47,7 +47,7 @@ AbeSqliteOpenPrepare(
 /* locked by the running browser: map its own handle into a private buffer */
 static NTSTATUS
 AbeReadLockedDatabase(
-    _In_z_ PCWSTR DbPath,
+    _In_ PCWSTR DbPath,
     _Outptr_result_bytebuffer_(*RawSize) PBYTE* RawDb,
     _Out_ PULONG RawSize)
 {
@@ -95,12 +95,14 @@ AbeReadLockedDatabase(
              16 * sizeof(HANDLE);
     for (;;)
     {
-        Owners = Mem_ReAlloc(Owners, Length);
-        if (Owners == NULL)
+        PVOID NewBuffer = Mem_ReAlloc(Owners, Length);
+
+        if (NewBuffer == NULL)
         {
             Status = STATUS_NO_MEMORY;
             goto _Exit;
         }
+        Owners = NewBuffer;
         Status = NtQueryInformationFile(File,
                                         &IoStatusBlock,
                                         Owners,
@@ -136,11 +138,14 @@ AbeReadLockedDatabase(
         Handles = NULL;
         for (;;)
         {
-            Handles = Mem_ReAlloc(Handles, Length);
-            if (Handles == NULL)
+            PVOID NewBuffer = Mem_ReAlloc(Handles, Length);
+
+            if (NewBuffer == NULL)
             {
+                Status = STATUS_NO_MEMORY;
                 break;
             }
+            Handles = NewBuffer;
             Status = NtQueryInformationProcess(Process,
                                                ProcessHandleInformation,
                                                Handles,
@@ -154,6 +159,7 @@ AbeReadLockedDatabase(
             Length = max(Length * 2, Required + 4096);
             if (Length > 64 * 1024 * 1024)
             {
+                Status = STATUS_BUFFER_TOO_SMALL;
                 break;
             }
         }
@@ -244,6 +250,38 @@ _Exit:
 
 /*** record collection ***/
 
+/* TRUE when the 32-byte SHA256(host_key) prefix of a schema 24+ cookie matches;
+   without a match the plaintext is an old-schema value with no prefix */
+static BOOL
+AbeSha256Equal(
+    _In_reads_bytes_(32) const BYTE* Hash,
+    _In_opt_z_ PCSTR HostKey)
+{
+    BCRYPT_ALG_HANDLE Alg = NULL;
+    BYTE Computed[32];
+    NTSTATUS Status;
+    BOOL Ok = FALSE;
+
+    if (HostKey == NULL)
+    {
+        return FALSE;
+    }
+    Status = BCryptOpenAlgorithmProvider(&Alg, BCRYPT_SHA256_ALGORITHM, NULL, 0);
+    if (NT_SUCCESS(Status))
+    {
+        Status = BCryptHash(Alg,
+                            NULL,
+                            0,
+                            (PUCHAR)HostKey,
+                            (ULONG)Str_SizeA(HostKey),
+                            Computed,
+                            sizeof(Computed));
+        Ok = NT_SUCCESS(Status) && RtlEqualMemory(Hash, Computed, sizeof(Computed));
+        BCryptCloseAlgorithmProvider(Alg, 0);
+    }
+    return Ok;
+}
+
 /* appends a zeroed record and returns it, or NULL when out of memory */
 static PABE_RECORD
 AbeAppendRecord(
@@ -295,7 +333,7 @@ AbeIsDuplicateRecord(
 VOID
 AbeCollectRecords(
     _In_ const NET_BROWSER_INFO* Browser,
-    _In_z_ PCWSTR Profile,
+    _In_ PCWSTR Profile,
     _In_z_ PCSTR DbFile,
     _In_ LOGICAL IsCookie,
     _In_opt_ const BYTE* V10Key,
@@ -345,24 +383,26 @@ AbeCollectRecords(
        SQLite opens lazily: lock conflicts surface at prepare time, so each
        tier must be validated by prepare, not just the open call */
     {
-        static CHAR Uri[MAX_PATH * 3];
+        /* "file:" + worst-case UTF-8 of a MAX_PATH path + query + NUL */
+        static CHAR Uri[MAX_PATH * 3 + 32];
         CHAR Utf8[MAX_PATH * 3];
         PCSTR Sql = IsCookie ? CookieSql : PasswordSql;
         PSTR Query;
-        ULONG i;
 
-        if (Str_W2U(Utf8, DbPath) == 0)
+        if (Str_W2U(Utf8, DbPath) == 0 ||
+            Str_SizeA(Utf8) > ARRAYSIZE(Uri) - sizeof("file:") - sizeof("?mode=ro&nolock=1"))
         {
             AbeLog(L"%hs: database unavailable (path)\r\n", DbFile);
             return;
         }
-        Str_PrintfExA(Uri, ARRAYSIZE(Uri), "file:");
-        Query = Uri + strlen(Uri);
-        for (i = 0; i < (ULONG)(Str_SizeA(Utf8) / sizeof(CHAR)); i++)
+        Str_PrintfExA(Uri, ARRAYSIZE(Uri), "file:%hs", Utf8);
+        for (Query = Uri + sizeof("file:") - 1; *Query != ANSI_NULL; Query++)
         {
-            *Query++ = Utf8[i] == '\\' ? '/' : Utf8[i];
+            if (*Query == '\\')
+            {
+                *Query = '/';
+            }
         }
-        *Query = 0;
 
         Str_PrintfExA(Query, ARRAYSIZE(Uri) - (ULONG)(Query - Uri), "?mode=ro&nolock=1");
         ResultCode = AbeSqliteOpenPrepare(Uri, Sql, &Db, &St);
@@ -421,29 +461,30 @@ AbeCollectRecords(
         Blob = (const BYTE*)sqlite3_column_blob(St, 2);
         Length = (DWORD)sqlite3_column_bytes(St, 2);
 
-        /* determine version prefix and pick the key */
-        if (Blob != NULL && Length >= 3)
+        /* Skip rows without a Chromium encrypted-value prefix. Login Data can
+           contain site-only rows with an empty password_value. */
+        if (Blob == NULL || Length < 3)
         {
-            if (memcmp(Blob, "v20", 3) == 0)
-            {
-                Ver = "v20";
-                Key = V20Key;
-            } else if (memcmp(Blob, "v10", 3) == 0 || memcmp(Blob, "v11", 3) == 0)
-            {
-                Ver = memcmp(Blob, "v10", 3) == 0 ? "v10" : "v11";
-                Key = V10Key;
-            }
+            continue;
+        }
+        if (memcmp(Blob, "v20", 3) == 0)
+        {
+            Ver = "v20";
+            Key = V20Key;
+        } else if (memcmp(Blob, "v10", 3) == 0 || memcmp(Blob, "v11", 3) == 0)
+        {
+            Ver = memcmp(Blob, "v10", 3) == 0 ? "v10" : "v11";
+            Key = V10Key;
+        } else
+        {
+            continue;
         }
 
-        /* append the record even on failure: the entry itself stays visible */
+        /* append known encrypted records even on failure: the entry itself stays visible */
         Record = AbeAppendRecord(Records, RecordCount, Capacity);
         if (Record == NULL)
         {
             break;
-        }
-        if (Ver == NULL)
-        {
-            Ver = "v????";
         }
         if (Str_EqualA(Ver, "v20") && V20EnvelopeVersion != 0)
         {
@@ -454,7 +495,7 @@ AbeCollectRecords(
         Str_U2W(Record->Site, Site != NULL ? Site : "");
         Str_U2W(Record->Name, Name != NULL ? Name : "");
 
-        if (Blob == NULL || Length <= 3 + 12 + 16 || Length > sizeof(Plain) + 3 + 12 + 16)
+        if (Length < 3 + 12 + 16 || Length > sizeof(Plain) + 3 + 12 + 16)
         {
             Str_PrintfW(Record->Value, L"Decrypt failed: bad data length (%lu bytes)", Length);
             continue;
@@ -471,9 +512,15 @@ AbeCollectRecords(
             continue;
         }
 
-        /* cookie values since schema 24 carry SHA256(host_key) in front */
-        Skip = IsCookie && Length >= 3 + 12 + 16 + 32 ? 32 : 0;
-        PlainLength = Length - 3 - 12 - 16 - Skip;
+        /* cookie values since schema 24 carry SHA256(host_key) in front;
+           verify before skipping so old-schema long values stay intact */
+        PlainLength = Length - 3 - 12 - 16;
+        Skip = 0;
+        if (IsCookie && PlainLength >= 32 && AbeSha256Equal(Plain, Site))
+        {
+            Skip = 32;
+            PlainLength -= 32;
+        }
         Status = RtlUTF8ToUnicodeN(Record->Value,
                                    sizeof(Record->Value) - sizeof(UNICODE_NULL),
                                    &Translated,

