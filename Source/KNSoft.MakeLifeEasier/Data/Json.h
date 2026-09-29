@@ -4,7 +4,8 @@
 
 #include <windows.data.json.h>
 
-// SDK ABI aliases; these are not wrapper objects.
+#pragma region SDK ABI aliases
+
 typedef __x_ABI_CWindows_CData_CJson_CIJsonValue IJsonValue;
 typedef __x_ABI_CWindows_CData_CJson_CIJsonValueStatics IJsonValueStatics;
 typedef __x_ABI_CWindows_CData_CJson_CIJsonValueStatics2 IJsonValueStatics2;
@@ -52,10 +53,123 @@ typedef __x_ABI_CWindows_CData_CJson_CJsonValueType JsonValueType;
 typedef __x_ABI_CWindows_CData_CJson_CJsonErrorStatus JsonErrorStatus;
 #endif
 
-// Callers initialize WinRT and keep the owning apartment alive until all interfaces are released.
-// Returned interfaces own a reference. Parse borrows Text; UTF-8 decoding uses replacement characters.
+#pragma endregion
+
+// Callers initialize WinRT and release all interfaces before uninitializing their apartment.
+// Interface inputs are borrowed; outputs own one reference and are NULL on failure.
+// String lengths are explicit: zero means empty, not zero-terminated. UTF-8 decoding replaces invalid sequences.
 
 EXTERN_C_START
+
+#pragma region Construction
+
+// Reuse the native factory for a batch of values; release it when the batch is complete.
+MLE_API
+HRESULT
+NTAPI
+Data_JsonGetValueFactory(
+    _Outptr_ IJsonValueStatics** Factory);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonCreateObject(
+    _Outptr_ IJsonObject** Object);
+
+// Return the mutable array interface directly, including Append and get_Size.
+MLE_API
+HRESULT
+NTAPI
+Data_JsonCreateArray(
+    _Outptr_ IJsonVector** Array);
+
+// Use the native factories for other scalar values, including IJsonValueStatics2::CreateNullValue.
+MLE_API
+HRESULT
+NTAPI
+Data_JsonCreateStringUtf8(
+    _In_ IJsonValueStatics* Factory,
+    _When_(Length == 0, _In_opt_) _When_(Length != 0, _In_reads_bytes_(Length)) PCCH Text,
+    _In_ ULONG Length,
+    _Outptr_ IJsonValue** Value);
+
+#pragma endregion
+
+#pragma region Modification
+
+// Names are zero-terminated UTF-16. Set replaces an existing member and retains Value.
+// Query IJsonValue when passing an object or array; use ObjectSetNull to represent JSON null.
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetValue(
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name,
+    _In_ IJsonValue* Value);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetNull(
+    _In_ IJsonValueStatics2* Factory,
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetBoolean(
+    _In_ IJsonValueStatics* Factory,
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name,
+    _In_ LOGICAL Value);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetNumber(
+    _In_ IJsonValueStatics* Factory,
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name,
+    _In_ DOUBLE Value);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetString(
+    _In_ IJsonValueStatics* Factory,
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name,
+    _When_(Length == 0, _In_opt_) _When_(Length != 0, _In_reads_(Length)) PCWSTR Text,
+    _In_ ULONG Length);
+
+MLE_API
+HRESULT
+NTAPI
+Data_JsonObjectSetStringUtf8(
+    _In_ IJsonValueStatics* Factory,
+    _In_ IJsonObject* Object,
+    _In_ PCWSTR Name,
+    _When_(Length == 0, _In_opt_) _When_(Length != 0, _In_reads_bytes_(Length)) PCCH Text,
+    _In_ ULONG Length);
+
+#pragma endregion
+
+#pragma region Serialization
+
+// Free Text with Mem_Free.
+// Text is NUL-terminated UTF-8 without a BOM; Length excludes the terminator. Failure clears both outputs.
+MLE_API
+HRESULT
+NTAPI
+Data_JsonStringifyUtf8(
+    _In_ IJsonValue* Value,
+    _Outptr_result_z_ PSTR* Text,
+    _Out_opt_ PULONG Length);
+
+#pragma endregion
+
+#pragma region Parsing
 
 MLE_API
 HRESULT
@@ -80,5 +194,7 @@ Data_JsonParseUtf8File(
     _In_ PCWSTR Path,
     _In_opt_ ULONG MaximumSize,
     _Outptr_ IJsonValue** Value);
+
+#pragma endregion
 
 EXTERN_C_END
