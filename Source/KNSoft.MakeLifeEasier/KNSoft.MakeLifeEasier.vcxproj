@@ -208,6 +208,7 @@
     <ClCompile Include="PE\Resolve.c" />
     <ClCompile Include="PE\Resource.c" />
     <ClCompile Include="PE\Symbol.c" />
+    <ClCompile Include="PE\Util.c" />
     <ClCompile Include="Process\Environment.cpp" />
     <ClCompile Include="Process\Loader.c" />
     <ClCompile Include="Process\Process.c" />
