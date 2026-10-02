@@ -318,6 +318,8 @@ Chromium 对 `Login Data` 库的打开设置了独占锁 `PRAGMA locking_mode=EX
 
 ## 结语：AI & Security
 
+可见，浏览器自身的挣扎几近徒劳：徒增解密成本、抬高产品化门槛，却没防住真正的攻击者。大家都在同一个权限平面上，谁防得住谁？也许得借助更高层次的保护，如 Credential Guard、VBS Enclave、TPM；也许该把保护机制交给 AV/EDR/HIDS 这些角色来做。比起这些，我想得更多的是 AI & Security。
+
 AI 能力的提升对各领域都带来了极大的机遇与挑战，安全同样如此。不论 AI for Security 还是 Security for AI 都亟待关注与探索。
 
 本来做 [KNSoft.ZPigeon](https://github.com/KNSoft/KNSoft.ZPigeon) 是想探索如今 AI-Driven 与 Human-Driven 之间如何两全，让 AI 高效生成的大量功能代码稳定高效、可维护、专业度高，以及 AI 自闭环地实现“设计方案-编码-测试-改进”自迭代。但在实现此功能的过程中，GPT 以可能涉及 Cyber Security 为由拒绝了我无数次。
