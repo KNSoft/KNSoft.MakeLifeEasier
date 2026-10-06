@@ -11,24 +11,22 @@ PS_CreateProcess(
     _In_opt_ PCWSTR ApplicationName,
     _Inout_opt_ PWSTR CommandLine,
     _In_ LOGICAL InheritHandles,
+    _In_ ULONG CreationFlags,
     _In_opt_ PCWSTR CurrentDirectory,
     _In_opt_ LPSTARTUPINFOW StartupInfo,
     _Out_ LPPROCESS_INFORMATION ProcessInformation)
 {
     W32ERROR Ret;
-    PVOID Environment;
+    PVOID Environment = NULL;
     STARTUPINFOW si, *psi;
-    DWORD CreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_DEFAULT_ERROR_MODE;
 
     if (TokenHandle != NULL)
     {
-        if (CreateEnvironmentBlock(&Environment, TokenHandle, FALSE))
+        if (!CreateEnvironmentBlock(&Environment, TokenHandle, FALSE))
         {
-            CreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+            return Err_GetLastError();
         }
-    } else
-    {
-        Environment = NULL;
+        CreationFlags |= CREATE_UNICODE_ENVIRONMENT;
     }
     if (StartupInfo != NULL)
     {
@@ -51,7 +49,7 @@ PS_CreateProcess(
                                  psi,
                                  ProcessInformation,
                                  NULL) ? ERROR_SUCCESS : Err_GetLastError();
-    if (Environment)
+    if (Environment != NULL)
     {
         DestroyEnvironmentBlock(Environment);
     }

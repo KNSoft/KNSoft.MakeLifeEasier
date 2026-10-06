@@ -22,6 +22,7 @@ PS_CreateProcess(
     _In_opt_ PCWSTR ApplicationName,
     _Inout_opt_ PWSTR CommandLine,
     _In_ LOGICAL InheritHandles,
+    _In_ ULONG CreationFlags,
     _In_opt_ PCWSTR CurrentDirectory,
     _In_opt_ LPSTARTUPINFOW StartupInfo,
     _Out_ LPPROCESS_INFORMATION ProcessInformation);

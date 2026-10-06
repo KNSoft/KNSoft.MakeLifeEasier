@@ -171,6 +171,7 @@ wmain(
                            CmdPath,
                            CmdPath,
                            FALSE,
+                           NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_DEFAULT_ERROR_MODE,
                            NULL,
                            NULL,
                            &ProcessInfo);
