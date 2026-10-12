@@ -65,7 +65,6 @@ AbeReadLockedDatabase(
     /* an attributes-only open succeeds even while the browser holds the DB busy */
     Status = IO_OpenWin32File(&File,
                               DbPath,
-                              NULL,
                               FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                               FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
     if (!NT_SUCCESS(Status))
@@ -377,7 +376,7 @@ AbeCollectRecords(
         FILE_NETWORK_OPEN_INFORMATION Attributes;
 
         Step = AbeStepStart();
-        Status = IO_GetWin32FileAttributes(DbPath, NULL, &Attributes);
+        Status = IO_GetWin32FileAttributes(DbPath, &Attributes);
         if (!NT_SUCCESS(Status))
         {
             AbeLog(L"%hs: check database file: skipped, status=0x%08lX (%I64ums)\r\n",

@@ -12,6 +12,8 @@ TEST_DECL_FUNC(CBS_EnumerateFeatures);
 TEST_DECL_FUNC(CBS_ChangeFeature);
 TEST_DECL_FUNC(FVE_EnumerateVolumes);
 TEST_DECL_FUNC(FVE_VolumeLifecycle);
+TEST_DECL_FUNC(NT_Win32LongPath);
+TEST_DECL_FUNC(NT_NativeRootDirectory);
 TEST_DECL_FUNC(IO_Pipe);
 TEST_DECL_FUNC(IO_ReadFileToBufferTest);
 TEST_DECL_FUNC(ShellObject);
@@ -23,6 +25,8 @@ TEST_DECL_FUNC(RegistryNT);
 CONST UNITTEST_ENTRY UnitTestList[] = {
     TEST_DECL_ENTRY(Data_Json),
     TEST_DECL_ENTRY(Math_Round),
+    TEST_DECL_ENTRY(NT_Win32LongPath),
+    TEST_DECL_ENTRY(NT_NativeRootDirectory),
     TEST_DECL_ENTRY(IO_Pipe),
     TEST_DECL_ENTRY(IO_ReadFileToBufferTest),
     TEST_DECL_ENTRY(ShellObject),

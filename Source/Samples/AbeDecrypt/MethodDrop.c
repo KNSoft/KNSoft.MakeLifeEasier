@@ -120,7 +120,7 @@ AbeGetKeyDrop(
     {
         if (Copied)
         {
-            IO_DeleteWin32File(Copy, NULL);
+            IO_DeleteWin32File(Copy);
         }
         return FALSE;
     }
@@ -138,7 +138,7 @@ AbeGetKeyDrop(
         NtClose(WritePipe);
         if (Copied)
         {
-            IO_DeleteWin32File(Copy, NULL);
+            IO_DeleteWin32File(Copy);
         }
         return FALSE;
     }
@@ -171,7 +171,7 @@ AbeGetKeyDrop(
         NtClose(WritePipe);
         if (Copied)
         {
-            IO_DeleteWin32File(Copy, NULL);
+            IO_DeleteWin32File(Copy);
         }
         return FALSE;
     }
@@ -216,7 +216,7 @@ AbeGetKeyDrop(
     NtClose(Pi.hProcess);
     if (Copied)
     {
-        IO_DeleteWin32File(Copy, NULL);
+        IO_DeleteWin32File(Copy);
     }
 
     /* locate "KEY=" byte-wise: the stream may embed NUL terminators */

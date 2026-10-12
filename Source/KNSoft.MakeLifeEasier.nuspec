@@ -19,6 +19,7 @@
   </metadata>
   <files>
     <file src="..\README.md" target="" />
+    <file src="Tests\NT.Path.md" target="Source\Tests\" />
     <file src="KNSoft.MakeLifeEasier.targets" target="build\" />
 
     <file src="KNSoft.MakeLifeEasier\**\*.h" exclude="KNSoft.MakeLifeEasier\**\*.g.h;Resource.h;Resource.Embedded.h" target="build\Include\KNSoft\MakeLifeEasier\" />

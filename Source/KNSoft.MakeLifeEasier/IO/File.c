@@ -270,7 +270,6 @@ IO_ReadWin32FileToBuffer(
 
     Status = IO_OpenWin32File(&FileHandle,
                               FileName,
-                              NULL,
                               FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                               FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
     if (!NT_SUCCESS(Status))

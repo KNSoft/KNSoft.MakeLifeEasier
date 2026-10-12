@@ -56,7 +56,7 @@ TEST_FUNC(IO_ReadFileToBufferTest)
     TEST_OK(((PIMAGE_DOS_HEADER)Buffer)->e_magic == IMAGE_DOS_SIGNATURE);
     Mem_Free(Buffer);
 
-    Status = NT_Win32PathToNtPath(ImagePath->Buffer, NULL, &NtPath);
+    Status = NT_Win32PathToNtPath(ImagePath->Buffer, &NtPath);
     TEST_OK(NT_SUCCESS(Status));
     if (!NT_SUCCESS(Status))
     {

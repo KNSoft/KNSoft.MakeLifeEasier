@@ -107,7 +107,7 @@ Net_BrowserEnumerate(
                       L"%ls\\%ls\\User Data",
                       Env,
                       Browser_Table[i].Vendor);
-        if (!NT_SUCCESS(IO_GetWin32FileAttributes(Info->UserDataDir, NULL, &Attributes)) ||
+        if (!NT_SUCCESS(IO_GetWin32FileAttributes(Info->UserDataDir, &Attributes)) ||
             !BooleanFlagOn(Attributes.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
         {
             continue;
@@ -130,7 +130,7 @@ Net_BrowserEnumerate(
                           Path,
                           Browser_Table[i].Vendor,
                           Browser_Table[i].ExeName);
-            if (NT_SUCCESS(IO_GetWin32FileAttributes(Info->ExePath, NULL, &Attributes)) &&
+            if (NT_SUCCESS(IO_GetWin32FileAttributes(Info->ExePath, &Attributes)) &&
                 !BooleanFlagOn(Attributes.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
             {
                 Installed = TRUE;
@@ -201,7 +201,7 @@ Net_BrowserEnumerateProfiles(
         }
     }
 
-    Status = NT_Win32PathToNtPath(UserDataDir, NULL, &NtPath);
+    Status = NT_Win32PathToNtPath(UserDataDir, &NtPath);
     if (!NT_SUCCESS(Status))
     {
         goto Cleanup;
@@ -246,7 +246,7 @@ Net_BrowserEnumerateProfiles(
                               L"%ls\\%ls\\Preferences",
                               UserDataDir,
                               Candidate);
-                if (NT_SUCCESS(IO_GetWin32FileAttributes(LocalState, NULL, &Attributes)))
+                if (NT_SUCCESS(IO_GetWin32FileAttributes(LocalState, &Attributes)))
                 {
                     if (Count_ == Capacity)
                     {

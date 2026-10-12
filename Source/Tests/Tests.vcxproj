@@ -187,6 +187,7 @@
     <ClCompile Include="IO.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Math.c" />
+    <ClCompile Include="NT.c" />
     <ClCompile Include="Registry.c" />
     <ClCompile Include="ShellObject.c" />
     <ClCompile Include="String.c" />

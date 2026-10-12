@@ -371,7 +371,6 @@ Data_JsonParseUtf8File(
     *Value = NULL;
     Status = IO_OpenWin32File(&File,
                               Path,
-                              NULL,
                               FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                               FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE);
     if (!NT_SUCCESS(Status))

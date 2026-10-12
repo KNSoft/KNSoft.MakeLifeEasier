@@ -57,34 +57,30 @@ NT_CopyStringA(
 
 #pragma region Path
 
-/* NtPath should be freed by NT_FreeNtPath */
-FORCEINLINE
+/* Supports long DOS paths without requiring the Win32 long-path policy. Free NtPath with NT_FreeNtPath. */
+MLE_API
 NTSTATUS
+NTAPI
 NT_Win32PathToNtPath(
     _In_ PCWSTR Win32Path,
-    _In_opt_ HANDLE RootDirectory,
-    _Out_ PUNICODE_STRING NtPath)
-{
-    return RtlDosPathNameToNtPathName_U_WithStatus(Win32Path, NtPath, NULL, NULL);
-}
+    _Out_ PUNICODE_STRING NtPath);
 
-/* NtPath should be freed by NT_FreeNtPath */
+/* Keep NtPath and its buffer alive while using Object; free the buffer with NT_FreeNtPath. */
 FORCEINLINE
 NTSTATUS
 NT_InitWin32PathObject(
     _Out_ POBJECT_ATTRIBUTES Object,
     _In_ PCWSTR Win32Path,
-    _In_opt_ HANDLE RootDirectory,
     _Out_ PUNICODE_STRING NtPath)
 {
     NTSTATUS Status;
 
-    Status = NT_Win32PathToNtPath(Win32Path, RootDirectory, NtPath);
+    Status = NT_Win32PathToNtPath(Win32Path, NtPath);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    NT_InitObject(Object, NtPath, OBJ_CASE_INSENSITIVE, RootDirectory);
+    NT_InitObject(Object, NtPath, OBJ_CASE_INSENSITIVE, NULL);
     return STATUS_SUCCESS;
 }
 

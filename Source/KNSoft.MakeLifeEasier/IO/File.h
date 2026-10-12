@@ -107,6 +107,8 @@ IO_EndFindFile(
 
 #pragma region File Operations
 
+/* Native entry points use NT names as supplied, without DOS conversion or separator replacement. */
+
 FORCEINLINE
 NTSTATUS
 IO_CreateFile(
@@ -135,38 +137,32 @@ IO_CreateFile(
                         0);
 }
 
+/* Uses DOS/Win32 path rules; use IO_CreateFile for native names and root handles. */
 FORCEINLINE
 NTSTATUS
 IO_CreateWin32File(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
-    _In_opt_ HANDLE RootDirectory,
     _In_ ACCESS_MASK DesiredAccess,
     _In_ ULONG ShareAccess,
     _In_ ULONG CreateDisposition,
     _In_ ULONG CreateOptions)
 {
     NTSTATUS Status;
-    OBJECT_ATTRIBUTES Object;
     UNICODE_STRING NtPath;
-    IO_STATUS_BLOCK IoStatusBlock;
 
-    Status = NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    Status = NT_Win32PathToNtPath(FileName, &NtPath);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    Status = NtCreateFile(FileHandle,
-                          DesiredAccess,
-                          &Object,
-                          &IoStatusBlock,
-                          NULL,
-                          FILE_ATTRIBUTE_NORMAL,
-                          ShareAccess,
-                          CreateDisposition,
-                          CreateOptions,
-                          NULL,
-                          0);
+    Status = IO_CreateFile(FileHandle,
+                           &NtPath,
+                           NULL,
+                           DesiredAccess,
+                           ShareAccess,
+                           CreateDisposition,
+                           CreateOptions);
     NT_FreeNtPath(&NtPath);
     return Status;
 }
@@ -193,31 +189,24 @@ IO_OpenFile(
                       FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT);
 }
 
+/* Uses DOS/Win32 path rules; use IO_OpenFile for native names and root handles. */
 FORCEINLINE
 NTSTATUS
 IO_OpenWin32File(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
-    _In_opt_ HANDLE RootDirectory,
     _In_ ACCESS_MASK DesiredAccess,
     _In_ ULONG ShareAccess)
 {
     NTSTATUS Status;
-    OBJECT_ATTRIBUTES Object;
     UNICODE_STRING NtPath;
-    IO_STATUS_BLOCK IoStatusBlock;
 
-    Status = NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    Status = NT_Win32PathToNtPath(FileName, &NtPath);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    Status = NtOpenFile(FileHandle,
-                        DesiredAccess,
-                        &Object,
-                        &IoStatusBlock,
-                        ShareAccess,
-                        FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT);
+    Status = IO_OpenFile(FileHandle, &NtPath, NULL, DesiredAccess, ShareAccess);
     NT_FreeNtPath(&NtPath);
     return Status;
 }
@@ -245,40 +234,23 @@ IO_DeleteFile(
     return NtClose(FileHandle);
 }
 
+/* Uses DOS/Win32 path rules; use IO_DeleteFile for native names and root handles. */
 FORCEINLINE
 NTSTATUS
 IO_DeleteWin32File(
-    _In_ PCWSTR FileName,
-    _In_opt_ HANDLE RootDirectory)
+    _In_ PCWSTR FileName)
 {
     NTSTATUS Status;
-    OBJECT_ATTRIBUTES Object;
     UNICODE_STRING NtPath;
-    IO_STATUS_BLOCK IoStatusBlock;
-    HANDLE FileHandle;
 
-    Status = NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    Status = NT_Win32PathToNtPath(FileName, &NtPath);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    Status = NtCreateFile(&FileHandle,
-                          DELETE | SYNCHRONIZE,
-                          &Object,
-                          &IoStatusBlock,
-                          NULL,
-                          FILE_ATTRIBUTE_NORMAL,
-                          0,
-                          FILE_OPEN,
-                          FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_DELETE_ON_CLOSE,
-                          NULL,
-                          0);
+    Status = IO_DeleteFile(&NtPath, NULL);
     NT_FreeNtPath(&NtPath);
-    if (!NT_SUCCESS(Status))
-    {
-        return Status;
-    }
-    return NtClose(FileHandle);
+    return Status;
 }
 
 FORCEINLINE
@@ -294,23 +266,22 @@ IO_GetFileAttributes(
     return NtQueryFullAttributesFile(&Object, Attributes);
 }
 
+/* Uses DOS/Win32 path rules; use IO_GetFileAttributes for native names and root handles. */
 FORCEINLINE
 NTSTATUS
 IO_GetWin32FileAttributes(
     _In_ PCWSTR FileName,
-    _In_opt_ HANDLE RootDirectory,
     _Out_ PFILE_NETWORK_OPEN_INFORMATION Attributes)
 {
     NTSTATUS Status;
-    OBJECT_ATTRIBUTES Object;
     UNICODE_STRING NtPath;
 
-    Status = NT_InitWin32PathObject(&Object, FileName, RootDirectory, &NtPath);
+    Status = NT_Win32PathToNtPath(FileName, &NtPath);
     if (!NT_SUCCESS(Status))
     {
         return Status;
     }
-    Status = NtQueryFullAttributesFile(&Object, Attributes);
+    Status = IO_GetFileAttributes(&NtPath, NULL, Attributes);
     NT_FreeNtPath(&NtPath);
     return Status;
 }
